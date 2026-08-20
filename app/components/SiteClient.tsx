@@ -78,7 +78,8 @@ export function Header() {
     <header className={`site-header ${compact ? "is-compact" : ""}`}>
       <div className="header-inner">
         <a className="brand" href="/" aria-label="HF Removals Adelaide home">
-          <img src={business.logo} alt="HF Removals Adelaide" width="1679" height="937" />
+          <img src={business.headerLogo} alt="" width="320" height="164" />
+          <span className="brand-copy"><strong>HF Removals</strong><small>Adelaide</small></span>
         </a>
         <nav className="desktop-nav" aria-label="Primary navigation">
           {nav.map((item) => <a key={item.href} href={item.href}>{item.label}</a>)}

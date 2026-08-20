@@ -36,6 +36,7 @@ export const business = {
     "Side-table protective wraps",
   ],
   logo: "/images/hf-logo-transparent.png",
+  headerLogo: "/images/hf-logo-header-mark.png",
   logoSource: "/images/hf-logo-source.jpg",
   heroImage: "/images/hf-hero-truck-1792.webp",
   ceoImage: "/images/muhammad-rasheed-ceo.webp",
