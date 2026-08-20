@@ -40,14 +40,6 @@
     "**/*.mts"
   ],
   "exclude": [
-    "node_modules",
-    "worker",
-    "db",
-    "build",
-    "examples",
-    "drizzle",
-    "vite.config.ts",
-    "drizzle.config.ts",
-    "worker-configuration.d.ts"
+    "node_modules"
   ]
 }

@@ -42,6 +42,4 @@ Business details and published pricing are centralized in `lib/site-data.ts`. In
 
 ## Migration note
 
-This site previously targeted Cloudflare Workers via `vinext` and OpenAI Sites hosting. The following are orphaned by the move to Vercel and are excluded from `tsconfig.json` and ESLint pending removal:
-
-`worker/`, `db/`, `drizzle/`, `examples/`, `build/`, `dist/`, `vite.config.ts`, `drizzle.config.ts`, `worker-configuration.d.ts`, `app/chatgpt-auth.ts`
+This site previously targeted Cloudflare Workers via `vinext` and OpenAI Sites hosting. That toolchain and its scaffolding have been removed; `app/` and `lib/` needed no changes, as they were already standard App Router code.

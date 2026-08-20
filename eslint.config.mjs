@@ -6,8 +6,8 @@ const eslintConfig = defineConfig([
   ...nextVitals,
   ...nextTs,
   {
-    // vinext emits a static multi-route site; native anchors preserve direct
-    // canonical navigation and native images retain explicit responsive sizing.
+    // The site uses native anchors for direct canonical navigation and native
+    // images that carry their own explicit responsive sizing.
     rules: {
       "@next/next/no-html-link-for-pages": "off",
       "@next/next/no-img-element": "off",
@@ -20,16 +20,7 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
-    // Orphaned Cloudflare Worker / OpenAI Sites scaffolding. Not part of the
-    // Vercel build; kept only until the directories are removed.
-    "worker/**",
-    "db/**",
-    "drizzle/**",
-    "examples/**",
     "dist/**",
-    "vite.config.ts",
-    "drizzle.config.ts",
-    "worker-configuration.d.ts",
   ]),
 ]);
 
