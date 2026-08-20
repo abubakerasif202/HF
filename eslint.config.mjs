@@ -20,6 +20,16 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Orphaned Cloudflare Worker / OpenAI Sites scaffolding. Not part of the
+    // Vercel build; kept only until the directories are removed.
+    "worker/**",
+    "db/**",
+    "drizzle/**",
+    "examples/**",
+    "dist/**",
+    "vite.config.ts",
+    "drizzle.config.ts",
+    "worker-configuration.d.ts",
   ]),
 ]);
 

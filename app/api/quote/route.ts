@@ -12,11 +12,30 @@ function isValidEmail(value: string) {
 }
 
 function getClientKey(request: Request) {
-  return request.headers.get("cf-connecting-ip") ?? request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ?? "unknown";
+  return request.headers.get("x-real-ip") ?? request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ?? "unknown";
+}
+
+// Best-effort limiter. Serverless instances do not share memory and are
+// recycled, so a determined caller can still get through by landing on cold
+// instances. It exists to blunt naive floods, not as real abuse protection.
+// Swap in a shared store (Upstash Redis, Vercel KV) for a durable limit.
+const RATE_LIMIT_MAX = 5;
+const RATE_LIMIT_WINDOW_MS = 60_000;
+const recentRequests = new Map<string, number[]>();
+
+function isRateLimited(keys: string[]) {
+  const now = Date.now();
+  for (const [key, hits] of recentRequests) {
+    const live = hits.filter((at) => now - at < RATE_LIMIT_WINDOW_MS);
+    if (live.length) recentRequests.set(key, live);
+    else recentRequests.delete(key);
+  }
+  const limited = keys.some((key) => (recentRequests.get(key)?.length ?? 0) >= RATE_LIMIT_MAX);
+  if (!limited) for (const key of keys) recentRequests.set(key, [...(recentRequests.get(key) ?? []), now]);
+  return limited;
 }
 
 export async function POST(request: Request) {
-  const workerEnv = (globalThis as typeof globalThis & { __HF_WORKER_ENV__?: Cloudflare.Env }).__HF_WORKER_ENV__;
   const contentLength = Number(request.headers.get("content-length") ?? 0);
   if (contentLength > 24_000) return Response.json({ error: "The request is too large." }, { status: 413 });
   const raw = await request.text();
@@ -46,23 +65,20 @@ export async function POST(request: Request) {
   const elapsedMs = typeof body.elapsedMs === "number" && Number.isFinite(body.elapsedMs) ? body.elapsedMs : -1;
   if (elapsedMs < MIN_FORM_DWELL_MS || elapsedMs > MAX_FORM_DWELL_MS) return Response.json({ error: "Please review the form before sending." }, { status: 422 });
 
-  const endpoint = workerEnv?.QUOTE_ENDPOINT_URL ?? process.env.QUOTE_ENDPOINT_URL;
+  const endpoint = process.env.QUOTE_ENDPOINT_URL;
   if (!endpoint) return Response.json({ error: "Quote delivery is not configured." }, { status: 503 });
   let endpointUrl: URL;
   try { endpointUrl = new URL(endpoint); } catch { return Response.json({ error: "Quote delivery is not configured." }, { status: 503 }); }
   if (endpointUrl.protocol !== "https:") return Response.json({ error: "Quote delivery is not configured securely." }, { status: 503 });
-  const limiter = workerEnv?.QUOTE_RATE_LIMITER;
-  if (!limiter) return Response.json({ error: "Quote delivery protection is not configured." }, { status: 503 });
   const rateKeys = [`ip:${getClientKey(request)}`, `email:${values.email.toLowerCase()}`];
-  const outcomes = await Promise.all(rateKeys.map((key) => limiter.limit({ key })));
-  if (outcomes.some(({ success }) => !success)) return Response.json({ error: "Too many enquiries were sent. Please call HF Removals Adelaide." }, { status: 429 });
+  if (isRateLimited(rateKeys)) return Response.json({ error: "Too many enquiries were sent. Please call HF Removals Adelaide." }, { status: 429 });
 
   try {
     const response = await fetch(endpointUrl, {
       method: "POST",
       headers: {
         "content-type": "application/json",
-        ...(workerEnv?.QUOTE_BEARER_TOKEN || process.env.QUOTE_BEARER_TOKEN ? { authorization: `Bearer ${workerEnv?.QUOTE_BEARER_TOKEN ?? process.env.QUOTE_BEARER_TOKEN}` } : {}),
+        ...(process.env.QUOTE_BEARER_TOKEN ? { authorization: `Bearer ${process.env.QUOTE_BEARER_TOKEN}` } : {}),
       },
       body: JSON.stringify({
         name: values.name, phone: values.phone, email: values.email, date: values.date,

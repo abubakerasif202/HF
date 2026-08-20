@@ -1,20 +1,63 @@
 import assert from "node:assert/strict";
+import { spawn } from "node:child_process";
+import { createRequire } from "node:module";
 import { readFile } from "node:fs/promises";
-import test from "node:test";
+import test, { after } from "node:test";
 
-async function render(path = "/", init = {}) {
-  const { env = {}, ...requestInit } = init;
-  const workerUrl = new URL("../dist/server/index.js", import.meta.url);
-  workerUrl.searchParams.set("test", `${process.pid}-${Date.now()}-${path}`);
-  const { default: worker } = await import(workerUrl.href);
-  return worker.fetch(new Request(`http://localhost${path}`, { headers: { accept: "text/html", ...(requestInit.headers ?? {}) }, ...requestInit }), {
-    ASSETS: { fetch: async () => new Response("Not found", { status: 404 }) },
-    ...env,
-  }, { waitUntil() {}, passThroughOnException() {} });
+const nextBin = createRequire(import.meta.url).resolve("next/dist/bin/next");
+const servers = [];
+
+/**
+ * Boot `next start` on its own port with the given environment. Each server is
+ * isolated so env-dependent branches of the quote API can be covered without
+ * the in-memory rate limiter leaking counts between cases.
+ */
+async function startServer(port, env = {}) {
+  const child = spawn(process.execPath, [nextBin, "start", "--port", String(port)], {
+    env: { ...process.env, NODE_ENV: "production", QUOTE_ENDPOINT_URL: "", QUOTE_BEARER_TOKEN: "", ...env },
+    stdio: ["ignore", "pipe", "pipe"],
+  });
+  const errors = [];
+  child.stderr.on("data", (chunk) => errors.push(String(chunk)));
+  servers.push(child);
+
+  const baseUrl = `http://127.0.0.1:${port}`;
+  const deadline = Date.now() + 60_000;
+  for (;;) {
+    if (child.exitCode !== null) throw new Error(`next start exited early:\n${errors.join("")}`);
+    try {
+      await fetch(baseUrl, { signal: AbortSignal.timeout(2_000) });
+      return baseUrl;
+    } catch {
+      if (Date.now() > deadline) throw new Error(`next start never became ready:\n${errors.join("")}`);
+      await new Promise((resolve) => setTimeout(resolve, 250));
+    }
+  }
 }
 
+after(() => servers.forEach((child) => child.kill()));
+
+const unconfigured = await startServer(3117);
+
+function get(path) {
+  return fetch(`${unconfigured}${path}`, { headers: { accept: "text/html" } });
+}
+
+function postQuote(baseUrl, body, headers = {}) {
+  return fetch(`${baseUrl}/api/quote`, {
+    method: "POST",
+    headers: { "content-type": "application/json", ...headers },
+    body: JSON.stringify(body),
+  });
+}
+
+const validQuote = {
+  name: "A", phone: "0491 704 136", email: "a@example.com", from: "Adelaide",
+  to: "Salisbury", moveType: "Residential", propertySize: "2 Bedroom", details: "", elapsedMs: 2_000,
+};
+
 test("renders the premium HF homepage without placeholder claims", async () => {
-  const response = await render();
+  const response = await get("/");
   assert.equal(response.status, 200);
   const html = await response.text();
   assert.match(html, /Adelaide[\s\S]*Removalists[\s\S]*You Can[\s\S]*Rely On/i);
@@ -45,65 +88,79 @@ test("renders service, area, route, guide and contact routes", async () => {
     ["/contact", /Talk to HF Removals Adelaide/i],
   ];
   for (const [path, pattern] of paths) {
-    const response = await render(path);
+    const response = await get(path);
     assert.equal(response.status, 200, path);
     assert.match(await response.text(), pattern, path);
   }
 
-  const about = await render("/about");
+  const about = await get("/about");
   assert.match(await about.text(), /<title>About \| HF Removals Adelaide<\/title>/i);
 
-  const contact = await render("/contact");
+  const contact = await get("/contact");
   const contactHtml = await contact.text();
   assert.match(contactHtml, /Google map showing HF Removals Adelaide in Elizabeth Vale/i);
   assert.match(contactHtml, /6MW7\+J5 Elizabeth Vale/i);
   assert.match(contactHtml, /loading="lazy"/i);
   assert.match(contactHtml, /Get directions/i);
 
-  const service = await render("/services/residential-removals");
+  const service = await get("/services/residential-removals");
   assert.doesNotMatch(await service.text(), /FAQPage/);
+
+  const missing = await get("/services/not-a-real-service");
+  assert.equal(missing.status, 404);
 });
 
 test("serves crawl discovery endpoints and unique guide metadata", async () => {
-  const robots = await render("/robots.txt");
+  const robots = await get("/robots.txt");
   assert.equal(robots.status, 200);
   assert.match(robots.headers.get("content-type") ?? "", /text\/plain/);
   assert.match(await robots.text(), /Sitemap: https:\/\/hfremovalsadelaide\.com\.au\/sitemap\.xml/);
 
-  const sitemap = await render("/sitemap.xml");
+  const sitemap = await get("/sitemap.xml");
   assert.equal(sitemap.status, 200);
   assert.match(sitemap.headers.get("content-type") ?? "", /xml/);
   assert.match(await sitemap.text(), /https:\/\/hfremovalsadelaide\.com\.au\/services\/residential-removals/);
 
-  const guide = await render("/guides/office-relocation-checklist");
+  const guide = await get("/guides/office-relocation-checklist");
   const html = await guide.text();
   assert.match(html, /<title>Office Relocation Checklist \| HF Removals Adelaide<\/title>/i);
   assert.doesNotMatch(html, /href="\/(?:services|areas|pricing|about|contact|guides|interstate|privacy|terms)[^"]*\/"/i);
 });
 
 test("bounds and validates quote API requests without a configured provider", async () => {
-  const fast = await render("/api/quote", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ name: "A", phone: "0491 704 136", email: "a@example.com", from: "Adelaide", to: "Salisbury", moveType: "Residential", propertySize: "2 Bedroom", elapsedMs: 200 }) });
+  const fast = await postQuote(unconfigured, { ...validQuote, elapsedMs: 200 });
   assert.equal(fast.status, 422);
 
-  const skewed = await render("/api/quote", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ name: "A", phone: "0491 704 136", email: "a@example.com", from: "Adelaide", to: "Salisbury", moveType: "Residential", propertySize: "2 Bedroom", details: "", elapsedMs: 5_000, startedAt: Date.now() + 600_000 }) });
+  const skewed = await postQuote(unconfigured, { ...validQuote, elapsedMs: 5_000, startedAt: Date.now() + 600_000 });
   assert.equal(skewed.status, 503, "a device clock ahead of the server must not reject a genuine enquiry");
 
-  const badDate = await render("/api/quote", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ name: "A", phone: "0491 704 136", email: "a@example.com", date: "next week", from: "Adelaide", to: "Salisbury", moveType: "Residential", propertySize: "2 Bedroom", details: "", elapsedMs: 5_000 }) });
+  const badDate = await postQuote(unconfigured, { ...validQuote, date: "next week" });
   assert.equal(badDate.status, 422);
 
-  const valid = await render("/api/quote", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ name: "A", phone: "0491 704 136", email: "a@example.com", from: "Adelaide", to: "Salisbury", moveType: "Residential", propertySize: "2 Bedroom", details: "", elapsedMs: 2_000 }) });
+  const honeypot = await postQuote(unconfigured, { ...validQuote, company: "spam co" });
+  assert.equal(honeypot.status, 200);
+
+  const valid = await postQuote(unconfigured, validQuote);
   assert.equal(valid.status, 503);
 
-  const limited = await render("/api/quote", {
-    method: "POST",
-    headers: { "content-type": "application/json", "cf-connecting-ip": "203.0.113.10" },
-    body: JSON.stringify({ name: "A", phone: "0491 704 136", email: "a@example.com", from: "Adelaide", to: "Salisbury", moveType: "Residential", propertySize: "2 Bedroom", details: "", elapsedMs: 2_000 }),
-    env: { QUOTE_ENDPOINT_URL: "https://example.com/quote", QUOTE_RATE_LIMITER: { limit: async () => ({ success: false }) } },
-  });
-  assert.equal(limited.status, 429);
-
-  const oversized = await render("/api/quote", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ details: "x".repeat(25_000) }) });
+  const oversized = await postQuote(unconfigured, { details: "x".repeat(25_000) });
   assert.equal(oversized.status, 413);
+});
+
+test("rate limits repeated enquiries once a provider is configured", async () => {
+  // Points at the discard port so the handler's outbound fetch fails locally
+  // and fast; the limiter runs before that fetch, which is what matters here.
+  const configured = await startServer(3118, { QUOTE_ENDPOINT_URL: "https://127.0.0.1:9/quote" });
+  const headers = { "x-forwarded-for": "203.0.113.10" };
+
+  const statuses = [];
+  for (let attempt = 0; attempt < 6; attempt += 1) {
+    const response = await postQuote(configured, validQuote, headers);
+    statuses.push(response.status);
+  }
+
+  assert.ok(statuses.slice(0, 5).every((status) => status === 502), `expected upstream failures, got ${statuses}`);
+  assert.equal(statuses.at(-1), 429, `expected the sixth enquiry to be limited, got ${statuses}`);
 });
 
 test("keeps verified rates, coverage wording and canonical route inventory centralized", async () => {
