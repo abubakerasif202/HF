@@ -6,7 +6,8 @@ export function ServiceTicker({ locations = false }: { locations?: boolean }) {
     ? ["ADELAIDE", "ELIZABETH VALE", "ELIZABETH", "SALISBURY", "BLAKEVIEW", "GAWLER", "ADELAIDE METRO"]
     : ["RESIDENTIAL REMOVALS", "OFFICE RELOCATIONS", "INTERSTATE MOVES", "BACKLOADING", "PACKING & UNPACKING"];
   const content = [...items, ...items];
-  return <div className="ticker" tabIndex={0}><p className="sr-only">{items.join(", ")}. Focus pauses the moving ticker.</p><div className="ticker-track" aria-hidden="true">{content.map((item, index) => <span key={`${item}-${index}`}>{item}<b>◆</b></span>)}</div></div>;
+  const label = locations ? "Service locations" : "Services offered";
+  return <div className="ticker" tabIndex={0} role="group" aria-label={`${label}. Focus pauses the moving ticker.`}><p className="sr-only">{items.join(", ")}</p><div className="ticker-track" aria-hidden="true">{content.map((item, index) => <span key={`${item}-${index}`}>{item}<b>◆</b></span>)}</div></div>;
 }
 
 function TrustBar() {

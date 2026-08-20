@@ -1,6 +1,10 @@
 const required = ["name", "phone", "email", "from", "to", "moveType", "propertySize"] as const;
 const moveTypes = new Set(["Residential", "Apartment", "Office / Commercial", "Interstate", "Backloading", "Packing / Unpacking", "Other"]);
 const propertySizes = new Set(["Studio / Small", "1 Bedroom", "2 Bedroom", "3 Bedroom", "4 Bedroom", "5+ Bedroom", "Office / Commercial", "Other"]);
+// A genuine enquiry takes at least a moment to fill in; a session left open
+// for over a day is treated as stale rather than as a real submission.
+const MIN_FORM_DWELL_MS = 1_200;
+const MAX_FORM_DWELL_MS = 24 * 60 * 60 * 1_000;
 const fieldLimits: Record<string, number> = { name: 100, phone: 32, email: 254, date: 20, from: 180, to: 180, moveType: 40, propertySize: 40, details: 3000 };
 
 function isValidEmail(value: string) {
@@ -36,8 +40,11 @@ export async function POST(request: Request) {
   if (!isValidEmail(values.email)) return Response.json({ error: "Please enter a valid email address." }, { status: 422 });
   if (!/^[0-9+ ()-]{8,}$/.test(values.phone)) return Response.json({ error: "Please enter a valid phone number." }, { status: 422 });
   if (!moveTypes.has(values.moveType) || !propertySizes.has(values.propertySize)) return Response.json({ error: "Please select a valid move and property type." }, { status: 422 });
-  const startedAt = typeof body.startedAt === "number" ? body.startedAt : 0;
-  if (!startedAt || Date.now() - startedAt < 1_200 || startedAt > Date.now()) return Response.json({ error: "Please review the form before sending." }, { status: 422 });
+  if (values.date && !/^\d{4}-\d{2}-\d{2}$/.test(values.date)) return Response.json({ error: "Please enter a valid moving date." }, { status: 422 });
+  // Elapsed time is measured entirely on the client so device clock offset
+  // cannot reject a genuine submission. Only the duration is trusted here.
+  const elapsedMs = typeof body.elapsedMs === "number" && Number.isFinite(body.elapsedMs) ? body.elapsedMs : -1;
+  if (elapsedMs < MIN_FORM_DWELL_MS || elapsedMs > MAX_FORM_DWELL_MS) return Response.json({ error: "Please review the form before sending." }, { status: 422 });
 
   const endpoint = workerEnv?.QUOTE_ENDPOINT_URL ?? process.env.QUOTE_ENDPOINT_URL;
   if (!endpoint) return Response.json({ error: "Quote delivery is not configured." }, { status: 503 });

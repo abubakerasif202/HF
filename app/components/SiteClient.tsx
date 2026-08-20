@@ -23,7 +23,7 @@ export function OpeningSequence() {
 
   if (!visible) return null;
   return (
-    <div className="opening" aria-hidden="true">
+    <div className="opening" aria-hidden="true" onPointerDown={() => setVisible(false)}>
       <div className="opening-glow" />
       <img src={business.logo} alt="" width="1679" height="937" className="opening-logo" />
       <p>{business.tagline}</p>
@@ -55,6 +55,7 @@ export function Header() {
       }
       if (event.key === "Tab" && open && menu.current) {
         const focusable = Array.from(menu.current.querySelectorAll<HTMLElement>('a[href], button:not([disabled])'));
+        if (toggle.current) focusable.push(toggle.current);
         const first = focusable[0];
         const last = focusable.at(-1);
         if (event.shiftKey && document.activeElement === first) {
@@ -110,15 +111,28 @@ export function Header() {
 
 type FormDataShape = {
   name: string; phone: string; email: string; date: string; from: string; to: string;
-  moveType: string; propertySize: string; details: string; company: string; startedAt: number;
+  moveType: string; propertySize: string; details: string; company: string;
 };
 
-const createEmptyForm = (): FormDataShape => ({ name: "", phone: "", email: "", date: "", from: "", to: "", moveType: "", propertySize: "", details: "", company: "", startedAt: Date.now() });
+const createEmptyForm = (): FormDataShape => ({ name: "", phone: "", email: "", date: "", from: "", to: "", moveType: "", propertySize: "", details: "", company: "" });
+
+const todayIso = () => new Date().toLocaleDateString("en-CA");
 
 export function QuoteForm({ compact = false }: { compact?: boolean }) {
   const [form, setForm] = useState<FormDataShape>(() => createEmptyForm());
   const [status, setStatus] = useState("");
   const [loading, setLoading] = useState(false);
+  // Measured client-side and sent as a duration, so a device clock that
+  // disagrees with the server cannot reject a genuine enquiry.
+  const startedAt = useRef(0);
+  const dateInput = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    startedAt.current = Date.now();
+    // Applied here rather than during render: the server and the visitor can
+    // be on different dates, which would not survive hydration as an attribute.
+    if (dateInput.current) dateInput.current.min = todayIso();
+  }, []);
 
   const update = (field: keyof FormDataShape, value: string) => setForm((current) => ({ ...current, [field]: value }));
 
@@ -138,10 +152,11 @@ export function QuoteForm({ compact = false }: { compact?: boolean }) {
     setLoading(true);
     setStatus("Sending your move details…");
     try {
-      const response = await fetch("/api/quote", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(form) });
+      const response = await fetch("/api/quote", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ ...form, elapsedMs: Date.now() - startedAt.current }) });
       if (response.ok) {
         setStatus("Thanks — your move details were sent to HF Removals Adelaide.");
         setForm(createEmptyForm());
+        startedAt.current = Date.now();
       } else if (response.status >= 500) {
         setStatus("Online delivery is being connected. Your email app will open with the details ready to send.");
         openEmailFallback();
@@ -165,7 +180,7 @@ export function QuoteForm({ compact = false }: { compact?: boolean }) {
         <label><span className="field-label">Name <b aria-hidden="true">*</b></span><input required autoComplete="name" value={form.name} onChange={(e) => update("name", e.target.value)} placeholder="Your full name" /></label>
         <label><span className="field-label">Phone <b aria-hidden="true">*</b></span><input required autoComplete="tel" inputMode="tel" pattern="[0-9+ ()-]{8,}" value={form.phone} onChange={(e) => update("phone", e.target.value)} placeholder="Mobile number" /></label>
         <label><span className="field-label">Email <b aria-hidden="true">*</b></span><input required type="email" autoComplete="email" value={form.email} onChange={(e) => update("email", e.target.value)} placeholder="Email address" /></label>
-        <label><span className="field-label">Moving date</span><input type="date" value={form.date} onChange={(e) => update("date", e.target.value)} /></label>
+        <label><span className="field-label">Moving date</span><input ref={dateInput} type="date" value={form.date} onChange={(e) => update("date", e.target.value)} /></label>
         <label><span className="field-label">Moving from <b aria-hidden="true">*</b></span><input required autoComplete="address-level2" value={form.from} onChange={(e) => update("from", e.target.value)} placeholder="Suburb or postcode" /></label>
         <label><span className="field-label">Moving to <b aria-hidden="true">*</b></span><input required autoComplete="address-level2" value={form.to} onChange={(e) => update("to", e.target.value)} placeholder="Suburb or postcode" /></label>
         <label><span className="field-label">Move type <b aria-hidden="true">*</b></span><select required value={form.moveType} onChange={(e) => update("moveType", e.target.value)}><option value="">Select move type</option><option>Residential</option><option>Apartment</option><option>Office / Commercial</option><option>Interstate</option><option>Backloading</option><option>Packing / Unpacking</option><option>Other</option></select></label>

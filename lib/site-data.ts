@@ -239,14 +239,20 @@ export const areas: ContentPage[] = [
   },
 ];
 
+// Rates live only in `interstatePricing`; route pages look them up by slug so
+// the two lists cannot drift apart when a published rate changes.
 const routeDetails = [
-  ["adelaide-melbourne", "Melbourne", "$119.43", "Prepare an itemised inventory and confirm access at both addresses before the volume is assessed."],
-  ["adelaide-sydney", "Sydney", "$130.19", "Include destination access windows, lift or loading details and an accurate volume estimate."],
-  ["adelaide-queensland", "Queensland", "$164.04", "Queensland is a broad destination; include the city, suburb and postcode in your enquiry."],
-  ["adelaide-perth", "Perth", "$186.06", "Identify bulky items and prepare belongings for a longer-distance move before final scoping."],
+  ["adelaide-melbourne", "Melbourne", "Prepare an itemised inventory and confirm access at both addresses before the volume is assessed."],
+  ["adelaide-sydney", "Sydney", "Include destination access windows, lift or loading details and an accurate volume estimate."],
+  ["adelaide-queensland", "Queensland", "Queensland is a broad destination; include the city, suburb and postcode in your enquiry."],
+  ["adelaide-perth", "Perth", "Identify bulky items and prepare belongings for a longer-distance move before final scoping."],
 ] as const;
 
-export const interstateRoutes: ContentPage[] = routeDetails.map(([slug, destination, price, angle]) => ({
+export const interstateRoutes: ContentPage[] = routeDetails.map(([slug, destination, angle]) => {
+  const rate = interstatePricing.find((item) => item.slug === slug);
+  if (!rate) throw new Error(`No interstate rate is published for route "${slug}".`);
+  const price = rate.price;
+  return {
   slug,
   kind: "route",
   eyebrow: `Adelaide ↔ ${destination}`,
@@ -255,7 +261,7 @@ export const interstateRoutes: ContentPage[] = routeDetails.map(([slug, destinat
   intro: `${angle} The published rate is a per-cubic-metre reference, not a total move price.`,
   highlights: ["Inventory and volume estimate", "Access at both addresses", "Packing requirements", "Destination details"],
   price,
-  unit: "per m³",
+  unit: rate.unit,
   sections: [
     { title: "How volume pricing works", body: `The ${price} rate applies per cubic metre. Final move cost depends on the volume and scope of the move.` },
     { title: "Prepare your inventory", body: "List furniture, appliances, cartons and high-care items. Dimensions for bulky pieces help improve the volume estimate." },
@@ -265,7 +271,8 @@ export const interstateRoutes: ContentPage[] = routeDetails.map(([slug, destinat
     { question: `Is ${price} the total price to ${destination}?`, answer: `No. ${price} is the published reference rate per cubic metre. Final cost depends on volume and scope.` },
     { question: "Is a fixed transit time promised?", answer: "No fixed transit time or departure schedule is published here. Confirm timing for your individual move directly with HF." },
   ],
-}));
+  };
+});
 
 const guideSeed = [
   ["adelaide-moving-checklist", "Adelaide Moving Checklist", "Build a calm sequence from early inventory to final placement.", ["Create a room-by-room inventory", "Confirm both addresses and access", "Book packing support if needed", "Label cartons by destination room"]],

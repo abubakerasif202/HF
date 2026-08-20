@@ -17,7 +17,7 @@ const schema = {
       name: business.name,
       legalName: business.legalName,
       url: business.domain,
-      telephone: business.phones[0].display,
+      telephone: business.phones[0].href.replace("tel:", ""),
       email: business.emails[0],
       image: `${business.domain}${business.heroImage}`,
       hasMap: business.googleBusiness.mapEmbedUrl,

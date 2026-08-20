@@ -82,16 +82,22 @@ test("serves crawl discovery endpoints and unique guide metadata", async () => {
 });
 
 test("bounds and validates quote API requests without a configured provider", async () => {
-  const fast = await render("/api/quote", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ name: "A", phone: "0491 704 136", email: "a@example.com", from: "Adelaide", to: "Salisbury", moveType: "Residential", propertySize: "2 Bedroom", startedAt: Date.now() }) });
+  const fast = await render("/api/quote", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ name: "A", phone: "0491 704 136", email: "a@example.com", from: "Adelaide", to: "Salisbury", moveType: "Residential", propertySize: "2 Bedroom", elapsedMs: 200 }) });
   assert.equal(fast.status, 422);
 
-  const valid = await render("/api/quote", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ name: "A", phone: "0491 704 136", email: "a@example.com", from: "Adelaide", to: "Salisbury", moveType: "Residential", propertySize: "2 Bedroom", details: "", startedAt: Date.now() - 2_000 }) });
+  const skewed = await render("/api/quote", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ name: "A", phone: "0491 704 136", email: "a@example.com", from: "Adelaide", to: "Salisbury", moveType: "Residential", propertySize: "2 Bedroom", details: "", elapsedMs: 5_000, startedAt: Date.now() + 600_000 }) });
+  assert.equal(skewed.status, 503, "a device clock ahead of the server must not reject a genuine enquiry");
+
+  const badDate = await render("/api/quote", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ name: "A", phone: "0491 704 136", email: "a@example.com", date: "next week", from: "Adelaide", to: "Salisbury", moveType: "Residential", propertySize: "2 Bedroom", details: "", elapsedMs: 5_000 }) });
+  assert.equal(badDate.status, 422);
+
+  const valid = await render("/api/quote", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ name: "A", phone: "0491 704 136", email: "a@example.com", from: "Adelaide", to: "Salisbury", moveType: "Residential", propertySize: "2 Bedroom", details: "", elapsedMs: 2_000 }) });
   assert.equal(valid.status, 503);
 
   const limited = await render("/api/quote", {
     method: "POST",
     headers: { "content-type": "application/json", "cf-connecting-ip": "203.0.113.10" },
-    body: JSON.stringify({ name: "A", phone: "0491 704 136", email: "a@example.com", from: "Adelaide", to: "Salisbury", moveType: "Residential", propertySize: "2 Bedroom", details: "", startedAt: Date.now() - 2_000 }),
+    body: JSON.stringify({ name: "A", phone: "0491 704 136", email: "a@example.com", from: "Adelaide", to: "Salisbury", moveType: "Residential", propertySize: "2 Bedroom", details: "", elapsedMs: 2_000 }),
     env: { QUOTE_ENDPOINT_URL: "https://example.com/quote", QUOTE_RATE_LIMITER: { limit: async () => ({ success: false }) } },
   });
   assert.equal(limited.status, 429);
