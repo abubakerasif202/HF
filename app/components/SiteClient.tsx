@@ -160,15 +160,16 @@ export function QuoteForm({ compact = false }: { compact?: boolean }) {
   return (
     <form className={`quote-form ${compact ? "quote-form-compact" : ""}`} id="quote" onSubmit={submit} noValidate={false}>
       <div className="form-heading"><span className="form-mark">HF</span><div><p className="eyebrow">Free move enquiry</p><h2>Tell us about your move</h2><p>Send the essentials and we&apos;ll review the details.</p></div></div>
+      <p className="form-required">Fields marked <span aria-hidden="true">*</span> are required.</p>
       <div className="form-grid">
-        <label>Name<input required autoComplete="name" value={form.name} onChange={(e) => update("name", e.target.value)} placeholder="Your full name" /></label>
-        <label>Phone<input required autoComplete="tel" inputMode="tel" pattern="[0-9+ ()-]{8,}" value={form.phone} onChange={(e) => update("phone", e.target.value)} placeholder="Mobile number" /></label>
-        <label>Email<input required type="email" autoComplete="email" value={form.email} onChange={(e) => update("email", e.target.value)} placeholder="Email address" /></label>
+        <label>Name <span aria-hidden="true">*</span><input required autoComplete="name" value={form.name} onChange={(e) => update("name", e.target.value)} placeholder="Your full name" /></label>
+        <label>Phone <span aria-hidden="true">*</span><input required autoComplete="tel" inputMode="tel" pattern="[0-9+ ()-]{8,}" value={form.phone} onChange={(e) => update("phone", e.target.value)} placeholder="Mobile number" /></label>
+        <label>Email <span aria-hidden="true">*</span><input required type="email" autoComplete="email" value={form.email} onChange={(e) => update("email", e.target.value)} placeholder="Email address" /></label>
         <label>Moving date<input type="date" value={form.date} onChange={(e) => update("date", e.target.value)} /></label>
-        <label>Moving from<input required autoComplete="address-level2" value={form.from} onChange={(e) => update("from", e.target.value)} placeholder="Suburb or postcode" /></label>
-        <label>Moving to<input required autoComplete="address-level2" value={form.to} onChange={(e) => update("to", e.target.value)} placeholder="Suburb or postcode" /></label>
-        <label>Move type<select required value={form.moveType} onChange={(e) => update("moveType", e.target.value)}><option value="">Select move type</option><option>Residential</option><option>Apartment</option><option>Office / Commercial</option><option>Interstate</option><option>Backloading</option><option>Packing / Unpacking</option><option>Other</option></select></label>
-        <label>Property size<select required value={form.propertySize} onChange={(e) => update("propertySize", e.target.value)}><option value="">Select property size</option><option>Studio / Small</option><option>1 Bedroom</option><option>2 Bedroom</option><option>3 Bedroom</option><option>4 Bedroom</option><option>5+ Bedroom</option><option>Office / Commercial</option><option>Other</option></select></label>
+        <label>Moving from <span aria-hidden="true">*</span><input required autoComplete="address-level2" value={form.from} onChange={(e) => update("from", e.target.value)} placeholder="Suburb or postcode" /></label>
+        <label>Moving to <span aria-hidden="true">*</span><input required autoComplete="address-level2" value={form.to} onChange={(e) => update("to", e.target.value)} placeholder="Suburb or postcode" /></label>
+        <label>Move type <span aria-hidden="true">*</span><select required value={form.moveType} onChange={(e) => update("moveType", e.target.value)}><option value="">Select move type</option><option>Residential</option><option>Apartment</option><option>Office / Commercial</option><option>Interstate</option><option>Backloading</option><option>Packing / Unpacking</option><option>Other</option></select></label>
+        <label>Property size <span aria-hidden="true">*</span><select required value={form.propertySize} onChange={(e) => update("propertySize", e.target.value)}><option value="">Select property size</option><option>Studio / Small</option><option>1 Bedroom</option><option>2 Bedroom</option><option>3 Bedroom</option><option>4 Bedroom</option><option>5+ Bedroom</option><option>Office / Commercial</option><option>Other</option></select></label>
         <label className="form-wide">Additional details<textarea value={form.details} onChange={(e) => update("details", e.target.value)} placeholder="Access, inventory, packing or other details" rows={compact ? 3 : 4} /></label>
         <label className="honeypot" aria-hidden="true">Company<input tabIndex={-1} autoComplete="off" value={form.company} onChange={(e) => update("company", e.target.value)} /></label>
       </div>

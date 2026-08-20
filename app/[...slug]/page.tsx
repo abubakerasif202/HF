@@ -22,6 +22,11 @@ const listingPages: Record<string, { kind: "services" | "areas" | "interstate" |
 };
 
 function pathFor(parts: string[]) { return `/${parts.join("/")}`; }
+function contentTitle(page: NonNullable<ReturnType<typeof findContentPage>>) {
+  if (page.kind === "area") return `${page.eyebrow.replace(/ removals| moving support/i, "")} Removalists`;
+  if (page.kind === "service") return `${page.eyebrow} Adelaide`;
+  return page.title;
+}
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
@@ -36,7 +41,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   }
   const page = findContentPage(slug);
   if (!page) return {};
-  return { title: page.title, description: page.description, alternates: { canonical: canonical(path) }, openGraph: { title: page.title, description: page.description, url: canonical(path) } };
+  const title = contentTitle(page);
+  return { title, description: page.description, alternates: { canonical: canonical(path) }, openGraph: { title, description: page.description, url: canonical(path) } };
 }
 
 export function generateStaticParams() {
@@ -66,7 +72,6 @@ export default async function ContentRoute({ params }: Props) {
         { "@type": "ListItem", position: 2, name: group, item: canonical(`/${group}`) },
         { "@type": "ListItem", position: 3, name: page.eyebrow, item: canonical(path) },
       ] },
-      { "@type": "FAQPage", mainEntity: page.faqs.map((faq) => ({ "@type": "Question", name: faq.question, acceptedAnswer: { "@type": "Answer", text: faq.answer } })) },
     ],
   };
   return <><script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }} /><DetailPage page={page} /></>;

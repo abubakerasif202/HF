@@ -24,6 +24,12 @@ test("renders the premium HF homepage without placeholder claims", async () => {
   assert.match(html, /muhammad-rasheed-ceo\.webp/i);
   assert.match(html, /\$74/);
   assert.match(html, /\$119\.43/);
+  assert.match(html, /4\.9 Google rating/i);
+  assert.match(html, /417(?:<!-- -->)? reviews/i);
+  assert.match(html, /Open 24 Hours/i);
+  assert.match(html, /25–45 m³/i);
+  assert.match(html, /40–60 m³/i);
+  assert.doesNotMatch(html, /AggregateRating/);
   assert.match(html, /application\/ld\+json/);
   assert.match(html, /<title>Adelaide Removalists \| HF Removals Adelaide<\/title>/i);
   assert.doesNotMatch(html, /HF Removals Adelaide \| HF Removals Adelaide<\/title>/i);
@@ -46,6 +52,16 @@ test("renders service, area, route, guide and contact routes", async () => {
 
   const about = await render("/about");
   assert.match(await about.text(), /<title>About \| HF Removals Adelaide<\/title>/i);
+
+  const contact = await render("/contact");
+  const contactHtml = await contact.text();
+  assert.match(contactHtml, /Google map showing HF Removals Adelaide in Elizabeth Vale/i);
+  assert.match(contactHtml, /6MW7\+J5 Elizabeth Vale/i);
+  assert.match(contactHtml, /loading="lazy"/i);
+  assert.match(contactHtml, /Get directions/i);
+
+  const service = await render("/services/residential-removals");
+  assert.doesNotMatch(await service.text(), /FAQPage/);
 });
 
 test("serves crawl discovery endpoints and unique guide metadata", async () => {
@@ -92,5 +108,9 @@ test("keeps verified rates, coverage wording and canonical route inventory centr
   assert.match(data, /\$186\.06/);
   assert.match(data, /per m³/);
   assert.match(data, /Up to \$1,000,000 Public Liability & Transit Insurance/);
-  assert.doesNotMatch(data, /AggregateRating|five-star|fully insured|no hidden fees|on-time every time/i);
+  assert.match(data, /rating: 4\.9/);
+  assert.match(data, /reviewCount: 417/);
+  assert.match(data, /verifiedAt: "2026-08-21"/);
+  assert.match(data, /Complimentary mattress protection/);
+  assert.doesNotMatch(data, /five-star|fully insured|no hidden fees|on-time every time/i);
 });

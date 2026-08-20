@@ -28,12 +28,28 @@ export const business = {
   insurance: "Up to $1,000,000 Public Liability & Transit Insurance",
   insuranceQualifier:
     "Coverage and eligibility depend on the applicable policy terms and the scope of the move. Ask us about the details relevant to your move.",
+  googleBusiness: {
+    rating: 4.9,
+    reviewCount: 417,
+    hoursLabel: "Open 24 Hours",
+    category: "Moving and storage service",
+    plusCode: "6MW7+J5 Elizabeth Vale, South Australia",
+    verifiedAt: "2026-08-21",
+    directionsUrl:
+      "https://www.google.com/maps/dir/?api=1&destination=20%20Prunus%20Ave%2C%20Elizabeth%20Vale%20SA%205112%2C%20Australia",
+    mapEmbedUrl:
+      "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3278.0861872991422!2d138.66031787548314!3d-34.75342166541935!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x6ab0ad918429ad09%3A0x94810a85444deebe!2sHF%20Removals%20Adelaide!5e0!3m2!1sen!2sau!4v1787243705162!5m2!1sen!2sau",
+  },
+  truckVolumeGuidance: [
+    { label: "Package 1", volume: "25–45 m³", examples: ["2–3 bedroom houses", "garage contents", "plants", "offices"] },
+    { label: "Package 2", volume: "40–60 m³", examples: ["3–4 bedroom houses", "outdoor goods", "offices"] },
+  ],
   packingMaterials: [
     "Moving blankets",
     "Shrink wrap",
     "Bubble wrap",
-    "Mattress protective wraps",
-    "Side-table protective wraps",
+    "Complimentary mattress protection",
+    "Complimentary side-table protective wraps",
   ],
   logo: "/images/hf-logo-transparent.png",
   headerLogo: "/images/hf-logo-header-mark.png",
