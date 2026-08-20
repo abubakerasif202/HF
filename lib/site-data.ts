@@ -38,7 +38,7 @@ export const business = {
   logo: "/images/hf-logo-transparent.png",
   logoSource: "/images/hf-logo-source.jpg",
   heroImage: "/images/hf-hero-truck-1792.webp",
-  ceoImage: "/images/muhammad-rasheed-original.jpeg",
+  ceoImage: "/images/muhammad-rasheed-ceo.webp",
 } as const;
 
 export const localPricing = [

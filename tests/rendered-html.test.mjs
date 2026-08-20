@@ -20,6 +20,7 @@ test("renders the premium HF homepage without placeholder claims", async () => {
   assert.match(html, /Adelaide[\s\S]*Removalists[\s\S]*You Can[\s\S]*Rely On/i);
   assert.match(html, /Tell us about your move/i);
   assert.match(html, /Muhammad Rasheed/i);
+  assert.match(html, /muhammad-rasheed-ceo\.webp/i);
   assert.match(html, /\$74/);
   assert.match(html, /\$119\.43/);
   assert.match(html, /application\/ld\+json/);
