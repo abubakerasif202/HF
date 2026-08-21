@@ -24,32 +24,32 @@ function ServicesGrid() {
 
 const servicePhotos = [
   {
-    src: "/images/hf-residential-removals.webp",
+    src: "/images/hf-residential-premium.webp",
     href: "/services/residential-removals",
     label: "Residential removals",
     copy: "Home moving support planned around access, inventory and final placement.",
-    alt: "HF Removals Adelaide team loading cartons into a moving truck outside a home",
+    alt: "HF Removals Adelaide crew loading protected furniture and cartons at a suburban home",
   },
   {
-    src: "/images/hf-furniture-removals.webp",
-    href: "/services/residential-removals",
-    label: "Furniture handling",
-    copy: "Practical preparation and careful handling for furniture and larger household items.",
-    alt: "HF Removals Adelaide movers carrying a sofa from a home",
+    src: "/images/hf-packing-premium.webp",
+    href: "/services/packing-unpacking",
+    label: "Packing & protection",
+    copy: "Protective preparation for furniture, household items and packed belongings.",
+    alt: "HF Removals Adelaide crew wrapping a sofa and timber furniture for moving",
   },
   {
-    src: "/images/hf-office-removals.webp",
+    src: "/images/hf-office-premium.webp",
     href: "/services/office-commercial-removals",
     label: "Office relocations",
     copy: "Coordinated workplace moves for furniture, equipment and destination zones.",
-    alt: "HF Removals Adelaide team moving office furniture and cartons",
+    alt: "HF Removals Adelaide crew relocating protected office furniture and equipment",
   },
   {
-    src: "/images/hf-interstate-removals.webp",
+    src: "/images/hf-interstate-premium.webp",
     href: "/services/interstate-removals",
     label: "Interstate moves",
     copy: "Long-distance moving support scoped around route, volume, access and protection.",
-    alt: "HF Removals Adelaide interstate moving truck travelling at sunset",
+    alt: "HF branded interstate moving truck travelling on an Australian highway at sunset",
   },
 ] as const;
 
@@ -63,6 +63,16 @@ function PricingSection() {
 
 function VolumeGuidanceSection() {
   return <section className="volume-guidance" aria-labelledby="volume-guidance-title"><div className="container"><div className="volume-heading"><p className="eyebrow">Truck volume guidance</p><h2 id="volume-guidance-title">A practical starting point for <em>estimating volume</em></h2><p>These ranges are guidance only. Your inventory, access, packing and complete move scope determine the quote.</p></div><div className="volume-grid">{business.truckVolumeGuidance.map((item) => <article key={item.label}><span>{item.label}</span><strong>{item.volume}</strong><p>{item.examples.join(" · ")}</p></article>)}</div></div></section>;
+}
+
+function QuoteReadinessSection({ compact = false }: { compact?: boolean }) {
+  const items = [
+    ["Addresses & access", "Share both suburbs or addresses, plus stairs, lifts, parking and the likely walk from truck to door."],
+    ["Inventory & volume", "List furniture, appliances, cartons, garage contents and unusually large or high-care pieces."],
+    ["Packing support", "Note whether you need complete packing, selected-room help or protection for particular items."],
+    ["Placement plan", "Label destination rooms and identify priority items so unloading can follow a practical plan."],
+  ];
+  return <section className={`quote-readiness ${compact ? "quote-readiness-compact" : ""}`} aria-labelledby={compact ? "detail-readiness-title" : "quote-readiness-title"}><div className="container"><div className="readiness-intro"><p className="eyebrow">A more useful enquiry</p><h2 id={compact ? "detail-readiness-title" : "quote-readiness-title"}>Four details that help shape a <em>clearer quote</em></h2><p>No two moves have the same inventory or access. Preparing these details helps HF review the actual scope rather than relying on assumptions.</p></div><div className="readiness-grid">{items.map(([title, copy], index) => <article key={title}><span>{String(index + 1).padStart(2, "0")}</span><h3>{title}</h3><p>{copy}</p></article>)}</div><div className="readiness-action"><p>Not sure about every detail yet? Start with the two suburbs and your move type.</p><a className="button button-gold" href="/#quote">Start your enquiry <span>→</span></a></div></div></section>;
 }
 
 function ReviewsSection() {
@@ -105,11 +115,28 @@ export function SiteFrame({ children, intro = false }: { children: React.ReactNo
 }
 
 export function HomePage() {
-  return <SiteFrame intro><section className="hero"><img className="hero-image" src="/images/hf-hero-truck-1792.webp" srcSet="/images/hf-hero-truck-480.webp 480w, /images/hf-hero-truck-768.webp 768w, /images/hf-hero-truck-1024.webp 1024w, /images/hf-hero-truck-1440.webp 1440w, /images/hf-hero-truck-1792.webp 1792w" sizes="100vw" alt="HF branded moving truck in an Adelaide streetscape" width="1792" height="896" fetchPriority="high" /><div className="hero-overlay" /><div className="container hero-grid"><div className="hero-copy"><p className="eyebrow hero-eyebrow">Adelaide local & interstate removalists</p><h1>Adelaide <em>Removalists</em><br />You Can<br />Rely On</h1><p className="hero-lead">From the first box to the final placement, HF Removals Adelaide provides carefully planned local and interstate moving support.</p><div className="hero-actions"><a className="button button-gold" href="#quote">Get a free quote</a><a className="button button-outline" href={business.phones[0].href}>Call us now</a></div><div className="hero-proof"><span>{business.googleBusiness.rating} Google rating</span><span>{business.googleBusiness.reviewCount} reviews</span><span>{business.googleBusiness.hoursLabel}</span></div></div><QuoteForm /></div><div className="container trust-wrap"><TrustBar /></div></section><ServiceTicker /><ServicesGrid /><ServicePhotosSection /><PricingSection /><VolumeGuidanceSection /><ProcessSection /><PackingSection /><LeadershipSection /><ReviewsSection /><ServiceTicker locations /><AreasSection /><QuoteStrip /></SiteFrame>;
+  return <SiteFrame intro><section className="hero"><img className="hero-image" src="/images/hf-hero-truck-1792.webp" srcSet="/images/hf-hero-truck-480.webp 480w, /images/hf-hero-truck-768.webp 768w, /images/hf-hero-truck-1024.webp 1024w, /images/hf-hero-truck-1440.webp 1440w, /images/hf-hero-truck-1792.webp 1792w" sizes="100vw" alt="HF branded moving truck in an Adelaide streetscape" width="1792" height="896" fetchPriority="high" /><div className="hero-overlay" /><div className="container hero-grid"><div className="hero-copy"><p className="eyebrow hero-eyebrow">Adelaide local & interstate removalists</p><h1>Adelaide <em>Removalists</em><br />You Can<br />Rely On</h1><p className="hero-lead">From the first box to the final placement, HF Removals Adelaide provides carefully planned local and interstate moving support.</p><div className="hero-actions"><a className="button button-gold" href="#quote">Get a free quote</a><a className="button button-outline" href={business.phones[0].href}>Call us now</a></div><div className="hero-proof"><span>{business.googleBusiness.rating} Google rating</span><span>{business.googleBusiness.reviewCount} reviews</span><span>{business.googleBusiness.hoursLabel}</span></div></div><QuoteForm /></div><div className="container trust-wrap"><TrustBar /></div></section><ServiceTicker /><ServicesGrid /><ServicePhotosSection /><PricingSection /><QuoteReadinessSection /><VolumeGuidanceSection /><ProcessSection /><PackingSection /><LeadershipSection /><ReviewsSection /><ServiceTicker locations /><AreasSection /><QuoteStrip /></SiteFrame>;
 }
 
-function PageHero({ eyebrow, title, description, price, unit }: { eyebrow: string; title: string; description: string; price?: string; unit?: string }) {
-  return <section className="inner-hero"><div className="inner-orbit" aria-hidden="true" /><div className="container inner-hero-grid"><div><p className="eyebrow">{eyebrow}</p><h1>{title}</h1><p>{description}</p><div className="hero-actions"><a className="button button-gold" href="/#quote">Get a free quote</a><a className="button button-outline" href={business.phones[0].href}>Call HF</a></div></div>{price ? <div className="route-price"><span>Reference rate</span><strong>{price}</strong><p>{unit}</p><small>Final cost depends on volume and scope.</small></div> : <div className="inner-monogram"><img src={business.logo} alt="" width="1679" height="937" /></div>}</div></section>;
+function PageHero({ eyebrow, title, description, price, unit, media }: { eyebrow: string; title: string; description: string; price?: string; unit?: string; media?: { src: string; alt: string; label: string } }) {
+  return <section className={`inner-hero ${media ? "inner-hero-media" : ""}`}><div className="inner-orbit" aria-hidden="true" /><div className="container inner-hero-grid"><div><p className="eyebrow">{eyebrow}</p><h1>{title}</h1><p>{description}</p><div className="hero-actions"><a className="button button-gold" href="/#quote">Get a free quote</a><a className="button button-outline" href={business.phones[0].href}>Call HF</a></div><div className="inner-proof" aria-label="HF business profile summary"><span><b>{business.googleBusiness.rating}</b> Google rating</span><span><b>{business.googleBusiness.reviewCount}</b> reviews</span><span><b>24h</b> enquiries</span></div></div>{price ? <div className="route-price"><span>Reference rate</span><strong>{price}</strong><p>{unit}</p><small>Final cost depends on volume and scope.</small></div> : media ? <figure className="inner-visual"><img src={media.src} alt={media.alt} width="1672" height="941" /><figcaption><span>HF Removals Adelaide</span><strong>{media.label}</strong></figcaption></figure> : <div className="inner-monogram"><img src={business.logo} alt="" width="1679" height="937" /></div>}</div></section>;
+}
+
+function mediaForPage(page: ContentPage) {
+  if (page.kind === "route") return undefined;
+  if (page.kind === "area") return { src: "/images/hf-residential-premium.webp", alt: "HF Removals Adelaide crew loading a moving truck outside a suburban home", label: "Local move planning" };
+  if (page.kind === "guide") {
+    if (page.slug.includes("office")) return { src: "/images/hf-office-premium.webp", alt: "HF Removals Adelaide crew relocating protected office furniture and equipment", label: "Practical moving guidance" };
+    if (page.slug.includes("furniture") || page.slug.includes("packing")) return { src: "/images/hf-packing-premium.webp", alt: "HF Removals Adelaide crew wrapping furniture for a move", label: "Practical moving guidance" };
+    return { src: "/images/hf-hero-truck-1024.webp", alt: "HF branded moving truck in an Adelaide streetscape", label: "Practical moving guidance" };
+  }
+  const serviceMedia: Record<string, { src: string; alt: string; label: string }> = {
+    "office-commercial-removals": { src: "/images/hf-office-premium.webp", alt: "HF Removals Adelaide crew relocating protected office furniture and equipment", label: "Office & commercial moves" },
+    "interstate-removals": { src: "/images/hf-interstate-premium.webp", alt: "HF branded interstate moving truck travelling on an Australian highway at sunset", label: "Interstate moves" },
+    backloading: { src: "/images/hf-interstate-premium.webp", alt: "HF branded interstate moving truck travelling on an Australian highway at sunset", label: "Backloading enquiries" },
+    "packing-unpacking": { src: "/images/hf-packing-premium.webp", alt: "HF Removals Adelaide crew wrapping furniture for a move", label: "Packing & protection" },
+  };
+  return serviceMedia[page.slug] ?? { src: "/images/hf-residential-premium.webp", alt: "HF Removals Adelaide crew loading protected furniture and cartons at a suburban home", label: "Residential moves" };
 }
 
 function Breadcrumbs({ page }: { page: ContentPage }) {
@@ -119,7 +146,7 @@ function Breadcrumbs({ page }: { page: ContentPage }) {
 
 export function DetailPage({ page }: { page: ContentPage }) {
   const heading = page.kind === "service" || page.kind === "area" ? `${page.eyebrow}: ${page.title}` : page.title;
-  return <SiteFrame><PageHero eyebrow={page.eyebrow} title={heading} description={page.intro} price={page.price} unit={page.unit} /><ServiceTicker /><section className="section detail-section"><div className="container"><Breadcrumbs page={page} /><div className="detail-grid"><article><p className="eyebrow">What to plan</p><h2>Practical details make a <em>clearer move</em></h2><div className="detail-bars">{page.highlights.map((item, index) => <div key={item}><span>{String(index + 1).padStart(2, "0")}</span><i /><strong>{item}</strong><b /></div>)}</div></article><aside><p className="eyebrow">Start your enquiry</p><h3>Share the essentials</h3><p>Addresses, date, property size, move type and access notes help HF review the scope.</p><a className="button button-ruby" href="/#quote">Request a quote</a></aside></div><div className="editorial-sections">{page.sections.map((section, index) => <article key={section.title}><span>{String(index + 1).padStart(2, "0")}</span><h3>{section.title}</h3><p>{section.body}</p></article>)}</div></div></section><FaqSection faqs={page.faqs} title={`Questions about ${page.eyebrow.toLowerCase()}`} /><QuoteStrip /></SiteFrame>;
+  return <SiteFrame><PageHero eyebrow={page.eyebrow} title={heading} description={page.intro} price={page.price} unit={page.unit} media={mediaForPage(page)} /><ServiceTicker /><section className="section detail-section"><div className="container"><Breadcrumbs page={page} /><div className="detail-grid"><article><p className="eyebrow">What to plan</p><h2>Practical details make a <em>clearer move</em></h2><div className="detail-bars">{page.highlights.map((item, index) => <div key={item}><span>{String(index + 1).padStart(2, "0")}</span><i /><strong>{item}</strong><b /></div>)}</div></article><aside><p className="eyebrow">Start your enquiry</p><h3>Share the essentials</h3><p>Both suburbs, move type, preferred date and access notes help HF review the scope.</p><a className="button button-ruby" href="/#quote">Request a quote</a><a className="aside-call" href={business.phones[0].href}>Or call {business.phones[0].display}</a></aside></div><div className="editorial-sections">{page.sections.map((section, index) => <article key={section.title}><span>{String(index + 1).padStart(2, "0")}</span><h3>{section.title}</h3><p>{section.body}</p></article>)}</div></div></section><QuoteReadinessSection compact /><FaqSection faqs={page.faqs} title={`Questions about ${page.eyebrow.toLowerCase()}`} /><QuoteStrip /></SiteFrame>;
 }
 
 function FaqSection({ faqs, title }: { faqs: { question: string; answer: string }[]; title: string }) {

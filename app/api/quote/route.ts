@@ -1,4 +1,4 @@
-const required = ["name", "phone", "email", "from", "to", "moveType", "propertySize"] as const;
+const required = ["name", "phone", "from", "to", "moveType"] as const;
 const moveTypes = new Set(["Residential", "Apartment", "Office / Commercial", "Interstate", "Backloading", "Packing / Unpacking", "Other"]);
 const propertySizes = new Set(["Studio / Small", "1 Bedroom", "2 Bedroom", "3 Bedroom", "4 Bedroom", "5+ Bedroom", "Office / Commercial", "Other"]);
 const fieldLimits: Record<string, number> = { name: 100, phone: 32, email: 254, date: 20, from: 180, to: 180, moveType: 40, propertySize: 40, details: 3000 };
@@ -47,13 +47,14 @@ export async function POST(request: Request) {
     if (value.length > limit) return Response.json({ error: "One or more fields is too long." }, { status: 422 });
     values[key] = value;
   }
-  if (!isValidEmail(values.email)) return Response.json({ error: "Please enter a valid email address." }, { status: 422 });
+  if (values.email && !isValidEmail(values.email)) return Response.json({ error: "Please enter a valid email address." }, { status: 422 });
   if (!/^[0-9+ ()-]{8,}$/.test(values.phone)) return Response.json({ error: "Please enter a valid phone number." }, { status: 422 });
-  if (!moveTypes.has(values.moveType) || !propertySizes.has(values.propertySize)) return Response.json({ error: "Please select a valid move and property type." }, { status: 422 });
+  if (!moveTypes.has(values.moveType) || (values.propertySize && !propertySizes.has(values.propertySize))) return Response.json({ error: "Please select a valid move or property type." }, { status: 422 });
   const startedAt = typeof body.startedAt === "number" ? body.startedAt : 0;
   if (!startedAt || Date.now() - startedAt < 1_200 || startedAt > Date.now()) return Response.json({ error: "Please review the form before sending." }, { status: 422 });
 
-  const rateKeys = [`ip:${getClientKey(request)}`, `email:${values.email.toLowerCase()}`];
+  const contactKey = values.email ? `email:${values.email.toLowerCase()}` : `phone:${values.phone.replace(/\D/g, "")}`;
+  const rateKeys = [`ip:${getClientKey(request)}`, contactKey];
   if (rateKeys.some((key) => isRateLimited(key))) return Response.json({ error: "Too many enquiries were sent. Please call HF Removals Adelaide." }, { status: 429 });
 
   const endpoint = process.env.QUOTE_ENDPOINT_URL;

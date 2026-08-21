@@ -43,10 +43,10 @@ test("renders the premium HF homepage without placeholder claims", async () => {
   assert.match(html, /Muhammad Rasheed/i);
   assert.match(html, /hf-logo-header-mark\.png/i);
   assert.match(html, /muhammad-rasheed-ceo\.webp/i);
-  assert.match(html, /hf-residential-removals\.webp/i);
-  assert.match(html, /hf-furniture-removals\.webp/i);
-  assert.match(html, /hf-office-removals\.webp/i);
-  assert.match(html, /hf-interstate-removals\.webp/i);
+  assert.match(html, /hf-residential-premium\.webp/i);
+  assert.match(html, /hf-packing-premium\.webp/i);
+  assert.match(html, /hf-office-premium\.webp/i);
+  assert.match(html, /hf-interstate-premium\.webp/i);
   assert.match(html, /Moving support in action/i);
   assert.match(html, /\$74/);
   assert.match(html, /\$119\.43/);
@@ -113,6 +113,9 @@ test("bounds and validates quote API requests without a configured provider", as
 
   const valid = await render("/api/quote", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ name: "A", phone: "0491 704 136", email: "a@example.com", from: "Adelaide", to: "Salisbury", moveType: "Residential", propertySize: "2 Bedroom", details: "", startedAt: Date.now() - 2_000 }) });
   assert.equal(valid.status, 503);
+
+  const essentialsOnly = await render("/api/quote", { method: "POST", headers: { "content-type": "application/json", "x-forwarded-for": "203.0.113.20" }, body: JSON.stringify({ name: "Essentials Only", phone: "0493 092 539", from: "Elizabeth Vale", to: "Adelaide", moveType: "Residential", startedAt: Date.now() - 2_000 }) });
+  assert.equal(essentialsOnly.status, 503);
 
   let limited;
   for (let attempt = 0; attempt < 6; attempt += 1) {

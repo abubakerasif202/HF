@@ -1,6 +1,7 @@
 "use client";
 
 import { FormEvent, useEffect, useRef, useState } from "react";
+import { usePathname } from "next/navigation";
 import { business, nav } from "../../lib/site-data";
 
 export function OpeningSequence() {
@@ -33,6 +34,7 @@ export function OpeningSequence() {
 }
 
 export function Header() {
+  const pathname = usePathname();
   const [open, setOpen] = useState(false);
   const [compact, setCompact] = useState(false);
   const firstLink = useRef<HTMLAnchorElement>(null);
@@ -82,7 +84,10 @@ export function Header() {
           <span className="brand-copy"><strong>HF Removals</strong><small>Adelaide</small></span>
         </a>
         <nav className="desktop-nav" aria-label="Primary navigation">
-          {nav.map((item) => <a key={item.href} href={item.href}>{item.label}</a>)}
+          {nav.map((item) => {
+            const active = item.href === "/" ? pathname === "/" : pathname === item.href || pathname.startsWith(`${item.href}/`);
+            return <a className={active ? "is-active" : ""} aria-current={active ? "page" : undefined} key={item.href} href={item.href}>{item.label}</a>;
+          })}
         </nav>
         <div className="header-actions">
           <a className="phone-chip" href={business.phones[0].href} aria-label={`Call ${business.phones[0].display}`}>
@@ -97,9 +102,10 @@ export function Header() {
       </div>
       <div ref={menu} id="mobile-menu" className={`mobile-menu ${open ? "is-open" : ""}`} aria-hidden={!open} role="dialog" aria-modal="true" aria-label="Mobile navigation">
         <nav aria-label="Mobile navigation">
-          {nav.map((item, index) => (
-            <a ref={index === 0 ? firstLink : undefined} key={item.href} href={item.href} onClick={() => setOpen(false)}>{item.label}<span>↗</span></a>
-          ))}
+          {nav.map((item, index) => {
+            const active = item.href === "/" ? pathname === "/" : pathname === item.href || pathname.startsWith(`${item.href}/`);
+            return <a className={active ? "is-active" : ""} aria-current={active ? "page" : undefined} ref={index === 0 ? firstLink : undefined} key={item.href} href={item.href} onClick={() => setOpen(false)}>{item.label}<span>{active ? "●" : "↗"}</span></a>;
+          })}
           <a href={business.phones[0].href}>Call {business.phones[0].display}<span>→</span></a>
           <a className="button button-ruby" href="/#quote" onClick={() => setOpen(false)}>Get a free quote</a>
         </nav>
@@ -160,19 +166,24 @@ export function QuoteForm({ compact = false }: { compact?: boolean }) {
   return (
     <form className={`quote-form ${compact ? "quote-form-compact" : ""}`} id="quote" onSubmit={submit} noValidate={false}>
       <div className="form-heading"><span className="form-mark">HF</span><div><p className="eyebrow">Free move enquiry</p><h2>Tell us about your move</h2><p>Send the essentials and we&apos;ll review the details.</p></div></div>
-      <p className="form-required">Fields marked <span aria-hidden="true">*</span> are required.</p>
-      <div className="form-grid">
+      <p className="form-required">Start with five essentials. Fields marked <span aria-hidden="true">*</span> are required.</p>
+      <fieldset className="form-grid form-core"><legend className="sr-only">Essential move details</legend>
         <label><span className="field-label">Name <b aria-hidden="true">*</b></span><input required autoComplete="name" value={form.name} onChange={(e) => update("name", e.target.value)} placeholder="Your full name" /></label>
         <label><span className="field-label">Phone <b aria-hidden="true">*</b></span><input required autoComplete="tel" inputMode="tel" pattern="[0-9+ ()-]{8,}" value={form.phone} onChange={(e) => update("phone", e.target.value)} placeholder="Mobile number" /></label>
-        <label><span className="field-label">Email <b aria-hidden="true">*</b></span><input required type="email" autoComplete="email" value={form.email} onChange={(e) => update("email", e.target.value)} placeholder="Email address" /></label>
-        <label><span className="field-label">Moving date</span><input type="date" value={form.date} onChange={(e) => update("date", e.target.value)} /></label>
         <label><span className="field-label">Moving from <b aria-hidden="true">*</b></span><input required autoComplete="address-level2" value={form.from} onChange={(e) => update("from", e.target.value)} placeholder="Suburb or postcode" /></label>
         <label><span className="field-label">Moving to <b aria-hidden="true">*</b></span><input required autoComplete="address-level2" value={form.to} onChange={(e) => update("to", e.target.value)} placeholder="Suburb or postcode" /></label>
-        <label><span className="field-label">Move type <b aria-hidden="true">*</b></span><select required value={form.moveType} onChange={(e) => update("moveType", e.target.value)}><option value="">Select move type</option><option>Residential</option><option>Apartment</option><option>Office / Commercial</option><option>Interstate</option><option>Backloading</option><option>Packing / Unpacking</option><option>Other</option></select></label>
-        <label><span className="field-label">Property size <b aria-hidden="true">*</b></span><select required value={form.propertySize} onChange={(e) => update("propertySize", e.target.value)}><option value="">Select property size</option><option>Studio / Small</option><option>1 Bedroom</option><option>2 Bedroom</option><option>3 Bedroom</option><option>4 Bedroom</option><option>5+ Bedroom</option><option>Office / Commercial</option><option>Other</option></select></label>
-        <label className="form-wide"><span className="field-label">Additional details</span><textarea value={form.details} onChange={(e) => update("details", e.target.value)} placeholder="Access, inventory, packing or other details" rows={compact ? 3 : 4} /></label>
+        <label className="form-wide"><span className="field-label">Move type <b aria-hidden="true">*</b></span><select required value={form.moveType} onChange={(e) => update("moveType", e.target.value)}><option value="">Select move type</option><option>Residential</option><option>Apartment</option><option>Office / Commercial</option><option>Interstate</option><option>Backloading</option><option>Packing / Unpacking</option><option>Other</option></select></label>
         <label className="honeypot" aria-hidden="true">Company<input tabIndex={-1} autoComplete="off" value={form.company} onChange={(e) => update("company", e.target.value)} /></label>
-      </div>
+      </fieldset>
+      <details className="form-optional" open={compact || undefined}>
+        <summary>Add date, email, property size or access notes <span aria-hidden="true">+</span></summary>
+        <fieldset className="form-grid"><legend className="sr-only">Optional move details</legend>
+          <label><span className="field-label">Email</span><input type="email" autoComplete="email" value={form.email} onChange={(e) => update("email", e.target.value)} placeholder="Email address" /></label>
+          <label><span className="field-label">Moving date</span><input type="date" value={form.date} onChange={(e) => update("date", e.target.value)} /></label>
+          <label className="form-wide"><span className="field-label">Property size</span><select value={form.propertySize} onChange={(e) => update("propertySize", e.target.value)}><option value="">Select property size</option><option>Studio / Small</option><option>1 Bedroom</option><option>2 Bedroom</option><option>3 Bedroom</option><option>4 Bedroom</option><option>5+ Bedroom</option><option>Office / Commercial</option><option>Other</option></select></label>
+          <label className="form-wide"><span className="field-label">Additional details</span><textarea value={form.details} onChange={(e) => update("details", e.target.value)} placeholder="Stairs, lifts, parking, inventory, packing or other useful details" rows={compact ? 3 : 4} /></label>
+        </fieldset>
+      </details>
       <button className="button button-ruby form-submit" type="submit" disabled={loading}>{loading ? "Sending…" : "Get my free quote"}<span>→</span></button>
       <p className="form-note">Prefer to talk? Call <a href={business.phones[0].href}>{business.phones[0].display}</a>.</p>
       <p className="form-status" aria-live="polite" role="status">{status}</p>
