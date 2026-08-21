@@ -6,7 +6,7 @@ const eslintConfig = defineConfig([
   ...nextVitals,
   ...nextTs,
   {
-    // vinext emits a static multi-route site; native anchors preserve direct
+    // This multi-route Next.js site uses native anchors for direct
     // canonical navigation and native images retain explicit responsive sizing.
     rules: {
       "@next/next/no-html-link-for-pages": "off",

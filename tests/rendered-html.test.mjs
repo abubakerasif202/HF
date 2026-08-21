@@ -1,16 +1,37 @@
 import assert from "node:assert/strict";
+import { spawn } from "node:child_process";
 import { readFile } from "node:fs/promises";
-import test from "node:test";
+import test, { after, before } from "node:test";
+
+const port = 31_487;
+const baseUrl = `http://127.0.0.1:${port}`;
+let server;
+
+before(async () => {
+  server = spawn(process.execPath, ["node_modules/next/dist/bin/next", "start", "--hostname", "127.0.0.1", "--port", String(port)], {
+    cwd: new URL("..", import.meta.url),
+    env: { ...process.env, NODE_ENV: "production" },
+    stdio: ["ignore", "pipe", "pipe"],
+  });
+  let startupError = "";
+  server.stderr.on("data", (chunk) => { startupError += chunk; });
+  for (let attempt = 0; attempt < 80; attempt += 1) {
+    if (server.exitCode !== null) throw new Error(`Next.js exited during startup: ${startupError}`);
+    try {
+      const response = await fetch(baseUrl);
+      if (response.ok) return;
+    } catch {}
+    await new Promise((resolve) => setTimeout(resolve, 100));
+  }
+  throw new Error(`Next.js did not start: ${startupError}`);
+});
+
+after(() => {
+  server?.kill("SIGTERM");
+});
 
 async function render(path = "/", init = {}) {
-  const { env = {}, ...requestInit } = init;
-  const workerUrl = new URL("../dist/server/index.js", import.meta.url);
-  workerUrl.searchParams.set("test", `${process.pid}-${Date.now()}-${path}`);
-  const { default: worker } = await import(workerUrl.href);
-  return worker.fetch(new Request(`http://localhost${path}`, { headers: { accept: "text/html", ...(requestInit.headers ?? {}) }, ...requestInit }), {
-    ASSETS: { fetch: async () => new Response("Not found", { status: 404 }) },
-    ...env,
-  }, { waitUntil() {}, passThroughOnException() {} });
+  return fetch(`${baseUrl}${path}`, { headers: { accept: "text/html", ...(init.headers ?? {}) }, ...init });
 }
 
 test("renders the premium HF homepage without placeholder claims", async () => {
@@ -93,12 +114,10 @@ test("bounds and validates quote API requests without a configured provider", as
   const valid = await render("/api/quote", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ name: "A", phone: "0491 704 136", email: "a@example.com", from: "Adelaide", to: "Salisbury", moveType: "Residential", propertySize: "2 Bedroom", details: "", startedAt: Date.now() - 2_000 }) });
   assert.equal(valid.status, 503);
 
-  const limited = await render("/api/quote", {
-    method: "POST",
-    headers: { "content-type": "application/json", "cf-connecting-ip": "203.0.113.10" },
-    body: JSON.stringify({ name: "A", phone: "0491 704 136", email: "a@example.com", from: "Adelaide", to: "Salisbury", moveType: "Residential", propertySize: "2 Bedroom", details: "", startedAt: Date.now() - 2_000 }),
-    env: { QUOTE_ENDPOINT_URL: "https://example.com/quote", QUOTE_RATE_LIMITER: { limit: async () => ({ success: false }) } },
-  });
+  let limited;
+  for (let attempt = 0; attempt < 6; attempt += 1) {
+    limited = await render("/api/quote", { method: "POST", headers: { "content-type": "application/json", "x-forwarded-for": "203.0.113.10" }, body: JSON.stringify({ name: "Rate Limit", phone: "0491 704 136", email: "rate-limit@example.com", from: "Adelaide", to: "Salisbury", moveType: "Residential", propertySize: "2 Bedroom", details: "", startedAt: Date.now() - 2_000 }) });
+  }
   assert.equal(limited.status, 429);
 
   const oversized = await render("/api/quote", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ details: "x".repeat(25_000) }) });
