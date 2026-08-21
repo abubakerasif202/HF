@@ -1,6 +1,6 @@
 # HF Removals Adelaide
 
-Premium multi-route website for HF Removals Adelaide, built with vinext for OpenAI Sites hosting.
+Premium multi-route website for HF Removals Adelaide, built with Next.js and deployed exclusively on Vercel.
 
 ## Local development
 
@@ -18,7 +18,7 @@ npm run lint
 
 The form validates in the browser and again on the server. Set `QUOTE_ENDPOINT_URL` to a server-side lead endpoint that accepts JSON. `QUOTE_BEARER_TOKEN` is optional and remains server-side. When no endpoint is configured, the form opens a prefilled email to the branded HF address instead of displaying a fake success state.
 
-Copy `.env.example` to `.env.local` for local configuration. Hosted values are managed through Sites environment settings.
+Copy `.env.example` to `.env.local` for local configuration. Production values are managed in Vercel Environment Variables.
 
 ## Supplied facts and media
 
