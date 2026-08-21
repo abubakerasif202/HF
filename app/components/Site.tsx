@@ -22,6 +22,41 @@ function ServicesGrid() {
   return <section className="section services-section" id="services"><div className="container"><SectionHeading eyebrow="Our services" title={<>Moving solutions <em>tailored to you</em></>} copy="Choose the support that fits the property, inventory, route and level of packing help involved." /><div className="service-grid">{services.map((service, index) => <a className="service-card" href={`/services/${service.slug}`} key={service.slug}><span className="card-number">{String(index + 1).padStart(2, "0")}</span><div className="card-line" /><h3>{service.eyebrow}</h3><p>{service.description}</p><span className="card-link">Explore service <b>→</b></span></a>)}</div></div></section>;
 }
 
+const servicePhotos = [
+  {
+    src: "/images/hf-residential-removals.webp",
+    href: "/services/residential-removals",
+    label: "Residential removals",
+    copy: "Home moving support planned around access, inventory and final placement.",
+    alt: "HF Removals Adelaide team loading cartons into a moving truck outside a home",
+  },
+  {
+    src: "/images/hf-furniture-removals.webp",
+    href: "/services/residential-removals",
+    label: "Furniture handling",
+    copy: "Practical preparation and careful handling for furniture and larger household items.",
+    alt: "HF Removals Adelaide movers carrying a sofa from a home",
+  },
+  {
+    src: "/images/hf-office-removals.webp",
+    href: "/services/office-commercial-removals",
+    label: "Office relocations",
+    copy: "Coordinated workplace moves for furniture, equipment and destination zones.",
+    alt: "HF Removals Adelaide team moving office furniture and cartons",
+  },
+  {
+    src: "/images/hf-interstate-removals.webp",
+    href: "/services/interstate-removals",
+    label: "Interstate moves",
+    copy: "Long-distance moving support scoped around route, volume, access and protection.",
+    alt: "HF Removals Adelaide interstate moving truck travelling at sunset",
+  },
+] as const;
+
+function ServicePhotosSection() {
+  return <section className="section service-photos-section" aria-label="HF moving services gallery"><div className="container"><SectionHeading eyebrow="Moving support in action" title={<>The right setup for <em>every kind of move</em></>} copy="Explore HF support for homes, furniture, workplaces and interstate relocations." light /><div className="service-photo-grid">{servicePhotos.map((photo, index) => <a className="service-photo-card" href={photo.href} key={photo.src}><img src={photo.src} alt={photo.alt} width="1672" height="941" loading="lazy" /><span className="service-photo-shade" /><span className="service-photo-copy"><small>{String(index + 1).padStart(2, "0")}</small><strong>{photo.label}</strong><span>{photo.copy}</span><b>Explore service →</b></span></a>)}</div></div></section>;
+}
+
 function PricingSection() {
   return <section className="section pricing-section"><div className="container"><SectionHeading eyebrow="Adelaide move rates" title={<>Simple pricing, <em>clearly measured</em></>} copy="Local rates use 30-minute billing units. Interstate reference rates are shown per cubic metre." /><div className="local-pricing">{localPricing.map((item, index) => <article className="price-card" key={item.name}><span className="ruby-dot" /><p className="price-kicker">Option {index + 1}</p><h3>{item.name}</h3><div className="price-value"><strong>{item.halfHour}</strong><span>/ 30 min</span></div><p>{item.hourly} per hour</p></article>)}</div><div className="interstate-table"><div className="table-intro"><p className="eyebrow">Interstate volume rates</p><h3>Route reference pricing</h3><p>Final move cost depends on the volume and scope of the move.</p></div><div>{interstatePricing.map((item) => <a href={`/interstate/${item.slug}`} key={item.slug}><span>{item.label}</span><strong>{item.price}<small>{item.unit}</small></strong></a>)}</div></div><p className="pricing-note">Published rates are reproduced from supplied HF business material. Ask HF which charges and terms apply to your individual move.</p></div></section>;
 }
@@ -70,7 +105,7 @@ export function SiteFrame({ children, intro = false }: { children: React.ReactNo
 }
 
 export function HomePage() {
-  return <SiteFrame intro><section className="hero"><img className="hero-image" src="/images/hf-hero-truck-1792.webp" srcSet="/images/hf-hero-truck-480.webp 480w, /images/hf-hero-truck-768.webp 768w, /images/hf-hero-truck-1024.webp 1024w, /images/hf-hero-truck-1440.webp 1440w, /images/hf-hero-truck-1792.webp 1792w" sizes="100vw" alt="HF branded moving truck in an Adelaide streetscape" width="1792" height="896" fetchPriority="high" /><div className="hero-overlay" /><div className="container hero-grid"><div className="hero-copy"><p className="eyebrow hero-eyebrow">Adelaide local & interstate removalists</p><h1>Adelaide <em>Removalists</em><br />You Can<br />Rely On</h1><p className="hero-lead">From the first box to the final placement, HF Removals Adelaide provides carefully planned local and interstate moving support.</p><div className="hero-actions"><a className="button button-gold" href="#quote">Get a free quote</a><a className="button button-outline" href={business.phones[0].href}>Call us now</a></div><div className="hero-proof"><span>{business.googleBusiness.rating} Google rating</span><span>{business.googleBusiness.reviewCount} reviews</span><span>{business.googleBusiness.hoursLabel}</span></div></div><QuoteForm /></div><div className="container trust-wrap"><TrustBar /></div></section><ServiceTicker /><ServicesGrid /><PricingSection /><VolumeGuidanceSection /><ProcessSection /><PackingSection /><LeadershipSection /><ReviewsSection /><ServiceTicker locations /><AreasSection /><QuoteStrip /></SiteFrame>;
+  return <SiteFrame intro><section className="hero"><img className="hero-image" src="/images/hf-hero-truck-1792.webp" srcSet="/images/hf-hero-truck-480.webp 480w, /images/hf-hero-truck-768.webp 768w, /images/hf-hero-truck-1024.webp 1024w, /images/hf-hero-truck-1440.webp 1440w, /images/hf-hero-truck-1792.webp 1792w" sizes="100vw" alt="HF branded moving truck in an Adelaide streetscape" width="1792" height="896" fetchPriority="high" /><div className="hero-overlay" /><div className="container hero-grid"><div className="hero-copy"><p className="eyebrow hero-eyebrow">Adelaide local & interstate removalists</p><h1>Adelaide <em>Removalists</em><br />You Can<br />Rely On</h1><p className="hero-lead">From the first box to the final placement, HF Removals Adelaide provides carefully planned local and interstate moving support.</p><div className="hero-actions"><a className="button button-gold" href="#quote">Get a free quote</a><a className="button button-outline" href={business.phones[0].href}>Call us now</a></div><div className="hero-proof"><span>{business.googleBusiness.rating} Google rating</span><span>{business.googleBusiness.reviewCount} reviews</span><span>{business.googleBusiness.hoursLabel}</span></div></div><QuoteForm /></div><div className="container trust-wrap"><TrustBar /></div></section><ServiceTicker /><ServicesGrid /><ServicePhotosSection /><PricingSection /><VolumeGuidanceSection /><ProcessSection /><PackingSection /><LeadershipSection /><ReviewsSection /><ServiceTicker locations /><AreasSection /><QuoteStrip /></SiteFrame>;
 }
 
 function PageHero({ eyebrow, title, description, price, unit }: { eyebrow: string; title: string; description: string; price?: string; unit?: string }) {
