@@ -6,7 +6,15 @@ export const metadata: Metadata = {
   title: { default: "HF Removals Adelaide", template: "%s | HF Removals Adelaide" },
   description: "Local, commercial and interstate moving support from HF Removals Adelaide.",
   applicationName: "HF Removals Adelaide",
-  icons: { icon: "/favicon.svg", shortcut: "/favicon.svg" },
+  // Was the generic blue starter glyph; these are generated from the HF truck lockup.
+  icons: {
+    icon: [
+      { url: "/favicon.ico", sizes: "32x32" },
+      { url: "/icon-96.png", sizes: "96x96", type: "image/png" },
+    ],
+    shortcut: "/favicon.ico",
+    apple: [{ url: "/apple-touch-icon.png", sizes: "180x180", type: "image/png" }],
+  },
   openGraph: { type: "website", locale: "en_AU", siteName: "HF Removals Adelaide", images: [{ url: "/og.webp", width: 1200, height: 630, alt: "HF Removals Adelaide — Moving Made Easy With Us" }] },
   twitter: { card: "summary_large_image", images: ["/og.webp"] },
   robots: { index: true, follow: true },

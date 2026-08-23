@@ -654,7 +654,7 @@ function Footer() {
     <footer className="site-footer">
       <div className="container footer-grid">
         <div className="footer-brand">
-          <img src={business.logo} alt="HF Removals Adelaide" width="800" height="795" loading="lazy" decoding="async" />
+          <img src={business.logo} alt="HF Removals Adelaide" width={business.logoWidth} height={business.logoHeight} loading="lazy" decoding="async" />
           <p className="footer-tagline">“{business.tagline}”</p>
           <address>
             <a href={business.phones[0].href} className="footer-phone">
@@ -833,7 +833,7 @@ function PageHero({
           </figure>
         ) : (
           <div className="inner-monogram">
-            <img src={business.logo} alt="" width="800" height="795" loading="lazy" decoding="async" />
+            <img src={business.logo} alt="" width={business.logoWidth} height={business.logoHeight} loading="lazy" decoding="async" />
           </div>
         )}
       </div>

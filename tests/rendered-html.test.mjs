@@ -41,7 +41,9 @@ test("renders the premium HF homepage without placeholder claims", async () => {
   assert.match(html, /Adelaide[\s\S]*Removalists[\s\S]*You Can[\s\S]*Rely On/i);
   assert.match(html, /Tell us about your move/i);
   assert.match(html, /Muhammad Rasheed/i);
-  assert.match(html, /hf-logo-2026\.webp/i);
+  // Brand lockup ships as the right-sized derivative, not the 419KB 800px master.
+  assert.match(html, /hf-logo-384\.webp/i);
+  assert.doesNotMatch(html, /hf-logo-2026(-source)?\.(webp|png)/i);
   assert.match(html, /muhammad-rasheed-ceo\.webp/i);
   assert.match(html, /hf-residential-premium\.webp/i);
   assert.match(html, /hf-packing-premium\.webp/i);
@@ -152,4 +154,93 @@ test("keeps verified rates, coverage wording and canonical route inventory centr
   assert.match(data, /verifiedAt: "2026-08-21"/);
   assert.match(data, /Complimentary mattress protection/);
   assert.doesNotMatch(data, /five-star|fully insured|no hidden fees|on-time every time/i);
+});
+
+async function builtCss() {
+  const html = await (await render()).text();
+  const hrefs = [...html.matchAll(/href="(\/_next\/static\/[^"]+\.css)"/g)].map((m) => m[1]);
+  assert.ok(hrefs.length > 0, "expected at least one built stylesheet");
+  const sheets = await Promise.all(hrefs.map(async (href) => (await fetch(`${baseUrl}${href}`)).text()));
+  return sheets.join("\n");
+}
+
+test("quote fieldsets can shrink instead of overflowing narrow viewports", async () => {
+  const css = await builtCss();
+  // <fieldset> defaults to min-inline-size:min-content, so the optional-details grid
+  // pushed ~32px past a 320px viewport. It was only invisible because an ancestor
+  // clips overflow-x, which hid the symptom rather than fixing it.
+  assert.match(css, /\.form-grid\{[^}]*min-width:0/);
+  assert.match(css, /\.form-grid>label[^{]*\{[^}]*min-width:0/);
+  // and the two-column field grid collapses to one column on small screens
+  assert.match(css, /@media[^{]*max-width:\s*430px[^{]*\{[^}]*\.form-grid\{grid-template-columns:1fr\}/);
+});
+
+test("mobile menu contains its own scrolling", async () => {
+  const css = await builtCss();
+  assert.match(css, /\.mobile-menu\{[^}]*overflow-y:auto/);
+  assert.match(css, /\.mobile-menu\{[^}]*overscroll-behavior:contain/);
+});
+
+test("ships HF-branded icons rather than the starter glyph", async () => {
+  const html = await (await render()).text();
+  assert.match(html, /rel="icon" href="\/favicon\.ico"/);
+  assert.match(html, /rel="apple-touch-icon" href="\/apple-touch-icon\.png"/);
+  assert.doesNotMatch(html, /favicon\.svg/);
+  for (const [path, type] of [["/favicon.ico", /icon|image/], ["/icon-96.png", /image\/png/], ["/apple-touch-icon.png", /image\/png/]]) {
+    const response = await fetch(`${baseUrl}${path}`);
+    assert.equal(response.status, 200, path);
+    assert.match(response.headers.get("content-type") ?? "", type, path);
+  }
+});
+
+test("does not serve unreferenced starter or master assets", async () => {
+  for (const path of ["/og.png", "/file.svg", "/globe.svg", "/window.svg", "/favicon.svg",
+                      "/images/hf-logo-2026-source.png", "/images/hf-logo-source.jpg",
+                      "/images/hf-logo-transparent.png", "/images/muhammad-rasheed-original.jpeg"]) {
+    const response = await fetch(`${baseUrl}${path}`);
+    assert.equal(response.status, 404, `${path} should not be served`);
+  }
+  // the assets actually referenced still resolve
+  for (const path of ["/og.webp", "/images/hf-logo-384.webp"]) {
+    assert.equal((await fetch(`${baseUrl}${path}`)).status, 200, path);
+  }
+});
+
+test("move-type chooser uses valid ARIA for a two-option choice", async () => {
+  const html = await (await render()).text();
+  assert.match(html, /role="radiogroup"/);
+  assert.match(html, /role="radio"[^>]*aria-checked/);
+  // role="tab" without tabpanels/aria-controls/arrow-key handling was invalid ARIA
+  assert.doesNotMatch(html, /class="form-tabs" role="tablist"/);
+  assert.doesNotMatch(html, /role="tab"[^>]*aria-selected/);
+});
+
+test("the 404 page is not indexable", async () => {
+  const response = await render("/definitely-not-a-real-page");
+  assert.equal(response.status, 404);
+  assert.match(await response.text(), /name="robots" content="noindex/);
+});
+
+test("the deployed origin is declared once and drives the quote redirect", async () => {
+  const data = await readFile(new URL("../lib/site-data.ts", import.meta.url), "utf8");
+  assert.match(data, /export const deployedOrigin/);
+  const html = await (await render()).text();
+  // The custom domain still serves a different, older site, so FormSubmit must
+  // return customers to the origin that actually serves this app.
+  assert.match(html, /name="_next" value="https:\/\/hf-removals-adelaide\.vercel\.app\/\?quote=sent#quote"/);
+  const client = await readFile(new URL("../app/components/SiteClient.tsx", import.meta.url), "utf8");
+  assert.doesNotMatch(client, /const FORM_SUCCESS_ORIGIN/);
+});
+
+test("layout grids declare a track for every child they render", async () => {
+  const css = await builtCss();
+  // .detail-bars rows render span + i + strong + b. Only three tracks were declared,
+  // so the label was auto-placed into the 6px track and overflowed every detail page.
+  assert.match(css, /\.detail-bars>div\{[^}]*grid-template-columns:32px 28px minmax\(0,1fr\) 6px/);
+  assert.match(css, /\.detail-bars i\{/);
+  assert.match(css, /\.detail-bars strong\{[^}]*min-width:0/);
+  // grid/flex children that hold unbreakable content must be allowed to shrink
+  assert.match(css, /\.packing-grid>\*\{min-width:0\}/);
+  assert.match(css, /\.insurance-panel\{[^}]*container-type:inline-size/);
+  assert.match(css, /\.insurance-panel>strong em\{[^}]*font-size:clamp\(2rem,13cqi,5\.2rem\)/);
 });

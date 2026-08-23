@@ -51,12 +51,25 @@ export const business = {
     "Complimentary mattress protection",
     "Complimentary side-table protective wraps",
   ],
-  logo: "/images/hf-logo-2026.webp",
-  headerLogo: "/images/hf-logo-2026.webp",
-  logoSource: "/images/hf-logo-2026-source.png",
+  // 384px covers the largest UI render (176px footer mark) at 2x DPR. The 800px
+  // master lives in brand/ and is not shipped from public/.
+  logo: "/images/hf-logo-384.webp",
+  logoWidth: 384,
+  logoHeight: 384,
+  headerLogo: "/images/hf-logo-384.webp",
   heroImage: "/images/hf-hero-truck-1792.webp",
   ceoImage: "/images/muhammad-rasheed-ceo.webp",
 } as const;
+
+/**
+ * The custom domain currently serves a different, older website; this Next.js site
+ * is live on the Vercel production alias. Canonical URLs, the sitemap and JSON-LD
+ * therefore still declare `business.domain` (the intended long-term home), while the
+ * FormSubmit success redirect must target a URL that actually serves this app.
+ *
+ * At DNS cutover, point `deployedOrigin` at `business.domain` and the split is gone.
+ */
+export const deployedOrigin = "https://hf-removals-adelaide.vercel.app";
 
 export const localPricing = [
   { name: "2 Movers + Truck", halfHour: "$74", hourly: "$148", note: "per 30 minutes" },

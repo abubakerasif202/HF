@@ -2,6 +2,46 @@
 
 Audit date: 21 August 2026
 
+## Re-audit: layout, assets and semantics — 24 August 2026
+
+Follow-up pass against the production build. Findings below were verified by measuring
+live layout geometry, not by inspection alone.
+
+### Fixed
+
+- **Hidden horizontal overflow at mobile widths.** `<main>` measured 355px of content
+  inside a 320px viewport. Three independent causes, each previously masked by an
+  ancestor clipping `overflow-x` rather than resolved: `<fieldset>`'s default
+  `min-inline-size: min-content` stopped the quote grid shrinking; the unbreakable
+  `$1,000,000` figure set a 339px min-content floor on the insurance panel; and the
+  five-step process list held two columns below 480px. `main.scrollWidth` now equals
+  the viewport at every tested width.
+- **Detail-page label crushed into a 6px track.** `.detail-bars` rows render four
+  children (number, connector, label, dot) against only three declared grid columns,
+  so the label was auto-placed into the trailing 8px track and overflowed on all 22
+  service, area, route and guide pages. The connector `<i>` also had no rule at all.
+- **Favicon was still the generic blue starter glyph**, contradicting the previous
+  entry in this document. Replaced with icons generated from the HF truck lockup,
+  plus an apple-touch-icon that was missing entirely.
+- **~4MB of unreferenced assets were being served** from `public/` (a 2.28MB `og.png`
+  superseded by `og.webp`, three legacy logo files, the original portrait and three
+  Next.js starter SVGs). Masters moved to `brand/originals/`; `public/` is now 1.6MB.
+- **419KB logo rendered at 96px.** Header and footer now use a 384px derivative
+  (55KB) that still covers the largest render at 2x DPR.
+- **Invalid ARIA on the move-type chooser.** `role="tab"` without tabpanels,
+  `aria-controls` or arrow-key handling is not a valid tabset; it is a two-option
+  choice, so it now uses `radiogroup`/`radio` with `aria-checked`.
+- 404 responses are now `noindex`; the quote form's two-column grid stacks below
+  430px; the packing checklist stacks below 520px; the mobile menu contains its own
+  scroll chaining.
+
+### Deliberately unchanged
+
+The FormSubmit success redirect still targets the Vercel production alias. The custom
+domain currently serves a different, older Apache-hosted site, so returning customers
+to `business.domain` would drop them on an unrelated page. The origin is now declared
+once as `deployedOrigin` in `lib/site-data.ts` with the cutover documented there.
+
 ## Logo, motion and responsive QA — 24 August 2026
 
 - Replaced the previous HF-only header mark with the supplied green, gold and ruby truck lockup across the header, footer, favicon metadata, inner-page brand art and social-sharing image.

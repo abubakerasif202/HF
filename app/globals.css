@@ -676,6 +676,8 @@ p {
   transform: translateY(-16px);
   transition: opacity 0.3s, transform 0.3s, visibility 0.3s;
   overflow-y: auto;
+  /* Keep menu scrolling from chaining into the locked page behind it. */
+  overscroll-behavior: contain;
 }
 .mobile-menu.is-open {
   opacity: 1;
@@ -934,8 +936,16 @@ p {
   grid-template-columns: 1fr 1fr;
   gap: 12px;
   margin: 0;
+  /* fieldset defaults to min-inline-size:min-content, which stops the grid from
+     shrinking and pushes the optional fields past narrow viewports. */
+  min-width: 0;
   padding: 0;
   border: 0;
+}
+/* Grid children must also be allowed to shrink below their intrinsic width. */
+.form-grid > label,
+.form-grid > label > * {
+  min-width: 0;
 }
 .form-grid label {
   display: grid;
@@ -983,6 +993,10 @@ p {
 }
 .form-wide {
   grid-column: 1 / -1;
+}
+@media (max-width: 430px) {
+  .form-grid { grid-template-columns: 1fr; }
+  .form-wide { grid-column: auto; }
 }
 .honeypot {
   display: none;
@@ -1816,11 +1830,17 @@ p {
   gap: clamp(40px, 6vw, 90px);
   align-items: center;
 }
+.packing-grid > * {
+  min-width: 0;
+}
 .check-list {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 10px;
   margin: 28px 0;
+}
+@media (max-width: 520px) {
+  .check-list { grid-template-columns: 1fr; }
 }
 .check-list span {
   display: flex;
@@ -1837,6 +1857,9 @@ p {
   color: var(--hf-gold-500);
 }
 .insurance-panel {
+  /* The headline figure is sized against this panel, not the viewport, so it stays
+     inside its own column at every width. */
+  container-type: inline-size;
   padding: clamp(34px, 4.5vw, 60px);
   background: linear-gradient(145deg, var(--hf-ruby-900), var(--hf-ruby-700));
   border: 1px solid var(--hf-gold-500);
@@ -1855,7 +1878,7 @@ p {
   font: 500 2.2rem / 1 var(--font-display);
 }
 .insurance-panel > strong em {
-  font-size: clamp(3.2rem, 5.5vw, 5.2rem);
+  font-size: clamp(2rem, 13cqi, 5.2rem);
   color: var(--hf-gold-300);
   font-style: normal;
 }
@@ -1882,7 +1905,13 @@ p {
   padding: 0;
   list-style: none;
 }
+/* Two columns of padded step cards cannot fit a 320px viewport; they overflowed by
+   ~10px, masked by the ancestor that clips overflow-x. */
+@media (max-width: 480px) {
+  .process-line { grid-template-columns: 1fr; }
+}
 .process-line li {
+  min-width: 0;
   position: relative;
   padding: 24px 20px;
   background: rgba(3, 26, 18, 0.7);
@@ -2262,10 +2291,13 @@ p {
 .detail-bars {
   margin-top: 30px;
 }
+/* Each row renders four children (number, connector, label, dot) but only three
+   tracks were declared, so the label was auto-placed into the 8px track and spilled
+   out of the page on every service, area, route and guide detail page. */
 .detail-bars > div {
   min-height: 60px;
   display: grid;
-  grid-template-columns: 32px 1fr 8px;
+  grid-template-columns: 32px 28px minmax(0, 1fr) 6px;
   align-items: center;
   gap: 14px;
   border-bottom: 1px solid rgba(223, 183, 92, 0.2);
@@ -2274,7 +2306,12 @@ p {
   color: var(--hf-gold-500);
   font: italic 700 0.85rem var(--font-display);
 }
+.detail-bars i {
+  height: 1px;
+  background: linear-gradient(90deg, var(--hf-gold-500), rgba(223, 183, 92, 0.15));
+}
 .detail-bars strong {
+  min-width: 0;
   font: 600 0.98rem var(--font-display);
 }
 .detail-bars b {

@@ -2,7 +2,7 @@
 
 import { FormEvent, useEffect, useRef, useState } from "react";
 import { usePathname } from "next/navigation";
-import { areas, business, interstateRoutes, services } from "../../lib/site-data";
+import { areas, business, deployedOrigin, interstateRoutes, services } from "../../lib/site-data";
 
 export function UtilityBar() {
   return (
@@ -154,7 +154,7 @@ export function Header() {
       <header className={`site-header ${compact ? "is-compact" : ""} ${open ? "menu-open" : ""}`}>
         <div className="header-inner">
         <a className="brand" href="/" aria-label="HF Removals Adelaide home">
-          <img src={business.headerLogo} alt="HF Removals Adelaide" width="800" height="795" decoding="async" />
+          <img src={business.headerLogo} alt="HF Removals Adelaide" width={business.logoWidth} height={business.logoHeight} decoding="async" />
         </a>
 
         <nav className="desktop-nav" aria-label="Primary navigation">
@@ -297,7 +297,6 @@ const createEmptyForm = (): FormDataShape => ({
 });
 
 const FORM_SUBMIT_ENDPOINT = "https://formsubmit.co/hfremovalad@gmail.com";
-const FORM_SUCCESS_ORIGIN = "https://hf-removals-adelaide.vercel.app";
 
 function getAdelaideDateInputValue(date = new Date()) {
   const parts = new Intl.DateTimeFormat("en-AU", {
@@ -318,7 +317,7 @@ export function QuoteForm({ compact = false }: { compact?: boolean }) {
   const [statusKind, setStatusKind] = useState<"success" | "error" | "info">("info");
   const submitting = useRef(false);
   const earliestDate = getAdelaideDateInputValue();
-  const successUrl = `${FORM_SUCCESS_ORIGIN}${pathname}?quote=sent#quote`;
+  const successUrl = `${deployedOrigin}${pathname}?quote=sent#quote`;
 
   useEffect(() => {
     const search = new URLSearchParams(window.location.search);
@@ -385,11 +384,11 @@ export function QuoteForm({ compact = false }: { compact?: boolean }) {
         </div>
       </div>
 
-      <div className="form-tabs" role="tablist" aria-label="Move type selection">
+      <div className="form-tabs" role="radiogroup" aria-label="Move type selection">
         <button
           type="button"
-          role="tab"
-          aria-selected={form.tab === "local"}
+          role="radio"
+          aria-checked={form.tab === "local"}
           className={`form-tab-btn ${form.tab === "local" ? "is-active" : ""}`}
           onClick={() => update("tab", "local")}
         >
@@ -398,8 +397,8 @@ export function QuoteForm({ compact = false }: { compact?: boolean }) {
         </button>
         <button
           type="button"
-          role="tab"
-          aria-selected={form.tab === "interstate"}
+          role="radio"
+          aria-checked={form.tab === "interstate"}
           className={`form-tab-btn ${form.tab === "interstate" ? "is-active" : ""}`}
           onClick={() => update("tab", "interstate")}
         >
@@ -408,7 +407,7 @@ export function QuoteForm({ compact = false }: { compact?: boolean }) {
         </button>
       </div>
 
-      <div className="form-rate-preview">
+      <div className="form-rate-preview" aria-live="polite">
         {form.tab === "local" ? (
           <p>⚡ <strong>Local Rate:</strong> 2 Movers + Truck from <em>$74 / 30 min</em> ($148/hr) · All protective gear included</p>
         ) : (
