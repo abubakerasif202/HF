@@ -71,6 +71,43 @@ export const business = {
  */
 export const deployedOrigin = "https://hf-removals-adelaide.vercel.app";
 
+
+/**
+ * Google review excerpts transcribed from supplied Google Business Profile
+ * screenshots. `complete: false` marks a visibly truncated excerpt rather than
+ * the full review text. Kept here with the rest of the supplied business facts.
+ */
+export const googleReviews = [
+  {
+    name: "Mishaal",
+    initials: "M",
+    detail: "Google review",
+    content: "Muhammad and the team at HF Removals provided an exceptional house moving service. They were incredibly punctual, arriving exactly when promised, and handled everything with great care. Their pricing is highly competitive and fair. I will definitely use them again!",
+    complete: true,
+  },
+  {
+    name: "Max Lazzaris",
+    initials: "ML",
+    detail: "Google review · signed Sharon and max",
+    content: "10/10",
+    complete: false,
+  },
+  {
+    name: "Ayan Ali",
+    initials: "AA",
+    detail: "Google review · Adelaide to Melbourne move",
+    content: "no damage",
+    complete: false,
+  },
+  {
+    name: "shagun sharma",
+    initials: "SS",
+    detail: "Local Guide · Google review",
+    content: "HF Removals Adelaide · interstate move",
+    complete: false,
+  },
+] as const;
+
 export const localPricing = [
   { name: "2 Movers + Truck", halfHour: "$74", hourly: "$148", note: "per 30 minutes" },
   { name: "3 Movers + Truck", halfHour: "$89", hourly: "$178", note: "per 30 minutes" },

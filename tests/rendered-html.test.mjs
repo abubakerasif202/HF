@@ -154,6 +154,11 @@ test("keeps verified rates, coverage wording and canonical route inventory centr
   assert.match(data, /verifiedAt: "2026-08-21"/);
   assert.match(data, /Complimentary mattress protection/);
   assert.doesNotMatch(data, /five-star|fully insured|no hidden fees|on-time every time/i);
+  // Review excerpts belong with the other supplied business facts, not inside a component.
+  assert.match(data, /export const googleReviews/);
+  const site = await readFile(new URL("../app/components/Site.tsx", import.meta.url), "utf8");
+  assert.doesNotMatch(site, /const reviews = \[/);
+  assert.match(site, /googleReviews\.map/);
 });
 
 async function builtCss() {

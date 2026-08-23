@@ -1,4 +1,4 @@
-import { areas, business, ContentPage, guides, interstatePricing, interstateRoutes, localPricing, services, standardMoveFaqs } from "../../lib/site-data";
+import { areas, business, ContentPage, googleReviews, guides, interstatePricing, interstateRoutes, localPricing, services, standardMoveFaqs } from "../../lib/site-data";
 import { Header, MobileStickyCta, MotionExperience, QuoteForm, UtilityBar } from "./SiteClient";
 import { ThreeTruckViewerClient } from "./ThreeTruckViewerClient";
 
@@ -368,36 +368,6 @@ function VolumeGuidanceSection() {
 
 function ReviewsSection() {
   const google = business.googleBusiness;
-  const reviews = [
-    {
-      name: "Mishaal",
-      initials: "M",
-      detail: "Google review",
-      content: "Muhammad and the team at HF Removals provided an exceptional house moving service. They were incredibly punctual, arriving exactly when promised, and handled everything with great care. Their pricing is highly competitive and fair. I will definitely use them again!",
-      complete: true,
-    },
-    {
-      name: "Max Lazzaris",
-      initials: "ML",
-      detail: "Google review · signed Sharon and max",
-      content: "10/10",
-      complete: false,
-    },
-    {
-      name: "Ayan Ali",
-      initials: "AA",
-      detail: "Google review · Adelaide to Melbourne move",
-      content: "no damage",
-      complete: false,
-    },
-    {
-      name: "shagun sharma",
-      initials: "SS",
-      detail: "Local Guide · Google review",
-      content: "HF Removals Adelaide · interstate move",
-      complete: false,
-    },
-  ];
   return (
     <section className="section reviews-section" id="reviews" aria-labelledby="google-proof-title">
       <div className="container">
@@ -423,7 +393,7 @@ function ReviewsSection() {
         </div>
 
         <div className="reviews-cards-grid" aria-label="Customer reviews verified from supplied Google screenshots">
-          {reviews.map((review) => (
+          {googleReviews.map((review) => (
             <article className="review-card" key={review.name}>
               <div>
                 <div className="review-card-head">
