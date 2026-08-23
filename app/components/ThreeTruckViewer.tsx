@@ -14,33 +14,33 @@ const HOTSPOTS: Hotspot[] = [
   {
     id: "cargo",
     title: "Secure Cargo Bay (25–60m³)",
-    desc: "Equipped with internal tie-down rails, ratchet straps, and complimentary quilted moving blankets.",
+    desc: "Fully equipped with heavy tie-down rails, ratchet straps, and complimentary quilted moving blankets.",
     position: [0, 1.4, -0.4],
   },
   {
     id: "tailgate",
-    title: "Hydraulic Tailgate Lift",
-    desc: "Safe loading for heavy appliances, double fridges, marble tables, and upright pianos.",
+    title: "Hydraulic Tailgate Lifter",
+    desc: "Engineered for safe loading of upright pianos, commercial safes, marble tables, and double fridges.",
     position: [0, 0.4, -2.4],
   },
   {
-    id: "cab",
-    title: "Adelaide Direct GPS Dispatch",
-    desc: "Full transit tracking for local Adelaide metro routes and direct interstate departures.",
-    position: [0, 1.2, 1.9],
+    id: "protection",
+    title: "$1,000,000 Transit Cover",
+    desc: "Every move is safeguarded with comprehensive verified transit and public liability insurance.",
+    position: [1.2, 1.3, -0.5],
   },
   {
-    id: "protection",
-    title: "$1M Transit Insurance",
-    desc: "Every load is fully covered under verified commercial transit and public liability insurance.",
-    position: [1.2, 1.3, -0.5],
+    id: "gps",
+    title: "Adelaide Direct GPS Dispatch",
+    desc: "Real-time dispatch tracking across all Adelaide suburbs and interstate express routes.",
+    position: [0, 1.2, 1.9],
   },
 ];
 
 const TRUCK_MODES = [
-  { id: "medium", name: "25–35m³ Truck", capacity: "1–2 Bedroom / Apartment", scaleZ: 0.85, price: "From $74/30m" },
-  { id: "large", name: "40–50m³ Pantech", capacity: "3–4 Bedroom Family Home", scaleZ: 1.15, price: "From $89/30m" },
-  { id: "interstate", name: "60+m³ Interstate", capacity: "5+ Bed / Interstate Relocation", scaleZ: 1.45, price: "From $135/m³" },
+  { id: "medium", name: "25–35m³ Truck", capacity: "1–2 Bedroom / Townhouse", scaleZ: 0.85, price: "From $74 / 30m" },
+  { id: "large", name: "40–50m³ Pantech", capacity: "3–4 Bedroom Family Home", scaleZ: 1.15, price: "From $89 / 30m" },
+  { id: "interstate", name: "60+m³ Interstate", capacity: "5+ Bed / Long Distance", scaleZ: 1.45, price: "From $135 / m³" },
 ];
 
 export function ThreeTruckViewer() {
@@ -58,7 +58,6 @@ export function ThreeTruckViewer() {
     const container = containerRef.current;
     if (!container) return;
 
-    // WebGL support check
     try {
       const testCanvas = document.createElement("canvas");
       const gl = testCanvas.getContext("webgl") || testCanvas.getContext("experimental-webgl");
@@ -74,15 +73,15 @@ export function ThreeTruckViewer() {
     }
 
     const width = container.clientWidth || 800;
-    const height = container.clientHeight || 500;
+    const height = container.clientHeight || 460;
 
-    // Scene, Camera, Renderer
+    // Scene & Camera
     const scene = new THREE.Scene();
     scene.background = null;
 
-    const camera = new THREE.PerspectiveCamera(42, width / height, 0.1, 100);
-    camera.position.set(4.8, 3.2, 5.2);
-    camera.lookAt(0, 0.8, 0);
+    const camera = new THREE.PerspectiveCamera(40, width / height, 0.1, 100);
+    camera.position.set(4.6, 2.9, 5.0);
+    camera.lookAt(0, 0.75, 0);
 
     const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, powerPreference: "high-performance" });
     const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
@@ -92,171 +91,189 @@ export function ThreeTruckViewer() {
     renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     container.appendChild(renderer.domElement);
 
-    // Lights
-    const ambientLight = new THREE.AmbientLight(0xfff7e6, 1.4);
+    // Dynamic Lighting
+    const ambientLight = new THREE.AmbientLight(0xfffaed, 1.5);
     scene.add(ambientLight);
 
-    const dirLight = new THREE.DirectionalLight(0xfff0d0, 2.8);
-    dirLight.position.set(6, 10, 8);
-    dirLight.castShadow = true;
-    dirLight.shadow.mapSize.width = 1024;
-    dirLight.shadow.mapSize.height = 1024;
-    dirLight.shadow.camera.near = 0.5;
-    dirLight.shadow.camera.far = 25;
-    dirLight.shadow.bias = -0.001;
-    scene.add(dirLight);
+    const sunLight = new THREE.DirectionalLight(0xffebba, 3.0);
+    sunLight.position.set(6, 10, 7);
+    sunLight.castShadow = true;
+    sunLight.shadow.mapSize.width = 1024;
+    sunLight.shadow.mapSize.height = 1024;
+    sunLight.shadow.bias = -0.001;
+    scene.add(sunLight);
 
-    const fillLight = new THREE.DirectionalLight(0x10b981, 1.2);
-    fillLight.position.set(-6, 4, -4);
-    scene.add(fillLight);
+    const emeraldFill = new THREE.DirectionalLight(0x10b981, 1.4);
+    emeraldFill.position.set(-6, 3, -4);
+    scene.add(emeraldFill);
 
-    const goldRimLight = new THREE.PointLight(0xdfb75c, 2.5, 12);
-    goldRimLight.position.set(0, 2.5, -3.5);
-    scene.add(goldRimLight);
+    const goldPoint = new THREE.PointLight(0xffd700, 2.8, 14);
+    goldPoint.position.set(0, 3, -3);
+    scene.add(goldPoint);
 
-    // Floor Reflection & Shadow Plane
-    const floorGeo = new THREE.PlaneGeometry(16, 16);
-    const floorMat = new THREE.ShadowMaterial({ opacity: 0.35 });
+    // Ground Shadow Plane
+    const floorGeo = new THREE.PlaneGeometry(18, 18);
+    const floorMat = new THREE.ShadowMaterial({ opacity: 0.4 });
     const floor = new THREE.Mesh(floorGeo, floorMat);
     floor.rotation.x = -Math.PI / 2;
     floor.position.y = 0;
     floor.receiveShadow = true;
     scene.add(floor);
 
-    // Floor Grid Ring
-    const gridHelper = new THREE.GridHelper(10, 20, 0xdfb75c, 0x0b3525);
-    gridHelper.position.y = 0.01;
-    scene.add(gridHelper);
+    // Glowing Concentric Floor Rings
+    const ringGeo = new THREE.RingGeometry(2.2, 2.25, 64);
+    const ringMat = new THREE.MeshBasicMaterial({ color: 0xdfb75c, side: THREE.DoubleSide });
+    const ring = new THREE.Mesh(ringGeo, ringMat);
+    ring.rotation.x = -Math.PI / 2;
+    ring.position.y = 0.01;
+    scene.add(ring);
 
-    // Build Procedural 3D HF Moving Truck
+    const outerRingGeo = new THREE.RingGeometry(3.6, 3.63, 64);
+    const outerRingMat = new THREE.MeshBasicMaterial({ color: 0x0e5a3c, side: THREE.DoubleSide });
+    const outerRing = new THREE.Mesh(outerRingGeo, outerRingMat);
+    outerRing.rotation.x = -Math.PI / 2;
+    outerRing.position.y = 0.01;
+    scene.add(outerRing);
+
+    // Procedural HF Fleet Truck
     const truckGroup = new THREE.Group();
     truckGroupRef.current = truckGroup;
 
     // Materials
-    const emeraldCabMat = new THREE.MeshStandardMaterial({
-      color: 0x06271d,
-      roughness: 0.25,
-      metalness: 0.6,
+    const emeraldBodyMat = new THREE.MeshStandardMaterial({
+      color: 0x052b1e,
+      roughness: 0.22,
+      metalness: 0.65,
     });
 
-    const goldTrimMat = new THREE.MeshStandardMaterial({
-      color: 0xdfb75c,
-      roughness: 0.2,
-      metalness: 0.85,
+    const gold24kMat = new THREE.MeshStandardMaterial({
+      color: 0xffd700,
+      roughness: 0.15,
+      metalness: 0.9,
     });
 
-    const cargoMat = new THREE.MeshStandardMaterial({
-      color: 0x093828,
-      roughness: 0.35,
-      metalness: 0.4,
+    const cargoContainerMat = new THREE.MeshStandardMaterial({
+      color: 0x083a29,
+      roughness: 0.3,
+      metalness: 0.45,
     });
 
     const glassMat = new THREE.MeshPhysicalMaterial({
-      color: 0x11221b,
+      color: 0x142b22,
       metalness: 0.1,
-      roughness: 0.1,
-      transmission: 0.6,
+      roughness: 0.05,
+      transmission: 0.7,
       transparent: true,
-      opacity: 0.75,
+      opacity: 0.8,
     });
 
     const tireMat = new THREE.MeshStandardMaterial({
-      color: 0x111111,
-      roughness: 0.8,
-    });
-
-    const rimMat = new THREE.MeshStandardMaterial({
-      color: 0xdfb75c,
-      metalness: 0.9,
-      roughness: 0.15,
+      color: 0x121212,
+      roughness: 0.85,
     });
 
     const chassisMat = new THREE.MeshStandardMaterial({
-      color: 0x1a1a1a,
-      roughness: 0.6,
+      color: 0x181818,
+      roughness: 0.5,
     });
 
-    // 1. Chassis
-    const chassisGeo = new THREE.BoxGeometry(1.9, 0.25, 5.0);
+    // 1. Heavy Chassis
+    const chassisGeo = new THREE.BoxGeometry(1.9, 0.28, 5.2);
     const chassis = new THREE.Mesh(chassisGeo, chassisMat);
-    chassis.position.set(0, 0.45, 0);
+    chassis.position.set(0, 0.46, 0);
     chassis.castShadow = true;
     chassis.receiveShadow = true;
     truckGroup.add(chassis);
 
-    // 2. Cab (Driver section)
-    const cabGeo = new THREE.BoxGeometry(1.85, 1.4, 1.4);
-    const cab = new THREE.Mesh(cabGeo, emeraldCabMat);
-    cab.position.set(0, 1.25, 1.7);
+    // 2. Aerodynamic Cab (Driver section)
+    const cabGeo = new THREE.BoxGeometry(1.85, 1.45, 1.45);
+    const cab = new THREE.Mesh(cabGeo, emeraldBodyMat);
+    cab.position.set(0, 1.28, 1.7);
     cab.castShadow = true;
     cab.receiveShadow = true;
     truckGroup.add(cab);
 
-    // Windshield & Side Windows
-    const windshieldGeo = new THREE.BoxGeometry(1.7, 0.6, 0.1);
+    // Roof Wind Fairing (Aerokit)
+    const fairingGeo = new THREE.CylinderGeometry(0.01, 1.84, 0.6, 4);
+    const fairing = new THREE.Mesh(fairingGeo, emeraldBodyMat);
+    fairing.position.set(0, 2.25, 1.6);
+    fairing.rotation.y = Math.PI / 4;
+    truckGroup.add(fairing);
+
+    // Windshield & Windows
+    const windshieldGeo = new THREE.BoxGeometry(1.7, 0.65, 0.1);
     const windshield = new THREE.Mesh(windshieldGeo, glassMat);
-    windshield.position.set(0, 1.45, 2.41);
+    windshield.position.set(0, 1.5, 2.43);
     truckGroup.add(windshield);
 
-    const sideWindowGeo = new THREE.BoxGeometry(0.1, 0.55, 0.8);
+    const sideWindowGeo = new THREE.BoxGeometry(0.1, 0.58, 0.85);
     const leftWindow = new THREE.Mesh(sideWindowGeo, glassMat);
-    leftWindow.position.set(-0.93, 1.45, 1.8);
+    leftWindow.position.set(-0.93, 1.5, 1.8);
     const rightWindow = leftWindow.clone();
-    rightWindow.position.set(0.93, 1.45, 1.8);
+    rightWindow.position.set(0.93, 1.5, 1.8);
     truckGroup.add(leftWindow, rightWindow);
 
-    // Front Bumper & Gold Grille
-    const bumperGeo = new THREE.BoxGeometry(1.9, 0.35, 0.3);
-    const bumper = new THREE.Mesh(bumperGeo, goldTrimMat);
-    bumper.position.set(0, 0.45, 2.45);
+    // Gold Heavy Bumper & Grille
+    const bumperGeo = new THREE.BoxGeometry(1.9, 0.38, 0.35);
+    const bumper = new THREE.Mesh(bumperGeo, gold24kMat);
+    bumper.position.set(0, 0.48, 2.45);
     bumper.castShadow = true;
     truckGroup.add(bumper);
 
-    // Headlights (LED glow)
-    const lightGeo = new THREE.CylinderGeometry(0.12, 0.12, 0.05, 16);
-    const lightMat = new THREE.MeshBasicMaterial({ color: 0xfffae0 });
+    // High-Beam LED Headlights
+    const lightGeo = new THREE.CylinderGeometry(0.13, 0.13, 0.06, 20);
+    const lightMat = new THREE.MeshBasicMaterial({ color: 0xfffbe6 });
     const leftLight = new THREE.Mesh(lightGeo, lightMat);
     leftLight.rotation.x = Math.PI / 2;
-    leftLight.position.set(-0.65, 0.6, 2.42);
+    leftLight.position.set(-0.65, 0.62, 2.43);
     const rightLight = leftLight.clone();
-    rightLight.position.set(0.65, 0.6, 2.42);
+    rightLight.position.set(0.65, 0.62, 2.43);
     truckGroup.add(leftLight, rightLight);
 
     // 3. Cargo Container Box
-    const cargoGeo = new THREE.BoxGeometry(2.05, 1.9, 3.2);
-    const cargoMesh = new THREE.Mesh(cargoGeo, cargoMat);
-    cargoMesh.position.set(0, 1.55, -0.6);
+    const cargoGeo = new THREE.BoxGeometry(2.08, 2.0, 3.3);
+    const cargoMesh = new THREE.Mesh(cargoGeo, cargoContainerMat);
+    cargoMesh.position.set(0, 1.6, -0.65);
     cargoMesh.castShadow = true;
     cargoMesh.receiveShadow = true;
     cargoMeshRef.current = cargoMesh;
     truckGroup.add(cargoMesh);
 
-    // Gold Top Rails & Livery Stripes
-    const railGeo = new THREE.BoxGeometry(2.1, 0.08, 3.25);
-    const topRail = new THREE.Mesh(railGeo, goldTrimMat);
-    topRail.position.set(0, 2.52, -0.6);
+    // Gold Top Rails & Branding Stripes
+    const railGeo = new THREE.BoxGeometry(2.12, 0.09, 3.35);
+    const topRail = new THREE.Mesh(railGeo, gold24kMat);
+    topRail.position.set(0, 2.61, -0.65);
     truckGroup.add(topRail);
 
-    const stripeGeo = new THREE.BoxGeometry(2.07, 0.18, 3.22);
-    const stripe = new THREE.Mesh(stripeGeo, goldTrimMat);
-    stripe.position.set(0, 1.55, -0.6);
+    const stripeGeo = new THREE.BoxGeometry(2.1, 0.22, 3.32);
+    const stripe = new THREE.Mesh(stripeGeo, gold24kMat);
+    stripe.position.set(0, 1.6, -0.65);
     truckGroup.add(stripe);
 
-    // 4. Hydraulic Tailgate (Back)
-    const tailgateGeo = new THREE.BoxGeometry(1.9, 1.7, 0.12);
-    const tailgate = new THREE.Mesh(tailgateGeo, goldTrimMat);
-    tailgate.position.set(0, 1.45, -2.25);
+    // 4. Hydraulic Tailgate (Rear)
+    const tailgateGeo = new THREE.BoxGeometry(1.95, 1.8, 0.14);
+    const tailgate = new THREE.Mesh(tailgateGeo, gold24kMat);
+    tailgate.position.set(0, 1.5, -2.35);
     tailgate.castShadow = true;
     truckGroup.add(tailgate);
 
-    // 5. Wheels (6-wheel heavy axle setup)
+    // Red LED Tail Lights
+    const tailLightGeo = new THREE.BoxGeometry(0.3, 0.15, 0.05);
+    const tailLightMat = new THREE.MeshBasicMaterial({ color: 0xff1e38 });
+    const leftTail = new THREE.Mesh(tailLightGeo, tailLightMat);
+    leftTail.position.set(-0.75, 0.6, -2.43);
+    const rightTail = leftTail.clone();
+    rightTail.position.set(0.75, 0.6, -2.43);
+    truckGroup.add(leftTail, rightTail);
+
+    // 5. Wheels (Heavy 6-Wheel Assembly)
     const wheelPositions: [number, number, number][] = [
-      [-0.95, 0.38, 1.8],
-      [0.95, 0.38, 1.8],
-      [-0.95, 0.38, -0.8],
-      [0.95, 0.38, -0.8],
-      [-0.95, 0.38, -1.8],
-      [0.95, 0.38, -1.8],
+      [-0.98, 0.38, 1.8],
+      [0.98, 0.38, 1.8],
+      [-0.98, 0.38, -0.8],
+      [0.98, 0.38, -0.8],
+      [-0.98, 0.38, -1.85],
+      [0.98, 0.38, -1.85],
     ];
 
     const tireGeo = new THREE.CylinderGeometry(0.38, 0.38, 0.28, 24);
@@ -270,7 +287,7 @@ export function ThreeTruckViewer() {
       tire.rotation.z = Math.PI / 2;
       tire.castShadow = true;
 
-      const rim = new THREE.Mesh(rimGeo, rimMat);
+      const rim = new THREE.Mesh(rimGeo, gold24kMat);
       rim.rotation.z = Math.PI / 2;
 
       wheelGroup.add(tire, rim);
@@ -280,7 +297,7 @@ export function ThreeTruckViewer() {
     scene.add(truckGroup);
     setLoading(false);
 
-    // User Interaction (Mouse / Touch Drag Rotation)
+    // Pointer Drag & Orbit Controls
     let isDragging = false;
     let prevMouseX = 0;
     let prevMouseY = 0;
@@ -302,8 +319,8 @@ export function ThreeTruckViewer() {
       const deltaY = clientY - prevMouseY;
 
       truckGroupRef.current.rotation.y += deltaX * 0.008;
-      camera.position.y = Math.max(1.5, Math.min(5.5, camera.position.y - deltaY * 0.008));
-      camera.lookAt(0, 0.8, 0);
+      camera.position.y = Math.max(1.4, Math.min(5.2, camera.position.y - deltaY * 0.008));
+      camera.lookAt(0, 0.75, 0);
 
       prevMouseX = clientX;
       prevMouseY = clientY;
@@ -321,14 +338,14 @@ export function ThreeTruckViewer() {
     window.addEventListener("mouseup", onPointerUp);
     window.addEventListener("touchend", onPointerUp);
 
-    // Visibility Observer (Freeze rendering when not on screen)
+    // Intersection Observer to stop rendering when scrolled away
     let isVisible = true;
     const observer = new IntersectionObserver(([entry]) => {
       isVisible = entry.isIntersecting;
     });
     observer.observe(container);
 
-    // Animation Loop
+    // Render loop
     let animId: number;
     const animate = () => {
       animId = requestAnimationFrame(animate);
@@ -342,7 +359,6 @@ export function ThreeTruckViewer() {
     };
     animate();
 
-    // Resize Handler
     const onResize = () => {
       if (!container) return;
       const w = container.clientWidth;
@@ -368,7 +384,6 @@ export function ThreeTruckViewer() {
     };
   }, [isRotating]);
 
-  // Adjust 3D truck scale on capacity toggle
   const handleModeChange = (modeId: string) => {
     setActiveTab(modeId);
     const mode = TRUCK_MODES.find((m) => m.id === modeId);
@@ -382,30 +397,29 @@ export function ThreeTruckViewer() {
       <div className="container">
         <div className="three-header">
           <div className="section-heading">
-            <p className="eyebrow">Interactive 3D Fleet Explorer</p>
+            <p className="eyebrow">Interactive 3D Fleet Visualizer</p>
             <h2 id="three-title">
               Explore Our Moving Fleet in <em>Interactive 3D</em>
             </h2>
-            <p>
-              Drag and rotate our custom heavy-duty removal vehicle. Inspect cargo space, hydraulic equipment, and tailored vehicle configurations for your move.
+            <p className="three-desc">
+              Touch or drag to rotate our custom Adelaide removal truck. Switch between vehicle sizes and inspect hydraulic tailgate, packing gear, and insurance coverage.
             </p>
           </div>
-          <div className="three-controls-top">
-            <div className="three-mode-tabs" role="tablist" aria-label="Vehicle Size Selector">
-              {TRUCK_MODES.map((mode) => (
-                <button
-                  key={mode.id}
-                  role="tab"
-                  aria-selected={activeTab === mode.id}
-                  className={`three-tab-btn ${activeTab === mode.id ? "is-active" : ""}`}
-                  onClick={() => handleModeChange(mode.id)}
-                >
-                  <strong>{mode.name}</strong>
-                  <span>{mode.capacity}</span>
-                  <small>{mode.price}</small>
-                </button>
-              ))}
-            </div>
+
+          <div className="three-mode-tabs" role="tablist" aria-label="Vehicle Size Configurator">
+            {TRUCK_MODES.map((mode) => (
+              <button
+                key={mode.id}
+                role="tab"
+                aria-selected={activeTab === mode.id}
+                className={`three-tab-btn ${activeTab === mode.id ? "is-active" : ""}`}
+                onClick={() => handleModeChange(mode.id)}
+              >
+                <strong className="tab-title">{mode.name}</strong>
+                <span className="tab-sub">{mode.capacity}</span>
+                <span className="tab-price-pill">{mode.price}</span>
+              </button>
+            ))}
           </div>
         </div>
 
@@ -426,15 +440,22 @@ export function ThreeTruckViewer() {
                 </div>
               </div>
             )}
+            <div className="three-drag-hint">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
+                <path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67" />
+              </svg>
+              <span>Drag / Swipe to Rotate 360°</span>
+            </div>
           </div>
 
           <div className="three-overlay-card">
             <div className="overlay-badge">
               <span className="badge-pulse" />
-              <span>360° Interactive View</span>
+              <span>Commercial Fleet Features</span>
             </div>
+
             <div className="hotspot-list">
-              <span className="hotspot-label">Vehicle Features & Standards:</span>
+              <span className="hotspot-label">Select Feature to Inspect:</span>
               {HOTSPOTS.map((spot) => (
                 <button
                   key={spot.id}

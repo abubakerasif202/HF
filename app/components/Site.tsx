@@ -720,13 +720,13 @@ export function HomePage() {
       </section>
 
       <TrustBar />
+      <ThreeTruckViewer />
       <ServiceTicker />
       <ServicesGrid />
       <ApartmentAccessSection />
-      <ServicePhotosSection />
       <PricingSection />
       <VolumeGuidanceSection />
-      <ThreeTruckViewer />
+      <ServicePhotosSection />
       <ProcessSection />
       <ReviewsSection />
       <PackingSection />
