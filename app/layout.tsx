@@ -21,6 +21,15 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
         <link rel="preconnect" href="https://maps.googleapis.com" />
         <link rel="preconnect" href="https://maps.gstatic.com" crossOrigin="anonymous" />
         <link rel="preconnect" href="https://www.google.com" />
+        <link
+          rel="preload"
+          as="image"
+          href="/images/hf-hero-truck-1792.webp"
+          type="image/webp"
+          imageSrcSet="/images/hf-hero-truck-480.webp 480w, /images/hf-hero-truck-768.webp 768w, /images/hf-hero-truck-1024.webp 1024w, /images/hf-hero-truck-1440.webp 1440w, /images/hf-hero-truck-1792.webp 1792w"
+          imageSizes="100vw"
+          fetchPriority="high"
+        />
       </head>
       <body>{children}</body>
     </html>

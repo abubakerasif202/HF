@@ -1,6 +1,21 @@
+import dynamic from "next/dynamic";
 import { areas, business, ContentPage, guides, interstatePricing, interstateRoutes, localPricing, reviews, services, standardMoveFaqs } from "../../lib/site-data";
 import { Header, MobileStickyCta, QuoteForm, UtilityBar } from "./SiteClient";
-import { ThreeTruckViewer } from "./ThreeTruckViewer";
+
+const ThreeTruckViewer = dynamic(
+  () => import("./ThreeTruckViewer").then((mod) => mod.ThreeTruckViewer),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="section three-section" style={{ minHeight: "420px", display: "flex", alignItems: "center", justifyContent: "center" }}>
+        <div className="three-loader">
+          <div className="three-spinner" />
+          <span>Loading 3D Fleet Visualizer...</span>
+        </div>
+      </div>
+    ),
+  }
+);
 
 export function ServiceTicker({ locations = false }: { locations?: boolean }) {
   const items = locations
