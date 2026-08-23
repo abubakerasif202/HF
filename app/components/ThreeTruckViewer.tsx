@@ -55,6 +55,12 @@ export function ThreeTruckViewer() {
   const cargoMeshRef = useRef<THREE.Mesh | null>(null);
 
   useEffect(() => {
+    if (typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      setIsRotating(false);
+    }
+  }, []);
+
+  useEffect(() => {
     const container = containerRef.current;
     if (!container) return;
 
