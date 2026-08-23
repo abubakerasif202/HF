@@ -2,6 +2,28 @@
 
 Audit date: 21 August 2026
 
+## Service photography refresh — 24 August 2026
+
+Replaced the four service images with owner-supplied HF-branded scenes:
+residential handover, packing/mattress protection, city office move and a loaded
+truck at a home. Same 1672x941 dimensions as the assets they replace, re-encoded
+to WebP q74 (525KB total across four lazy-loaded images, up from 407KB).
+
+Alt text was rewritten to describe what each new image actually shows. The
+interstate slot previously claimed "travelling on an Australian highway at
+sunset", which is not what the new photograph depicts.
+
+The apartment/CBD section now uses the office scene, since the residential image
+is a suburban handover and that section is about multi-storey and CBD access. Its
+image box also drops from 480px to 320px tall under 600px wide, which lifts the
+visible portion of the frame on a phone from roughly a third to a half.
+
+**Known defect, shipped at the owner's direction:** the truck livery in the
+interstate and office images carries generated-text errors — "HF RMOVALS" on the
+cab in both, plus "LOCAL & INTESTATE" and "STORAGEE SOLUTIONS" on the office
+image. These were raised before use and accepted in favour of keeping the scenes.
+Regenerating those two frames with corrected livery is the outstanding follow-up.
+
 ## Re-audit: layout, assets and semantics — 24 August 2026
 
 Follow-up pass against the production build. Findings below were verified by measuring

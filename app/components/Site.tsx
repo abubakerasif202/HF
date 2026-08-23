@@ -190,7 +190,7 @@ function ApartmentAccessSection() {
     <section className="section apartment-section" aria-labelledby="apartment-title">
       <div className="container apartment-grid">
         <div className="apartment-media">
-          <img src="/images/hf-residential-premium.webp" alt="HF Removals crew moving protected furniture through a multi-story building" width="960" height="640" loading="lazy" />
+          <img src="/images/hf-office-premium.webp" alt="HF Removals Adelaide movers wheeling cartons, office chairs and a filing cabinet into a city office building" width="1672" height="941" loading="lazy" />
           <div className="apartment-media-badge">
             <strong>Adelaide CBD & apartment move planning</strong>
             <span>Share lift, loading-zone and common-area requirements before moving day</span>
@@ -229,28 +229,28 @@ const servicePhotos = [
     href: "/services/residential-removals",
     label: "Residential Removals",
     copy: "Home moving support planned around access, inventory, and final placement.",
-    alt: "HF Removals Adelaide crew loading protected furniture and cartons at a suburban home",
+    alt: "HF Removals Adelaide mover handing a pot plant to customers at the door of their new home, with the HF truck and cartons behind",
   },
   {
     src: "/images/hf-packing-premium.webp",
     href: "/services/packing-unpacking",
     label: "Packing & Protection",
     copy: "Protective preparation with heavy blankets, shrink wrap, and complimentary mattress covers.",
-    alt: "HF Removals Adelaide crew wrapping a sofa and timber furniture for moving",
+    alt: "HF Removals Adelaide movers shrink-wrapping a mattress and padded furniture inside a home",
   },
   {
     src: "/images/hf-office-premium.webp",
     href: "/services/office-commercial-removals",
     label: "Office & Workplace Moves",
     copy: "Coordinated commercial moves for workstations, IT equipment, and archives.",
-    alt: "HF Removals Adelaide crew relocating protected office furniture and equipment",
+    alt: "HF Removals Adelaide movers wheeling cartons, office chairs and a filing cabinet into a city office building",
   },
   {
     src: "/images/hf-interstate-premium.webp",
     href: "/services/interstate-removals",
     label: "Interstate Removals",
     copy: "Long-distance moving connecting Adelaide to Melbourne, Sydney, Brisbane, and Perth.",
-    alt: "HF branded interstate moving truck travelling on an Australian highway at sunset",
+    alt: "HF Removals Adelaide truck parked at a home while two movers carry a sofa to the door",
   },
 ] as const;
 
@@ -816,20 +816,20 @@ function mediaForPage(page: ContentPage) {
   if (page.kind === "area")
     return {
       src: "/images/hf-residential-premium.webp",
-      alt: "HF Removals Adelaide crew loading a moving truck outside a suburban home",
+      alt: "HF Removals Adelaide mover handing a pot plant to customers at the door of their new home, with the HF truck and cartons behind",
       label: "Local move planning",
     };
   if (page.kind === "guide") {
     if (page.slug.includes("office"))
       return {
         src: "/images/hf-office-premium.webp",
-        alt: "HF Removals Adelaide crew relocating protected office furniture and equipment",
+        alt: "HF Removals Adelaide movers wheeling cartons, office chairs and a filing cabinet into a city office building",
         label: "Practical moving guidance",
       };
     if (page.slug.includes("furniture") || page.slug.includes("packing"))
       return {
         src: "/images/hf-packing-premium.webp",
-        alt: "HF Removals Adelaide crew wrapping furniture for a move",
+        alt: "HF Removals Adelaide movers shrink-wrapping a mattress and padded furniture inside a home",
         label: "Practical moving guidance",
       };
     return {
@@ -841,29 +841,29 @@ function mediaForPage(page: ContentPage) {
   const serviceMedia: Record<string, { src: string; alt: string; label: string }> = {
     "office-commercial-removals": {
       src: "/images/hf-office-premium.webp",
-      alt: "HF Removals Adelaide crew relocating protected office furniture and equipment",
+      alt: "HF Removals Adelaide movers wheeling cartons, office chairs and a filing cabinet into a city office building",
       label: "Office & commercial moves",
     },
     "interstate-removals": {
       src: "/images/hf-interstate-premium.webp",
-      alt: "HF branded interstate moving truck travelling on an Australian highway at sunset",
+      alt: "HF Removals Adelaide truck parked at a home while two movers carry a sofa to the door",
       label: "Interstate moves",
     },
     backloading: {
       src: "/images/hf-interstate-premium.webp",
-      alt: "HF branded interstate moving truck travelling on an Australian highway at sunset",
+      alt: "HF Removals Adelaide truck parked at a home while two movers carry a sofa to the door",
       label: "Backloading enquiries",
     },
     "packing-unpacking": {
       src: "/images/hf-packing-premium.webp",
-      alt: "HF Removals Adelaide crew wrapping furniture for a move",
+      alt: "HF Removals Adelaide movers shrink-wrapping a mattress and padded furniture inside a home",
       label: "Packing & protection",
     },
   };
   return (
     serviceMedia[page.slug] ?? {
       src: "/images/hf-residential-premium.webp",
-      alt: "HF Removals Adelaide crew loading protected furniture and cartons at a suburban home",
+      alt: "HF Removals Adelaide mover handing a pot plant to customers at the door of their new home, with the HF truck and cartons behind",
       label: "Residential moves",
     }
   );

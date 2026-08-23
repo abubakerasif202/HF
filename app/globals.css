@@ -1259,6 +1259,12 @@ p {
   object-fit: cover;
   transition: transform 0.8s var(--ease-premium);
 }
+/* A fixed 480px box turns this wide street scene into a narrow centre crop on a
+   phone, showing roughly a third of the frame. A shorter box keeps the truck and
+   the building entrance both readable. */
+@media (max-width: 600px) {
+  .apartment-media img { height: 320px; }
+}
 .apartment-media:hover img {
   transform: scale(1.03);
 }
