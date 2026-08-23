@@ -15,7 +15,7 @@ export function UtilityBar() {
         <div className="utility-contact">
           <a href="https://maps.google.com/?cid=10700874558509895358" target="_blank" rel="noopener noreferrer" className="utility-rating">
             <span className="utility-stars">★★★★★</span>
-            <strong>4.9/5.0</strong> ({business.googleBusiness.reviewCount} Google Reviews)
+            <strong>{business.googleBusiness.rating}/5.0</strong> ({business.googleBusiness.reviewCount} Google Reviews)
           </a>
           <a href={business.phones[0].href} className="utility-phone" aria-label={`Call ${business.phones[0].display}`}>
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
@@ -264,7 +264,7 @@ export function Header() {
             Pricing <span>↗</span>
           </a>
           <a href="/#reviews" onClick={() => setOpen(false)}>
-            Google Reviews (4.9★) <span>↗</span>
+            Google Reviews ({business.googleBusiness.rating}★) <span>↗</span>
           </a>
           <a className={pathname === "/about" ? "is-active" : ""} href="/about" onClick={() => setOpen(false)}>
             About HF <span>↗</span>

@@ -57,8 +57,13 @@ test("renders the premium HF homepage without placeholder claims", async () => {
   assert.match(html, /Open 24 Hours/i);
   assert.match(html, /25–45 m³/i);
   assert.match(html, /40–60 m³/i);
-  assert.match(html, /AggregateRating/);
-  assert.match(html, /"ratingValue":4\.9/);
+  // The 4.9/417 figures are Google's, not reviews this site collects, so they must
+  // not be marked up as first-party aggregateRating on the LocalBusiness node.
+  assert.doesNotMatch(html, /AggregateRating|"ratingValue"/);
+  assert.doesNotMatch(html, /"@type":"Review"/);
+  // ...while the visible, Google-attributed section is unchanged.
+  assert.match(html, /Read all reviews on Google/i);
+  assert.match(html, /maps\.google\.com/);
   assert.match(html, /application\/ld\+json/);
   assert.match(html, /<title>Adelaide Removalists \| 4\.9★ Rated Local &amp; Interstate \| HF Removals<\/title>/i);
   assert.doesNotMatch(html, /HF Removals Adelaide \| HF Removals Adelaide<\/title>/i);
@@ -159,6 +164,13 @@ test("keeps verified rates, coverage wording and canonical route inventory centr
   const site = await readFile(new URL("../app/components/Site.tsx", import.meta.url), "utf8");
   assert.doesNotMatch(site, /const reviews = \[/);
   assert.match(site, /googleReviews\.map/);
+  // Rating and count come from site-data, never retyped in components.
+  const client = await readFile(new URL("../app/components/SiteClient.tsx", import.meta.url), "utf8");
+  const home = await readFile(new URL("../app/page.tsx", import.meta.url), "utf8");
+  const stripComments = (source) => source.replace(/\/\*[\s\S]*?\*\//g, "").replace(/\/\/.*$/gm, "");
+  for (const [label, source] of [["Site", site], ["SiteClient", client], ["page", home]]) {
+    assert.doesNotMatch(stripComments(source), /4\.9|417/, `${label} should read the rating from site-data`);
+  }
 });
 
 async function builtCss() {
@@ -248,4 +260,17 @@ test("layout grids declare a track for every child they render", async () => {
   assert.match(css, /\.packing-grid>\*\{min-width:0\}/);
   assert.match(css, /\.insurance-panel\{[^}]*container-type:inline-size/);
   assert.match(css, /\.insurance-panel>strong em\{[^}]*font-size:clamp\(2rem,13cqi,5\.2rem\)/);
+});
+
+test("deep links survive the client-only viewer mounting", async () => {
+  const wrapper = await readFile(new URL("../app/components/ThreeTruckViewerClient.tsx", import.meta.url), "utf8");
+  // The viewer is ssr:false, so the section grows ~1.5k px after the browser has
+  // already performed its hash jump. Without realignment, /#reviews landed 894px
+  // short on desktop and 1710px short at 320px.
+  assert.match(wrapper, /window\.location\.hash/);
+  assert.match(wrapper, /ResizeObserver/);
+  assert.match(wrapper, /scrollIntoView/);
+  // and the anchor it targets still exists with header clearance
+  const html = await (await render()).text();
+  assert.match(html, /id="reviews"/);
 });

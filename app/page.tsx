@@ -3,7 +3,7 @@ import { HomePage } from "./components/Site";
 import { business, canonical, standardMoveFaqs } from "../lib/site-data";
 
 export const metadata: Metadata = {
-  title: { absolute: "Adelaide Removalists | 4.9★ Rated Local & Interstate | HF Removals" },
+  title: { absolute: `Adelaide Removalists | ${business.googleBusiness.rating}★ Rated Local & Interstate | HF Removals` },
   description: "Adelaide removalists from $74 per 30 minutes for local moves, with residential, office and listed interstate moving support. Request a scoped quote.",
   alternates: { canonical: canonical("/") },
 };
@@ -30,17 +30,15 @@ const schema = {
         postalCode: "5112",
         addressCountry: "AU",
       },
+      // No aggregateRating here on purpose. The 4.9/417 figures come from the
+      // business's Google profile, and Google's review-snippet policy expects
+      // aggregateRating to describe reviews this site itself collects. Marking up
+      // third-party ratings as first-party risks a manual action. The visible
+      // reviews section still cites Google as the source and links to the profile.
       geo: {
         "@type": "GeoCoordinates",
         latitude: -34.7578,
         longitude: 138.6834,
-      },
-      aggregateRating: {
-        "@type": "AggregateRating",
-        ratingValue: business.googleBusiness.rating,
-        reviewCount: business.googleBusiness.reviewCount,
-        bestRating: "5",
-        worstRating: "1",
       },
       areaServed: [
         "Adelaide Metro",

@@ -30,8 +30,8 @@ function TrustBar() {
           <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" fill="var(--hf-gold-500)" stroke="none" />
         </svg>
       ),
-      title: "4.9 Google Rating",
-      desc: "417+ Verified Adelaide Reviews",
+      title: `${business.googleBusiness.rating} Google Rating`,
+      desc: `${business.googleBusiness.reviewCount}+ Verified Adelaide Reviews`,
     },
     {
       icon: (
@@ -437,7 +437,7 @@ function LeadershipSection() {
           </p>
           <div className="leader-stats">
             <div>
-              <strong>417+</strong>
+              <strong>{business.googleBusiness.reviewCount}+</strong>
               <span>5-Star Reviews</span>
             </div>
             <div>
@@ -702,7 +702,7 @@ export function HomePage() {
           <div className="hero-copy">
             <div className="hero-badge">
               <span className="hero-badge-star">★</span>
-              <span>4.9 RATED ADELAIDE REMOVALISTS (417+ REVIEWS)</span>
+              <span>{business.googleBusiness.rating} RATED ADELAIDE REMOVALISTS ({business.googleBusiness.reviewCount}+ REVIEWS)</span>
             </div>
             <h1>
               Adelaide <em>Removalists</em>
