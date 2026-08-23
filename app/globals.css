@@ -2357,12 +2357,229 @@ p {
     align-items: center;
     justify-content: center;
     gap: 6px;
-    color: var(--hf-green-950);
-    background: linear-gradient(135deg, var(--hf-gold-300), var(--hf-gold-500));
-    border-radius: 8px;
-    font-size: 0.74rem;
-    font-weight: 900;
-    text-transform: uppercase;
-    box-shadow: 0 4px 14px rgba(223, 183, 92, 0.35);
+/* ==================== 3D INTERACTIVE FLEET EXPLORER ==================== */
+.three-section {
+  background: radial-gradient(circle at 50% 40%, rgba(18, 75, 53, 0.45), transparent 60%), #020e09;
+  border-block: 1px solid rgba(223, 183, 92, 0.28);
+  position: relative;
+  overflow: hidden;
+}
+.three-header {
+  margin-bottom: 36px;
+}
+.three-mode-tabs {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  max-width: 820px;
+}
+.three-tab-btn {
+  padding: 14px 18px;
+  background: rgba(3, 26, 18, 0.7);
+  border: 1px solid rgba(223, 183, 92, 0.25);
+  border-radius: 12px;
+  color: white;
+  text-align: left;
+  cursor: pointer;
+  transition: all 0.25s var(--ease-premium);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.three-tab-btn:hover {
+  border-color: var(--hf-gold-500);
+  background: rgba(6, 38, 27, 0.9);
+  transform: translateY(-2px);
+}
+.three-tab-btn.is-active {
+  background: linear-gradient(145deg, rgba(6, 38, 27, 0.98), rgba(3, 26, 18, 0.95));
+  border-color: var(--hf-gold-500);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.4), inset 0 0 20px rgba(223, 183, 92, 0.15);
+}
+.three-tab-btn strong {
+  color: var(--hf-gold-300);
+  font-size: 0.92rem;
+}
+.three-tab-btn span {
+  color: rgba(255, 255, 255, 0.75);
+  font-size: 0.75rem;
+}
+.three-tab-btn small {
+  color: var(--hf-gold-500);
+  font-weight: 800;
+  font-size: 0.72rem;
+  margin-top: 4px;
+}
+.three-viewport-wrap {
+  position: relative;
+  display: grid;
+  grid-template-columns: 1.45fr 0.85fr;
+  gap: 24px;
+  align-items: center;
+  background: rgba(2, 16, 11, 0.85);
+  border: 1px solid var(--hf-gold-500);
+  border-radius: 20px;
+  padding: 24px;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.5);
+}
+.three-viewport {
+  width: 100%;
+  height: 480px;
+  position: relative;
+  cursor: grab;
+  border-radius: 14px;
+  overflow: hidden;
+  background: radial-gradient(circle at center, rgba(18, 75, 53, 0.35) 0%, rgba(2, 16, 11, 0.9) 70%);
+}
+.three-viewport:active {
+  cursor: grabbing;
+}
+.three-loader {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  color: var(--hf-gold-300);
+  font-size: 0.82rem;
+  font-weight: 800;
+}
+.three-spinner {
+  width: 38px;
+  height: 38px;
+  border: 3px solid rgba(223, 183, 92, 0.2);
+  border-top-color: var(--hf-gold-500);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+.three-overlay-card {
+  padding: 24px;
+  background: rgba(3, 24, 17, 0.9);
+  border: 1px solid rgba(223, 183, 92, 0.3);
+  border-radius: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  backdrop-filter: blur(12px);
+}
+.overlay-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--hf-gold-300);
+  font-size: 0.7rem;
+  font-weight: 900;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+.badge-pulse {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #10b981;
+  animation: radarPulse 2s infinite ease-in-out;
+}
+.hotspot-list {
+  display: grid;
+  gap: 8px;
+}
+.hotspot-label {
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 0.68rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  font-weight: 800;
+}
+.hotspot-btn {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 12px;
+  background: rgba(0, 10, 7, 0.4);
+  border: 1px solid rgba(223, 183, 92, 0.2);
+  border-radius: 8px;
+  color: white;
+  cursor: pointer;
+  text-align: left;
+  transition: all 0.2s;
+}
+.hotspot-btn:hover {
+  background: rgba(223, 183, 92, 0.15);
+  border-color: var(--hf-gold-500);
+}
+.hotspot-btn.is-active {
+  background: rgba(223, 183, 92, 0.22);
+  border-color: var(--hf-gold-400);
+}
+.hotspot-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--hf-gold-500);
+  box-shadow: 0 0 6px rgba(223, 183, 92, 0.8);
+}
+.hotspot-btn.is-active .hotspot-dot {
+  background: var(--hf-ruby-600);
+  box-shadow: 0 0 8px rgba(214, 43, 66, 0.8);
+}
+.hotspot-btn strong {
+  font-size: 0.8rem;
+}
+.hotspot-details {
+  padding: 14px;
+  background: rgba(0, 10, 7, 0.5);
+  border-left: 3px solid var(--hf-gold-500);
+  border-radius: 4px;
+}
+.hotspot-details strong {
+  display: block;
+  color: var(--hf-gold-300);
+  font-size: 0.86rem;
+  margin-bottom: 4px;
+}
+.hotspot-details p {
+  margin: 0;
+  color: rgba(255, 255, 255, 0.75);
+  font-size: 0.78rem;
+  line-height: 1.45;
+}
+.three-cta-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-top: 8px;
+}
+.button-icon-toggle {
+  padding: 8px 14px;
+  background: transparent;
+  border: 1px solid rgba(223, 183, 92, 0.35);
+  border-radius: 8px;
+  color: var(--hf-gold-300);
+  font-size: 0.72rem;
+  font-weight: 800;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.button-icon-toggle:hover {
+  background: rgba(223, 183, 92, 0.15);
+  border-color: var(--hf-gold-500);
+}
+
+@media (max-width: 900px) {
+  .three-viewport-wrap {
+    grid-template-columns: 1fr;
+  }
+  .three-mode-tabs {
+    grid-template-columns: 1fr;
+  }
+  .three-viewport {
+    height: 380px;
   }
 }

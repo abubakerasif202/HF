@@ -1,5 +1,6 @@
 import { areas, business, ContentPage, guides, interstatePricing, interstateRoutes, localPricing, reviews, services, standardMoveFaqs } from "../../lib/site-data";
 import { Header, MobileStickyCta, QuoteForm, UtilityBar } from "./SiteClient";
+import { ThreeTruckViewer } from "./ThreeTruckViewer";
 
 export function ServiceTicker({ locations = false }: { locations?: boolean }) {
   const items = locations
@@ -725,6 +726,7 @@ export function HomePage() {
       <ServicePhotosSection />
       <PricingSection />
       <VolumeGuidanceSection />
+      <ThreeTruckViewer />
       <ProcessSection />
       <ReviewsSection />
       <PackingSection />
