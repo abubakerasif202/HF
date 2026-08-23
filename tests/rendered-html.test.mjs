@@ -127,7 +127,7 @@ test("renders one coherent, accessible FormSubmit quote flow", async () => {
     assert.match(html, /name="_subject"[^>]+value="New HF Removals Adelaide Quote Request"/i, path);
     assert.match(html, /name="_captcha"[^>]+value="false"/i, path);
     assert.match(html, /name="website"[^>]+value="HF Removals Adelaide Website"/i, path);
-    assert.match(html, /name="_next"[^>]+value="https:\/\/hfremovalsadelaide\.com\.au\//i, path);
+    assert.match(html, /name="_next"[^>]+value="https:\/\/hf-removals-adelaide\.vercel\.app\//i, path);
     assert.match(html, /<input(?=[^>]*name="_honey")(?=[^>]*tabindex="-1")[^>]*>/i, path);
     for (const field of ["name", "phone", "email", "moving_from", "moving_to", "move_type", "property_size", "preferred_moving_date", "details"]) {
       assert.match(html, new RegExp(`name="${field}"`, "i"), `${path}: ${field}`);

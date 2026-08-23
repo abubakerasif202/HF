@@ -16,7 +16,7 @@ npm run lint
 
 ## Quote delivery
 
-The homepage and Contact quote forms submit directly to FormSubmit for `hfremovalad@gmail.com`. Native browser validation runs before submission, FormSubmit's honeypot remains enabled, and successful submissions return to the originating production route with an on-site confirmation message.
+The homepage and Contact quote forms submit directly to FormSubmit for `hfremovalad@gmail.com`. Native browser validation runs before submission, FormSubmit's honeypot remains enabled, and successful submissions return to the originating route on the public Vercel production alias with an on-site confirmation message.
 
 The FormSubmit destination was activated by the mailbox owner on 24 August 2026. No form-delivery secret or environment variable is required.
 

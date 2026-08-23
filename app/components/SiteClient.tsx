@@ -297,6 +297,7 @@ const createEmptyForm = (): FormDataShape => ({
 });
 
 const FORM_SUBMIT_ENDPOINT = "https://formsubmit.co/hfremovalad@gmail.com";
+const FORM_SUCCESS_ORIGIN = "https://hf-removals-adelaide.vercel.app";
 
 function getAdelaideDateInputValue(date = new Date()) {
   const parts = new Intl.DateTimeFormat("en-AU", {
@@ -317,7 +318,7 @@ export function QuoteForm({ compact = false }: { compact?: boolean }) {
   const [statusKind, setStatusKind] = useState<"success" | "error" | "info">("info");
   const submitting = useRef(false);
   const earliestDate = getAdelaideDateInputValue();
-  const successUrl = `${business.domain}${pathname}?quote=sent#quote`;
+  const successUrl = `${FORM_SUCCESS_ORIGIN}${pathname}?quote=sent#quote`;
 
   useEffect(() => {
     const search = new URLSearchParams(window.location.search);
