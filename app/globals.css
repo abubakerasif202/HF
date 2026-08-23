@@ -168,6 +168,14 @@ address {
   outline: 3px solid var(--hf-gold-300);
   outline-offset: 4px;
 }
+:target {
+  scroll-margin-top: 100px;
+}
+:focus {
+  scroll-margin-top: 100px;
+  scroll-margin-bottom: 80px;
+}
+
 
 /* ==================== UTILITY ANNOUNCEMENT BAR ==================== */
 .utility-bar {
