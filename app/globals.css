@@ -2357,6 +2357,16 @@ p {
     align-items: center;
     justify-content: center;
     gap: 6px;
+    color: var(--hf-green-950);
+    background: linear-gradient(135deg, var(--hf-gold-300), var(--hf-gold-500));
+    border-radius: 8px;
+    font-size: 0.74rem;
+    font-weight: 900;
+    text-transform: uppercase;
+    box-shadow: 0 4px 14px rgba(223, 183, 92, 0.35);
+  }
+}
+
 /* ==================== 3D INTERACTIVE FLEET EXPLORER ==================== */
 .three-section {
   background: radial-gradient(circle at 50% 40%, rgba(18, 75, 53, 0.45), transparent 60%), #020e09;
