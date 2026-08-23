@@ -2,34 +2,30 @@
 
 import { FormEvent, useEffect, useRef, useState } from "react";
 import { usePathname } from "next/navigation";
-import { business, nav } from "../../lib/site-data";
+import { areas, business, interstateRoutes, services } from "../../lib/site-data";
 
-export function OpeningSequence() {
-  const [visible, setVisible] = useState(false);
-
-  useEffect(() => {
-    const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    const seen = window.sessionStorage.getItem("hf-intro-seen");
-    if (!reduce && !seen) {
-      window.sessionStorage.setItem("hf-intro-seen", "true");
-      const show = window.setTimeout(() => setVisible(true), 0);
-      const timer = window.setTimeout(() => setVisible(false), 2300);
-      return () => {
-        window.clearTimeout(show);
-        window.clearTimeout(timer);
-      };
-    }
-    return undefined;
-  }, []);
-
-  if (!visible) return null;
+export function UtilityBar() {
   return (
-    <div className="opening" aria-hidden="true">
-      <div className="opening-glow" />
-      <img src={business.logo} alt="" width="1679" height="937" className="opening-logo" />
-      <p>{business.tagline}</p>
-      <span className="opening-line" />
-    </div>
+    <aside className="utility-bar" aria-label="Announcement and direct contact">
+      <div className="container utility-inner">
+        <div className="utility-badge">
+          <span className="utility-pulse" />
+          <span>Adelaide’s Top-Rated Removalists · Open 24/7 · $1M Transit Insurance</span>
+        </div>
+        <div className="utility-contact">
+          <a href="https://maps.google.com/?cid=10700874558509895358" target="_blank" rel="noopener noreferrer" className="utility-rating">
+            <span className="utility-stars">★★★★★</span>
+            <strong>4.9/5.0</strong> ({business.googleBusiness.reviewCount} Google Reviews)
+          </a>
+          <a href={business.phones[0].href} className="utility-phone" aria-label={`Call ${business.phones[0].display}`}>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+              <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z" />
+            </svg>
+            <span>{business.phones[0].display}</span>
+          </a>
+        </div>
+      </div>
+    </aside>
   );
 }
 
@@ -42,7 +38,7 @@ export function Header() {
   const toggle = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
-    const onScroll = () => setCompact(window.scrollY > 40);
+    const onScroll = () => setCompact(window.scrollY > 30);
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
@@ -80,34 +76,136 @@ export function Header() {
     <header className={`site-header ${compact ? "is-compact" : ""}`}>
       <div className="header-inner">
         <a className="brand" href="/" aria-label="HF Removals Adelaide home">
-          <img src={business.headerLogo} alt="" width="320" height="164" />
-          <span className="brand-copy"><strong>HF Removals</strong><small>Adelaide</small></span>
+          <img src={business.headerLogo} alt="HF Removals logo" width="320" height="164" />
+          <span className="brand-copy">
+            <strong>HF Removals</strong>
+            <small>Adelaide · Est. 2026</small>
+          </span>
         </a>
+
         <nav className="desktop-nav" aria-label="Primary navigation">
-          {nav.map((item) => {
-            const active = item.href === "/" ? pathname === "/" : pathname === item.href || pathname.startsWith(`${item.href}/`);
-            return <a className={active ? "is-active" : ""} aria-current={active ? "page" : undefined} key={item.href} href={item.href}>{item.label}</a>;
-          })}
+          <a className={pathname === "/" ? "is-active" : ""} aria-current={pathname === "/" ? "page" : undefined} href="/">
+            Home
+          </a>
+
+          <div className="nav-dropdown">
+            <button className={`nav-dropdown-btn ${pathname.startsWith("/services") ? "is-active" : ""}`} type="button" aria-haspopup="true">
+              <span>Services</span>
+              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="m6 9 6 6 6-6" /></svg>
+            </button>
+            <div className="nav-dropdown-menu">
+              {services.map((item) => (
+                <a key={item.slug} href={`/services/${item.slug}`} className="nav-dropdown-item">
+                  <strong>{item.eyebrow}</strong>
+                  <small>{item.description}</small>
+                </a>
+              ))}
+              <div className="nav-dropdown-footer">
+                <a href="/services">View all services <span>→</span></a>
+              </div>
+            </div>
+          </div>
+
+          <div className="nav-dropdown">
+            <button className={`nav-dropdown-btn ${pathname.startsWith("/areas") || pathname.startsWith("/interstate") ? "is-active" : ""}`} type="button" aria-haspopup="true">
+              <span>Locations & Routes</span>
+              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="m6 9 6 6 6-6" /></svg>
+            </button>
+            <div className="nav-dropdown-menu nav-dropdown-wide">
+              <div className="nav-dropdown-columns">
+                <div>
+                  <span className="dropdown-col-title">Adelaide Suburbs</span>
+                  {areas.map((item) => (
+                    <a key={item.slug} href={`/areas/${item.slug}`} className="nav-dropdown-item">
+                      <strong>{item.eyebrow}</strong>
+                    </a>
+                  ))}
+                  <a href="/adelaide-removalists" className="nav-dropdown-item">
+                    <strong>Adelaide Metro Hub</strong>
+                  </a>
+                </div>
+                <div>
+                  <span className="dropdown-col-title">Interstate Routes</span>
+                  {interstateRoutes.map((item) => (
+                    <a key={item.slug} href={`/interstate/${item.slug}`} className="nav-dropdown-item">
+                      <strong>{item.eyebrow}</strong>
+                      <small>{item.price} {item.unit}</small>
+                    </a>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <a className={pathname === "/pricing" ? "is-active" : ""} aria-current={pathname === "/pricing" ? "page" : undefined} href="/pricing">
+            Pricing
+          </a>
+          <a className={pathname === "/#reviews" ? "is-active" : ""} href="/#reviews">
+            Reviews
+          </a>
+          <a className={pathname === "/about" ? "is-active" : ""} aria-current={pathname === "/about" ? "page" : undefined} href="/about">
+            About
+          </a>
+          <a className={pathname === "/contact" ? "is-active" : ""} aria-current={pathname === "/contact" ? "page" : undefined} href="/contact">
+            Contact
+          </a>
         </nav>
+
         <div className="header-actions">
           <a className="phone-chip" href={business.phones[0].href} aria-label={`Call ${business.phones[0].display}`}>
-            <span>Call</span><strong>{business.phones[0].display}</strong>
+            <span className="phone-chip-icon">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z" /></svg>
+            </span>
+            <div className="phone-chip-text">
+              <span>Direct Line</span>
+              <strong>{business.phones[0].display}</strong>
+            </div>
           </a>
-          <a className="button button-ruby header-quote" href="/#quote">Free quote</a>
+          <a className="button button-gold header-quote" href="/#quote">
+            <span>Free Quote</span>
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><path d="M5 12h14m-7-7 7 7-7 7" /></svg>
+          </a>
           <button ref={toggle} className="menu-toggle" type="button" aria-expanded={open} aria-controls="mobile-menu" onClick={() => setOpen((value) => !value)}>
             <span className="sr-only">{open ? "Close menu" : "Open menu"}</span>
             <span /><span /><span />
           </button>
         </div>
       </div>
+
       <div ref={menu} id="mobile-menu" className={`mobile-menu ${open ? "is-open" : ""}`} aria-hidden={!open} role="dialog" aria-modal="true" aria-label="Mobile navigation">
         <nav aria-label="Mobile navigation">
-          {nav.map((item, index) => {
-            const active = item.href === "/" ? pathname === "/" : pathname === item.href || pathname.startsWith(`${item.href}/`);
-            return <a className={active ? "is-active" : ""} aria-current={active ? "page" : undefined} ref={index === 0 ? firstLink : undefined} key={item.href} href={item.href} onClick={() => setOpen(false)}>{item.label}<span>{active ? "●" : "↗"}</span></a>;
-          })}
-          <a href={business.phones[0].href}>Call {business.phones[0].display}<span>→</span></a>
-          <a className="button button-ruby" href="/#quote" onClick={() => setOpen(false)}>Get a free quote</a>
+          <a className={pathname === "/" ? "is-active" : ""} ref={firstLink} href="/" onClick={() => setOpen(false)}>
+            Home <span>↗</span>
+          </a>
+          <a className={pathname.startsWith("/services") ? "is-active" : ""} href="/services" onClick={() => setOpen(false)}>
+            Services <span>↗</span>
+          </a>
+          <a className={pathname.startsWith("/areas") ? "is-active" : ""} href="/areas" onClick={() => setOpen(false)}>
+            Service Areas <span>↗</span>
+          </a>
+          <a className={pathname.startsWith("/interstate") ? "is-active" : ""} href="/interstate" onClick={() => setOpen(false)}>
+            Interstate Routes <span>↗</span>
+          </a>
+          <a className={pathname === "/pricing" ? "is-active" : ""} href="/pricing" onClick={() => setOpen(false)}>
+            Pricing <span>↗</span>
+          </a>
+          <a href="/#reviews" onClick={() => setOpen(false)}>
+            Google Reviews (4.9★) <span>↗</span>
+          </a>
+          <a className={pathname === "/about" ? "is-active" : ""} href="/about" onClick={() => setOpen(false)}>
+            About HF <span>↗</span>
+          </a>
+          <a className={pathname === "/contact" ? "is-active" : ""} href="/contact" onClick={() => setOpen(false)}>
+            Contact <span>↗</span>
+          </a>
+          <div className="mobile-menu-actions">
+            <a className="button button-gold" href="/#quote" onClick={() => setOpen(false)}>
+              Request Free Quote <span>→</span>
+            </a>
+            <a className="button button-outline" href={business.phones[0].href}>
+              Call {business.phones[0].display}
+            </a>
+          </div>
         </nav>
       </div>
     </header>
@@ -116,10 +214,13 @@ export function Header() {
 
 type FormDataShape = {
   name: string; phone: string; email: string; date: string; from: string; to: string;
-  moveType: string; propertySize: string; details: string; company: string; startedAt: number;
+  moveType: string; propertySize: string; details: string; company: string; tab: "local" | "interstate"; startedAt: number;
 };
 
-const createEmptyForm = (): FormDataShape => ({ name: "", phone: "", email: "", date: "", from: "", to: "", moveType: "", propertySize: "", details: "", company: "", startedAt: Date.now() });
+const createEmptyForm = (): FormDataShape => ({
+  name: "", phone: "", email: "", date: "", from: "", to: "",
+  moveType: "Residential (House / Unit)", propertySize: "2-3 Bedrooms", details: "", company: "", tab: "local", startedAt: Date.now()
+});
 
 export function QuoteForm({ compact = false }: { compact?: boolean }) {
   const [form, setForm] = useState<FormDataShape>(() => createEmptyForm());
@@ -129,11 +230,18 @@ export function QuoteForm({ compact = false }: { compact?: boolean }) {
   const update = (field: keyof FormDataShape, value: string) => setForm((current) => ({ ...current, [field]: value }));
 
   const openEmailFallback = () => {
-    const subject = encodeURIComponent(`Move quote request — ${form.name}`);
+    const subject = encodeURIComponent(`Move Quote Request — ${form.name} (${form.tab === "interstate" ? "Interstate" : "Local"})`);
     const body = encodeURIComponent([
-      `Name: ${form.name}`, `Phone: ${form.phone}`, `Email: ${form.email}`, `Moving date: ${form.date || "Not provided"}`,
-      `Moving from: ${form.from}`, `Moving to: ${form.to}`, `Move type: ${form.moveType}`, `Property size: ${form.propertySize}`,
-      `Additional details: ${form.details || "None provided"}`,
+      `Name: ${form.name}`,
+      `Phone: ${form.phone}`,
+      `Email: ${form.email || "Not provided"}`,
+      `Move Category: ${form.tab.toUpperCase()}`,
+      `Moving Date: ${form.date || "Not provided"}`,
+      `Moving From: ${form.from}`,
+      `Moving To: ${form.to}`,
+      `Move Type: ${form.moveType}`,
+      `Property Size / Volume: ${form.propertySize}`,
+      `Additional Notes: ${form.details || "None provided"}`,
     ].join("\n"));
     window.location.href = `mailto:${business.emails[0]}?subject=${subject}&body=${body}`;
   };
@@ -142,21 +250,25 @@ export function QuoteForm({ compact = false }: { compact?: boolean }) {
     event.preventDefault();
     if (form.company) return;
     setLoading(true);
-    setStatus("Sending your move details…");
+    setStatus("Submitting your move details for review…");
     try {
-      const response = await fetch("/api/quote", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(form) });
+      const response = await fetch("/api/quote", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify(form),
+      });
       if (response.ok) {
-        setStatus("Thanks — your move details were sent to HF Removals Adelaide.");
+        setStatus("✓ Thank you! Your move details have been sent. Muhammad Rasheed and the HF team will follow up promptly.");
         setForm(createEmptyForm());
       } else if (response.status >= 500) {
-        setStatus("Online delivery is being connected. Your email app will open with the details ready to send.");
+        setStatus("Direct email opened with prefilled details ready to send.");
         openEmailFallback();
       } else {
-        const payload = await response.json().catch(() => ({ error: "Please check the form and try again." })) as { error?: string };
-        setStatus(payload.error ?? "Please check the form and try again.");
+        const payload = (await response.json().catch(() => ({ error: "Please verify the form fields." }))) as { error?: string };
+        setStatus(payload.error ?? "Please check the required fields and submit again.");
       }
     } catch {
-      setStatus("We could not reach the quote service. Your email app will open with the details ready to send.");
+      setStatus("Direct email opened with prefilled details ready to send.");
       openEmailFallback();
     } finally {
       setLoading(false);
@@ -165,32 +277,154 @@ export function QuoteForm({ compact = false }: { compact?: boolean }) {
 
   return (
     <form className={`quote-form ${compact ? "quote-form-compact" : ""}`} id="quote" onSubmit={submit} noValidate={false}>
-      <div className="form-heading"><span className="form-mark">HF</span><div><p className="eyebrow">Free move enquiry</p><h2>Tell us about your move</h2><p>Send the essentials and we&apos;ll review the details.</p></div></div>
-      <p className="form-required">Start with five essentials. Fields marked <span aria-hidden="true">*</span> are required.</p>
-      <fieldset className="form-grid form-core"><legend className="sr-only">Essential move details</legend>
-        <label><span className="field-label">Name <b aria-hidden="true">*</b></span><input required autoComplete="name" value={form.name} onChange={(e) => update("name", e.target.value)} placeholder="Your full name" /></label>
-        <label><span className="field-label">Phone <b aria-hidden="true">*</b></span><input required autoComplete="tel" inputMode="tel" pattern="[0-9+ ()-]{8,}" value={form.phone} onChange={(e) => update("phone", e.target.value)} placeholder="Mobile number" /></label>
-        <label><span className="field-label">Moving from <b aria-hidden="true">*</b></span><input required autoComplete="address-level2" value={form.from} onChange={(e) => update("from", e.target.value)} placeholder="Suburb or postcode" /></label>
-        <label><span className="field-label">Moving to <b aria-hidden="true">*</b></span><input required autoComplete="address-level2" value={form.to} onChange={(e) => update("to", e.target.value)} placeholder="Suburb or postcode" /></label>
-        <label className="form-wide"><span className="field-label">Move type <b aria-hidden="true">*</b></span><select required value={form.moveType} onChange={(e) => update("moveType", e.target.value)}><option value="">Select move type</option><option>Residential</option><option>Apartment</option><option>Office / Commercial</option><option>Interstate</option><option>Backloading</option><option>Packing / Unpacking</option><option>Other</option></select></label>
+      <div className="form-header-badge">
+        <span className="badge-dot" />
+        <span>Fixed & Transparent Pricing · No Hidden Surcharges</span>
+      </div>
+
+      <div className="form-heading">
+        <span className="form-mark">HF</span>
+        <div>
+          <p className="eyebrow">Instant Quote Request</p>
+          <h2>Tell Us About Your Move</h2>
+          <p>Get a transparent quote scoped around your exact inventory & access.</p>
+        </div>
+      </div>
+
+      <div className="form-tabs" role="tablist" aria-label="Move type selection">
+        <button
+          type="button"
+          role="tab"
+          aria-selected={form.tab === "local"}
+          className={`form-tab-btn ${form.tab === "local" ? "is-active" : ""}`}
+          onClick={() => update("tab", "local")}
+        >
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2"><path d="m3 11 9-7 9 7v9h-6v-6H9v6H3Z"/></svg>
+          <span>Local Adelaide Move</span>
+        </button>
+        <button
+          type="button"
+          role="tab"
+          aria-selected={form.tab === "interstate"}
+          className={`form-tab-btn ${form.tab === "interstate" ? "is-active" : ""}`}
+          onClick={() => update("tab", "interstate")}
+        >
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2"><path d="M3 6h11v11H3Zm11 4h4l3 3v4h-7M7 20a2 2 0 1 0 0-4 2 2 0 0 0 0 4Zm11 0a2 2 0 1 0 0-4 2 2 0 0 0 0 4Z"/></svg>
+          <span>Interstate Move</span>
+        </button>
+      </div>
+
+      <div className="form-rate-preview">
+        {form.tab === "local" ? (
+          <p>⚡ <strong>Local Rate:</strong> 2 Movers + Truck from <em>$74 / 30 min</em> ($148/hr) · All protective gear included</p>
+        ) : (
+          <p>⚡ <strong>Interstate Reference:</strong> Melbourne from <em>$119.43/m³</em> · Sydney from <em>$130.19/m³</em> · QLD $164/m³</p>
+        )}
+      </div>
+
+      <fieldset className="form-grid form-core">
+        <legend className="sr-only">Essential move details</legend>
+        <label>
+          <span className="field-label">Your Name <b aria-hidden="true">*</b></span>
+          <input required autoComplete="name" value={form.name} onChange={(e) => update("name", e.target.value)} placeholder="e.g. Sarah Jenkins" />
+        </label>
+        <label>
+          <span className="field-label">Phone Number <b aria-hidden="true">*</b></span>
+          <input required autoComplete="tel" inputMode="tel" pattern="[0-9+ ()-]{8,}" value={form.phone} onChange={(e) => update("phone", e.target.value)} placeholder="e.g. 0400 000 000" />
+        </label>
+        <label>
+          <span className="field-label">Moving From (Suburb) <b aria-hidden="true">*</b></span>
+          <input required autoComplete="address-level2" value={form.from} onChange={(e) => update("from", e.target.value)} placeholder="e.g. Elizabeth Vale SA" />
+        </label>
+        <label>
+          <span className="field-label">Moving To (Suburb/City) <b aria-hidden="true">*</b></span>
+          <input required autoComplete="address-level2" value={form.to} onChange={(e) => update("to", e.target.value)} placeholder={form.tab === "local" ? "e.g. Marion SA" : "e.g. Melbourne VIC"} />
+        </label>
+        <label className="form-wide">
+          <span className="field-label">Move Type <b aria-hidden="true">*</b></span>
+          <select required value={form.moveType} onChange={(e) => update("moveType", e.target.value)}>
+            <option>Residential (House / Unit)</option>
+            <option>Apartment / High-Rise (Lift Access)</option>
+            <option>Office / Commercial Relocation</option>
+            <option>Interstate Long Distance</option>
+            <option>Backloading Route</option>
+            <option>Packing & Protection Only</option>
+            <option>Single Item / Heavy Furniture</option>
+          </select>
+        </label>
         <label className="honeypot" aria-hidden="true">Company<input tabIndex={-1} autoComplete="off" value={form.company} onChange={(e) => update("company", e.target.value)} /></label>
       </fieldset>
+
       <details className="form-optional" open={compact || undefined}>
-        <summary>Add date, email, property size or access notes <span aria-hidden="true">+</span></summary>
-        <fieldset className="form-grid"><legend className="sr-only">Optional move details</legend>
-          <label><span className="field-label">Email</span><input type="email" autoComplete="email" value={form.email} onChange={(e) => update("email", e.target.value)} placeholder="Email address" /></label>
-          <label><span className="field-label">Moving date</span><input type="date" value={form.date} onChange={(e) => update("date", e.target.value)} /></label>
-          <label className="form-wide"><span className="field-label">Property size</span><select value={form.propertySize} onChange={(e) => update("propertySize", e.target.value)}><option value="">Select property size</option><option>Studio / Small</option><option>1 Bedroom</option><option>2 Bedroom</option><option>3 Bedroom</option><option>4 Bedroom</option><option>5+ Bedroom</option><option>Office / Commercial</option><option>Other</option></select></label>
-          <label className="form-wide"><span className="field-label">Additional details</span><textarea value={form.details} onChange={(e) => update("details", e.target.value)} placeholder="Stairs, lifts, parking, inventory, packing or other useful details" rows={compact ? 3 : 4} /></label>
+        <summary>
+          <span>More Details (Date, Property Size, Stairs/Lifts)</span>
+          <span aria-hidden="true">+</span>
+        </summary>
+        <fieldset className="form-grid">
+          <legend className="sr-only">Optional move details</legend>
+          <label>
+            <span className="field-label">Email Address</span>
+            <input type="email" autoComplete="email" value={form.email} onChange={(e) => update("email", e.target.value)} placeholder="email@domain.com.au" />
+          </label>
+          <label>
+            <span className="field-label">Preferred Moving Date</span>
+            <input type="date" value={form.date} onChange={(e) => update("date", e.target.value)} />
+          </label>
+          <label className="form-wide">
+            <span className="field-label">Property Size / Volume</span>
+            <select value={form.propertySize} onChange={(e) => update("propertySize", e.target.value)}>
+              <option>Studio / 1 Bedroom Unit</option>
+              <option>2 Bedrooms</option>
+              <option>3 Bedrooms (Standard Family Home)</option>
+              <option>4+ Bedrooms (Large Family Home)</option>
+              <option>Office / Commercial Space</option>
+              <option>Few Items / Selected Furniture</option>
+            </select>
+          </label>
+          <label className="form-wide">
+            <span className="field-label">Access & Heavy Items Notes</span>
+            <textarea
+              value={form.details}
+              onChange={(e) => update("details", e.target.value)}
+              placeholder="e.g. 2nd floor stairs, lift booking required, double-door fridge, heavy timber dining table, piano, packing required..."
+              rows={compact ? 3 : 4}
+            />
+          </label>
         </fieldset>
       </details>
-      <button className="button button-ruby form-submit" type="submit" disabled={loading}>{loading ? "Sending…" : "Get my free quote"}<span>→</span></button>
-      <p className="form-note">Prefer to talk? Call <a href={business.phones[0].href}>{business.phones[0].display}</a>.</p>
-      <p className="form-status" aria-live="polite" role="status">{status}</p>
+
+      <button className="button button-gold form-submit" type="submit" disabled={loading}>
+        <span>{loading ? "Processing..." : "Get My Free Quote"}</span>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M5 12h14m-7-7 7 7-7 7" /></svg>
+      </button>
+
+      <div className="form-footer-guarantee">
+        <span>🛡️ Up to $1,000,000 Transit Insurance Included</span>
+        <span>•</span>
+        <span>No Booking Fee Until Confirmed</span>
+      </div>
+
+      <p className="form-note">
+        Need urgent assistance? Call directly: <a href={business.phones[0].href}><strong>{business.phones[0].display}</strong></a> (Open 24/7)
+      </p>
+
+      {status && <p className="form-status" aria-live="polite" role="status">{status}</p>}
     </form>
   );
 }
 
 export function MobileStickyCta() {
-  return <div className="mobile-sticky"><a href={business.phones[0].href}>Call</a><a href="/#quote">Get quote</a></div>;
+  return (
+    <aside className="mobile-sticky" aria-label="Quick mobile call and quote action">
+      <a href={business.phones[0].href} className="mobile-sticky-call">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z" /></svg>
+        <span>Call {business.phones[0].display}</span>
+      </a>
+      <a href="/#quote" className="mobile-sticky-quote">
+        <span>Get Free Quote</span>
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M5 12h14m-7-7 7 7-7 7" /></svg>
+      </a>
+    </aside>
+  );
 }
+

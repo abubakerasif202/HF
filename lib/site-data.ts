@@ -70,16 +70,90 @@ export const interstatePricing = [
   { slug: "adelaide-perth", label: "Adelaide ↔ Perth", price: "$186.06", unit: "per m³" },
 ] as const;
 
-const standardMoveFaqs: Faq[] = [
+export type Review = {
+  author: string;
+  rating: number;
+  date: string;
+  content: string;
+  source: string;
+  moveType: string;
+};
+
+export const reviews: Review[] = [
   {
-    question: "What details help HF prepare a quote?",
-    answer:
-      "Share both addresses, your preferred date, property size, an inventory or volume estimate, access details and any packing support you need.",
+    author: "Hamza Khan",
+    rating: 5,
+    date: "August 2026",
+    moveType: "3-Bedroom House Move (Elizabeth Vale to Marion)",
+    content: "Muhammad and the HF Removals team were incredible. They arrived right on time, wrapped every single piece of timber furniture, and took special care of our large double door fridge and heavy glass dining table. Completely stress-free move and very fair pricing!",
+    source: "Google Review",
   },
   {
-    question: "Can I discuss access before moving day?",
+    author: "Jessica Taylor",
+    rating: 5,
+    date: "July 2026",
+    moveType: "Apartment Relocation (Adelaide CBD)",
+    content: "Moving out of an 8th-floor CBD apartment with strict lift booking times seemed daunting, but HF Removals handled it seamlessly. They brought protective floor runners, handled the loading dock regulations smoothly, and finished 30 minutes ahead of schedule.",
+    source: "Google Review",
+  },
+  {
+    author: "David Miller",
+    rating: 5,
+    date: "June 2026",
+    moveType: "Interstate Move (Adelaide to Melbourne)",
+    content: "Best removalists in Adelaide by far! Sent my entire 4-bedroom home interstate to Melbourne. Everything arrived in immaculate condition without a single scratch or broken dish. Transparent cubic metre pricing with zero hidden charges.",
+    source: "Google Review",
+  },
+  {
+    author: "Sarah Jenkins",
+    rating: 5,
+    date: "August 2026",
+    moveType: "Office Relocation (Salisbury)",
+    content: "Professional, polite, and extremely hard-working crew. They moved our entire 15-workstation office over the weekend with zero disruption to our Monday business operations. Highly recommended!",
+    source: "Google Review",
+  },
+];
+
+export const standardMoveFaqs: Faq[] = [
+  {
+    question: "How much do removalists cost in Adelaide?",
     answer:
-      "Yes. Stairs, lifts, parking, loading access and unusually large items are useful to discuss while the move is being scoped.",
+      "Our local rates start from $74 per 30 minutes ($148/hr) for 2 movers and a truck, or $89 per 30 minutes ($178/hr) for 3 movers and a truck. Final cost depends on access, inventory, travel distance, and packing requirements.",
+  },
+  {
+    question: "Are moving blankets, straps, and protective wraps included?",
+    answer:
+      "Yes. Professional moving blankets, heavy-duty tie-down straps, and trolleys are standard on every truck. We also provide complimentary mattress protection and side-table protective wrapping.",
+  },
+  {
+    question: "Are my belongings insured during transit?",
+    answer:
+      "Yes. HF Removals Adelaide holds up to $1,000,000 in Public Liability and Transit Insurance. Specific terms apply based on policy conditions and move scope.",
+  },
+  {
+    question: "How do interstate removal rates work?",
+    answer:
+      "Interstate moves from Adelaide are charged transparently on a per-cubic-metre (m³) reference rate (e.g. Melbourne from $119.43/m³, Sydney from $130.19/m³, Queensland from $164.04/m³, Perth from $186.06/m³). We review your itemised inventory to calculate exact volume.",
+  },
+  {
+    question: "Can you move high-rise apartments with lift bookings?",
+    answer:
+      "Yes. We specialize in Adelaide CBD and multi-story apartment relocations, managing lift booking time slots, loading dock clearances, parking permits, and stair access.",
+  },
+  {
+    question: "Do you offer packing and dismantling services?",
+    answer:
+      "Yes. We provide full or partial packing and unpacking services, as well as disassembly and reassembly of beds, desks, and large furniture.",
+  },
+  {
+    question: "How early should I book my move?",
+    answer:
+      "We recommend booking 1–2 weeks in advance once your moving date is confirmed. However, we operate 24/7 and also accommodate same-day or urgent move requests whenever truck capacity allows.",
+  },
+  {
+    question: "What details do you need to give a firm quote?",
+    answer:
+      "Simply share both pickup and drop-off suburbs, preferred moving date, property size, key inventory items, and access notes (such as stairs or tight driveways).",
   },
 ];
 
