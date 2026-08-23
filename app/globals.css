@@ -110,6 +110,7 @@
 html {
   scroll-behavior: smooth;
   background: var(--hf-green-950);
+  overflow-x: clip;
 }
 body {
   margin: 0;
@@ -117,7 +118,7 @@ body {
   color: var(--hf-white);
   font-family: var(--font-ui);
   -webkit-font-smoothing: antialiased;
-  overflow-x: hidden;
+  overflow-x: clip;
 }
 body.menu-locked {
   overflow: hidden;
@@ -2656,6 +2657,9 @@ p {
 @media (max-width: 900px) {
   .container, .header-inner { width: calc(100% - 32px); }
   .hero-grid { grid-template-columns: 1fr; }
+  .inner-hero-grid { grid-template-columns: minmax(0, 1fr); }
+  .inner-visual,
+  .inner-monogram { min-width: 0; width: 100%; }
   .three-viewport-wrap { grid-template-columns: 1fr; padding: 20px; }
   .three-mode-tabs { grid-template-columns: 1fr; }
   .three-viewport { height: 390px; }
