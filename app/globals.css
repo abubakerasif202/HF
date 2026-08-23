@@ -26,7 +26,6 @@
   --hf-text-muted: #a3b8af;
   --hf-border: rgba(255, 215, 0, 0.35);
   --ease-premium: cubic-bezier(0.16, 1, 0.3, 1);
-  --ease-bounce: cubic-bezier(0.34, 1.56, 0.64, 1);
   --duration-fast: 180ms;
   --duration-normal: 350ms;
   --duration-slow: 650ms;
@@ -400,7 +399,6 @@ p {
   background: rgba(3, 20, 14, 0.95);
   border-bottom: 1px solid rgba(223, 183, 92, 0.28);
   backdrop-filter: blur(16px);
-  transition: min-height 0.3s var(--ease-premium);
 }
 .site-header.menu-open {
   z-index: 1030;
@@ -524,7 +522,8 @@ p {
   transition: all 0.25s var(--ease-premium);
   backdrop-filter: blur(16px);
 }
-.nav-dropdown:hover .nav-dropdown-menu {
+.nav-dropdown:hover .nav-dropdown-menu,
+.nav-dropdown:focus-within .nav-dropdown-menu {
   opacity: 1;
   visibility: visible;
   transform: translateY(0);
@@ -913,7 +912,7 @@ p {
 .form-rate-preview {
   padding: 8px 12px;
   background: rgba(223, 183, 92, 0.1);
-  border-left: 3px solid var(--hf-gold-500);
+  border: 1px solid rgba(223, 183, 92, 0.3);
   border-radius: 4px;
   margin-bottom: 14px;
 }
@@ -985,8 +984,7 @@ p {
   grid-column: 1 / -1;
 }
 .honeypot {
-  position: absolute;
-  left: -9999px;
+  display: none;
 }
 .form-optional {
   margin-top: 12px;
@@ -1048,6 +1046,12 @@ p {
   text-align: center;
   font-size: 0.78rem;
   line-height: 1.45;
+}
+.form-status.is-error {
+  color: #ffb4be;
+}
+.form-status.is-success {
+  color: #a7f3d0;
 }
 
 /* ==================== TRUST STRIP (6 PILLARS) ==================== */
@@ -1161,7 +1165,7 @@ p {
 }
 .service-icon {
   color: var(--hf-gold-500);
-  transition: transform 0.3s var(--ease-bounce);
+  transition: transform 0.3s var(--ease-premium);
 }
 .service-card:hover .service-icon {
   transform: scale(1.15);
@@ -1250,7 +1254,7 @@ p {
   right: 20px;
   padding: 16px;
   background: rgba(3, 20, 14, 0.92);
-  border-left: 3px solid var(--hf-gold-500);
+  border: 1px solid rgba(223, 183, 92, 0.3);
   border-radius: 6px;
   backdrop-filter: blur(12px);
 }
@@ -1645,6 +1649,7 @@ p {
   gap: 18px;
 }
 .review-card {
+  min-width: 0;
   padding: 26px;
   background: rgba(2, 16, 11, 0.8);
   border: 1px solid rgba(223, 183, 92, 0.25);
@@ -1670,16 +1675,33 @@ p {
   font-size: 0.95rem;
   letter-spacing: 1px;
 }
-.review-date {
+.review-source {
   color: rgba(255, 255, 255, 0.5);
   font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
 }
 .review-content {
   color: rgba(255, 255, 255, 0.82);
   font-size: 0.84rem;
   line-height: 1.55;
-  margin-bottom: 20px;
+  margin: 0 0 20px;
   font-style: italic;
+  overflow-wrap: anywhere;
+}
+.review-content.is-excerpt {
+  font-size: 1rem;
+}
+.review-content.is-excerpt span {
+  display: block;
+  margin-bottom: 8px;
+  color: var(--hf-gold-300);
+  font-size: 0.66rem;
+  font-style: normal;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
 }
 .review-author-wrap {
   display: flex;
@@ -2116,7 +2138,7 @@ p {
   align-items: center;
   justify-content: space-between;
   border-top: 1px solid rgba(223, 183, 92, 0.15);
-  color: rgba(255, 255, 255, 0.45);
+  color: rgba(255, 255, 255, 0.58);
   font-size: 0.75rem;
 }
 .footer-bottom span:last-child {
@@ -2377,6 +2399,13 @@ p {
   position: relative;
   overflow: hidden;
 }
+
+.three-section-loading {
+  display: flex;
+  min-height: 420px;
+  align-items: center;
+  justify-content: center;
+}
 .three-header {
   margin-bottom: 40px;
 }
@@ -2574,7 +2603,7 @@ p {
 .hotspot-details {
   padding: 18px;
   background: rgba(1, 8, 5, 0.6);
-  border-left: 4px solid var(--hf-gold-500);
+  border: 1px solid rgba(223, 183, 92, 0.35);
   border-radius: 6px;
 }
 .hotspot-details strong {
@@ -2651,6 +2680,16 @@ p {
 
 /* ==================== EXPANDED MOBILE VIEW (ROOMY & HIGH-LEGIBILITY) ==================== */
 @media (max-width: 680px) {
+  .footer-grid {
+    grid-template-columns: 1fr;
+  }
+  .service-photo-grid {
+    grid-template-columns: 1fr;
+    grid-auto-rows: minmax(300px, 86vw);
+  }
+  .service-photo-copy {
+    inset: auto 20px 22px;
+  }
   html {
     font-size: 16px;
   }

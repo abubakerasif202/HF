@@ -16,9 +16,9 @@ npm run lint
 
 ## Quote delivery
 
-The form validates in the browser and again on the server. Set `QUOTE_ENDPOINT_URL` to a server-side lead endpoint that accepts JSON. `QUOTE_BEARER_TOKEN` is optional and remains server-side. When no endpoint is configured, the form opens a prefilled email to the branded HF address instead of displaying a fake success state.
+The homepage and Contact quote forms submit directly to FormSubmit for `hfremovalad@gmail.com`. Native browser validation runs before submission, FormSubmit's honeypot remains enabled, and successful submissions return to the originating production route with an on-site confirmation message.
 
-Copy `.env.example` to `.env.local` for local configuration. Production values are managed in Vercel Environment Variables.
+The FormSubmit destination was activated by the mailbox owner on 24 August 2026. No form-delivery secret or environment variable is required.
 
 ## Supplied facts and media
 

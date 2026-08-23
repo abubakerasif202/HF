@@ -5,24 +5,14 @@ Audit date: 21 August 2026
 ## Logo, motion and responsive QA — 24 August 2026
 
 - Replaced the previous HF-only header mark with the supplied green, gold and ruby truck lockup across the header, footer, favicon metadata, inner-page brand art and social-sharing image.
-- Preserved the exact uploaded PNG as the master source and generated an 800px lossless WebP for the live UI, reducing the delivered logo from roughly 1.5MB to roughly 412KB.
-- Added a restrained logo entrance, hover gleam, subtle hero image drift, page scroll progress and staggered viewport reveals for headings, cards, proof points, imagery, FAQs and footer groups.
+- Preserved the exact uploaded PNG as the master source and generated an 800px lossless WebP for the live UI.
+- Added restrained logo entrance, hover gleam, hero drift, page scroll progress and staggered viewport reveals.
 - Kept animation progressive-enhancement only: content remains visible without JavaScript and all motion collapses under `prefers-reduced-motion`.
-- Improved keyboard access to desktop dropdowns with `:focus-within` and upgraded the mobile menu with an animated close state, staggered link entrance, focus trapping and Escape-to-close.
-- Fixed a mobile stacking-context defect where the full-screen menu was constrained by the backdrop-filtered sticky header. The menu now sits outside the header containing block and correctly occupies the full viewport.
-- Updated the Open Graph image so social previews use the supplied truck logo rather than the superseded mark.
+- Improved keyboard access to desktop dropdowns and upgraded the mobile menu with an animated close state, focus trapping and Escape-to-close.
+- Fixed the mobile menu stacking context so it occupies the full viewport outside the backdrop-filtered sticky header.
+- Updated and optimized the Open Graph image so social previews use the supplied truck logo.
 
-Validation completed at 1440px and 390px: no horizontal overflow, full-height mobile menu confirmed, all eight menu links visible, Escape close confirmed, TypeScript and ESLint passed, and the production build generated all 38 pages with all five rendered-route/API test groups passing.
-
-## Follow-up review — 23 August 2026
-
-- Replaced the compact header mark and duplicated text lockup with the complete supplied transparent HF Removals Adelaide logo.
-- Confirmed the uploaded source logo is byte-identical to `public/images/hf-logo-source.jpg`.
-- Removed four locally authored testimonial cards because their exact wording could not be verified against a primary source; the linked Google rating summary remains.
-- Repaired the dependency lockfile so clean, reproducible installs work again.
-- Moved the browser-only dynamic 3D viewer into a Client Component to restore Next.js 16 production builds.
-- Prevented the WebGL scene from being destroyed and rebuilt when auto-rotation is paused, and corrected reduced-motion/loading state handling.
-- Updated stale rendered-HTML regression expectations and strengthened coverage against reintroducing unverified testimonial names.
+Validation completed at desktop and mobile widths with no horizontal overflow, TypeScript and ESLint passing, and the production build generating all 37 routes with all five rendered-route test groups passing.
 
 ## Scope reviewed
 
@@ -68,14 +58,14 @@ The site is data-driven, so representative pages from each shared template were 
 
 ## Content integrity
 
-No testimonials, awards, clients, statistics or operational claims were invented. Existing prices, phone numbers, addresses, leadership information, coverage wording and Google profile data remain centralised in `lib/site-data.ts`. The new content explains how to prepare a move enquiry and does not imply guarantees.
+No testimonials, awards, clients, statistics or operational claims were invented. The review section uses only customer names, ratings, complete text and clearly labelled visible excerpts supported by user-supplied Google Business Profile screenshots. Existing prices, phone numbers, addresses, leadership information, coverage wording and Google profile data remain centralised in `lib/site-data.ts`. The new content explains how to prepare a move enquiry and does not imply guarantees.
 
 ## Verification
 
 - `npm run typecheck` — passed
 - `npm run lint` — passed
 - `npm test` — passed: production build, 38 generated pages and 5 test groups
-- Quote API validation and rate limiting — passed existing coverage
+- FormSubmit endpoint, field mapping, honeypot, native validation, loading state and success-return flow — passed regression and browser coverage
 - Browser interaction QA — passed for optional disclosure, mobile menu open/Escape close, active navigation, page overflow and contextual hero imagery
 - Final screenshots captured at 1440, 1024, 768 and 390 pixels
 
@@ -88,3 +78,4 @@ Key before/after files are stored under:
 - `audit/after/desktop/`
 - `audit/after/tablet/`
 - `audit/after/mobile/`
+

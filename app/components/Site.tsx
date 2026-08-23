@@ -61,7 +61,7 @@ function TrustBar() {
         </svg>
       ),
       title: "Transparent Rates",
-      desc: "From $74/30min · No Hidden Fees",
+      desc: "From $74/30min · Scope confirmed in quote",
     },
     {
       icon: (
@@ -192,8 +192,8 @@ function ApartmentAccessSection() {
         <div className="apartment-media">
           <img src="/images/hf-residential-premium.webp" alt="HF Removals crew moving protected furniture through a multi-story building" width="960" height="640" loading="lazy" />
           <div className="apartment-media-badge">
-            <strong>Adelaide CBD & Apartment Specialists</strong>
-            <span>Zero damage to common areas & strict schedule compliance</span>
+            <strong>Adelaide CBD & apartment move planning</strong>
+            <span>Share lift, loading-zone and common-area requirements before moving day</span>
           </div>
         </div>
         <div className="apartment-copy">
@@ -289,7 +289,7 @@ function PricingSection() {
       <div className="container">
         <SectionHeading
           eyebrow="Transparent Billing Rates"
-          title={<>Simple & Fair Pricing, <em>Zero Hidden Fees</em></>}
+          title={<>Published Reference Rates, <em>Clearly Explained</em></>}
           copy="Local Adelaide moves use fair 30-minute billing increments. Interstate moves are charged on clear per-cubic-metre rates."
         />
         <div className="local-pricing">
@@ -326,7 +326,7 @@ function PricingSection() {
               <a href={`/interstate/${item.slug}`} key={item.slug} className="table-route-row">
                 <div className="route-name">
                   <strong>{item.label}</strong>
-                  <span>Direct regular departures</span>
+                  <span>Final timing is confirmed with your quote</span>
                 </div>
                 <div className="route-cost">
                   <strong>{item.price}</strong>
@@ -368,15 +368,45 @@ function VolumeGuidanceSection() {
 
 function ReviewsSection() {
   const google = business.googleBusiness;
+  const reviews = [
+    {
+      name: "Mishaal",
+      initials: "M",
+      detail: "Google review",
+      content: "Muhammad and the team at HF Removals provided an exceptional house moving service. They were incredibly punctual, arriving exactly when promised, and handled everything with great care. Their pricing is highly competitive and fair. I will definitely use them again!",
+      complete: true,
+    },
+    {
+      name: "Max Lazzaris",
+      initials: "ML",
+      detail: "Google review · signed Sharon and max",
+      content: "10/10",
+      complete: false,
+    },
+    {
+      name: "Ayan Ali",
+      initials: "AA",
+      detail: "Google review · Adelaide to Melbourne move",
+      content: "no damage",
+      complete: false,
+    },
+    {
+      name: "shagun sharma",
+      initials: "SS",
+      detail: "Local Guide · Google review",
+      content: "HF Removals Adelaide · interstate move",
+      complete: false,
+    },
+  ];
   return (
     <section className="section reviews-section" id="reviews" aria-labelledby="google-proof-title">
       <div className="container">
         <div className="reviews-header-grid">
           <div>
-            <p className="eyebrow">Customer Testimonials</p>
-            <h2 id="google-proof-title">Rated 4.9 Stars Across <em>417+ Google Reviews</em></h2>
+            <p className="eyebrow">Google Reviews</p>
+            <h2 id="google-proof-title">What Our <em>Customers Say</em></h2>
             <p className="reviews-copy">
-              Read authentic feedback from Adelaide homeowners, apartment tenants, and business owners who trust HF Removals.
+              View the current rating and customer feedback directly on Google before choosing your mover.
             </p>
           </div>
           <div className="rating-card-compact">
@@ -392,6 +422,29 @@ function ReviewsSection() {
           </div>
         </div>
 
+        <div className="reviews-cards-grid" aria-label="Customer reviews verified from supplied Google screenshots">
+          {reviews.map((review) => (
+            <article className="review-card" key={review.name}>
+              <div>
+                <div className="review-card-head">
+                  <span className="review-stars" aria-label="5 out of 5 stars">★★★★★</span>
+                  <span className="review-source">Google</span>
+                </div>
+                <blockquote className={`review-content ${review.complete ? "" : "is-excerpt"}`}>
+                  {!review.complete && <span>Verified visible excerpt</span>}
+                  “{review.content}”
+                </blockquote>
+              </div>
+              <div className="review-author-wrap">
+                <span className="review-avatar" aria-hidden="true">{review.initials}</span>
+                <div>
+                  <strong>{review.name}</strong>
+                  <span>{review.detail}</span>
+                </div>
+              </div>
+            </article>
+          ))}
+        </div>
       </div>
     </section>
   );
@@ -410,10 +463,7 @@ function LeadershipSection() {
           <SectionHeading eyebrow="Company Leadership" title={<>Meet <em>Muhammad Rasheed</em></>} />
           <p className="leader-title">CEO & Founder, HF Removals Adelaide</p>
           <p>
-            “Moving should never feel chaotic. At HF Removals Adelaide, my personal commitment is to provide prompt communication, absolute care for your furniture, and completely upfront pricing.”
-          </p>
-          <p>
-            From our Elizabeth Vale operations hub, our certified teams handle moves across all Adelaide suburbs and interstate destinations with a 4.9-star track record.
+            HF Removals Adelaide receives enquiries from its Elizabeth Vale base for local, commercial and listed interstate moves. Each quote is scoped around inventory, access, protection and destination details.
           </p>
           <div className="leader-stats">
             <div>
@@ -475,7 +525,7 @@ function ProcessSection() {
   return (
     <section className="section process-section">
       <div className="container">
-        <SectionHeading eyebrow="Our Simple 5-Step Process" title={<>Stress-Free Moving from <em>Booking to Placement</em></>} light />
+        <SectionHeading eyebrow="Our Simple 5-Step Process" title={<>A Clear Moving Plan from <em>Booking to Placement</em></>} light />
         <ol className="process-line">
           {steps.map(([title, copy], index) => (
             <li key={title}>
@@ -518,7 +568,16 @@ function ContactMapSection() {
           </a>
         </div>
         <div className="map-frame">
-          <iframe src={google.mapEmbedUrl} title="Google map showing HF Removals Adelaide in Elizabeth Vale" loading="lazy" referrerPolicy="no-referrer-when-downgrade" allowFullScreen />
+          <iframe
+            src={google.mapEmbedUrl}
+            width="600"
+            height="450"
+            style={{ border: 0, width: "100%", minHeight: "420px" }}
+            allowFullScreen
+            loading="lazy"
+            referrerPolicy="strict-origin-when-cross-origin"
+            title="Google Map showing HF Removals Adelaide"
+          />
         </div>
       </div>
     </section>
@@ -681,7 +740,7 @@ export function HomePage() {
               You Can Rely On
             </h1>
             <p className="hero-lead">
-              From the first box to the final placement, HF Removals Adelaide delivers stress-free home, apartment, and office relocations with transparent rates and $1,000,000 insurance.
+              Plan home, apartment, office and interstate moves with published reference rates and up to $1,000,000 Public Liability and Transit Insurance, subject to applicable policy terms.
             </p>
             <div className="hero-actions">
               <a className="button button-gold" href="#quote">

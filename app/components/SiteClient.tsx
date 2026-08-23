@@ -10,7 +10,7 @@ export function UtilityBar() {
       <div className="container utility-inner">
         <div className="utility-badge">
           <span className="utility-pulse" />
-          <span>Adelaide’s Top-Rated Removalists · Open 24/7 · $1M Transit Insurance</span>
+          <span>Adelaide Removalists · Open 24 Hours · Up to $1M Public Liability & Transit Insurance</span>
         </div>
         <div className="utility-contact">
           <a href="https://maps.google.com/?cid=10700874558509895358" target="_blank" rel="noopener noreferrer" className="utility-rating">
@@ -47,6 +47,7 @@ export function MotionExperience() {
       ".service-photo-card",
       ".process-step",
       ".rating-card-compact",
+      ".review-card",
       ".insurance-panel",
       ".leader-stats > div",
       ".area-links a",
@@ -287,72 +288,91 @@ export function Header() {
 
 type FormDataShape = {
   name: string; phone: string; email: string; date: string; from: string; to: string;
-  moveType: string; propertySize: string; details: string; company: string; tab: "local" | "interstate"; startedAt: number;
+  moveType: string; propertySize: string; details: string; company: string; tab: "local" | "interstate";
 };
 
 const createEmptyForm = (): FormDataShape => ({
   name: "", phone: "", email: "", date: "", from: "", to: "",
-  moveType: "Residential (House / Unit)", propertySize: "2-3 Bedrooms", details: "", company: "", tab: "local", startedAt: Date.now()
+  moveType: "Residential (House / Unit)", propertySize: "2 Bedrooms", details: "", company: "", tab: "local"
 });
 
+const FORM_SUBMIT_ENDPOINT = "https://formsubmit.co/hfremovalad@gmail.com";
+
+function getAdelaideDateInputValue(date = new Date()) {
+  const parts = new Intl.DateTimeFormat("en-AU", {
+    timeZone: "Australia/Adelaide",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).formatToParts(date);
+  const values = Object.fromEntries(parts.map(({ type, value }) => [type, value]));
+  return `${values.year}-${values.month}-${values.day}`;
+}
+
 export function QuoteForm({ compact = false }: { compact?: boolean }) {
+  const pathname = usePathname();
   const [form, setForm] = useState<FormDataShape>(() => createEmptyForm());
   const [status, setStatus] = useState("");
   const [loading, setLoading] = useState(false);
+  const [statusKind, setStatusKind] = useState<"success" | "error" | "info">("info");
+  const submitting = useRef(false);
+  const earliestDate = getAdelaideDateInputValue();
+  const successUrl = `${business.domain}${pathname}?quote=sent#quote`;
+
+  useEffect(() => {
+    const search = new URLSearchParams(window.location.search);
+    if (search.get("quote") !== "sent") return;
+
+    const statusTimer = window.setTimeout(() => {
+      setStatusKind("success");
+      setStatus("Thank you. Your move details have been submitted to HF Removals Adelaide.");
+      window.history.replaceState(null, "", `${window.location.pathname}${window.location.hash}`);
+    }, 0);
+    return () => window.clearTimeout(statusTimer);
+  }, []);
 
   const update = (field: keyof FormDataShape, value: string) => setForm((current) => ({ ...current, [field]: value }));
 
-  const openEmailFallback = () => {
-    const subject = encodeURIComponent(`Move Quote Request — ${form.name} (${form.tab === "interstate" ? "Interstate" : "Local"})`);
-    const body = encodeURIComponent([
-      `Name: ${form.name}`,
-      `Phone: ${form.phone}`,
-      `Email: ${form.email || "Not provided"}`,
-      `Move Category: ${form.tab.toUpperCase()}`,
-      `Moving Date: ${form.date || "Not provided"}`,
-      `Moving From: ${form.from}`,
-      `Moving To: ${form.to}`,
-      `Move Type: ${form.moveType}`,
-      `Property Size / Volume: ${form.propertySize}`,
-      `Additional Notes: ${form.details || "None provided"}`,
-    ].join("\n"));
-    window.location.href = `mailto:${business.emails[0]}?subject=${subject}&body=${body}`;
-  };
-
-  async function submit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    if (form.company) return;
-    setLoading(true);
-    setStatus("Submitting your move details for review…");
-    try {
-      const response = await fetch("/api/quote", {
-        method: "POST",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify(form),
-      });
-      if (response.ok) {
-        setStatus("✓ Thank you! Your move details have been sent. Muhammad Rasheed and the HF team will follow up promptly.");
-        setForm(createEmptyForm());
-      } else if (response.status >= 500) {
-        setStatus("Direct email opened with prefilled details ready to send.");
-        openEmailFallback();
-      } else {
-        const payload = (await response.json().catch(() => ({ error: "Please verify the form fields." }))) as { error?: string };
-        setStatus(payload.error ?? "Please check the required fields and submit again.");
-      }
-    } catch {
-      setStatus("Direct email opened with prefilled details ready to send.");
-      openEmailFallback();
-    } finally {
-      setLoading(false);
+  function submit(event: FormEvent<HTMLFormElement>) {
+    if (submitting.current) {
+      event.preventDefault();
+      return;
     }
+    if (form.company) {
+      event.preventDefault();
+      setForm(createEmptyForm());
+      setStatusKind("success");
+      setStatus("Thank you. Your request has been received.");
+      return;
+    }
+
+    submitting.current = true;
+    setLoading(true);
+    setStatusKind("info");
+    setStatus("Submitting your move details securely…");
   }
 
   return (
-    <form className={`quote-form ${compact ? "quote-form-compact" : ""}`} id="quote" onSubmit={submit} noValidate={false}>
+    <form
+      action={FORM_SUBMIT_ENDPOINT}
+      method="POST"
+      className={`quote-form ${compact ? "quote-form-compact" : ""}`}
+      id="quote"
+      onSubmit={submit}
+      onInvalid={() => {
+        setStatusKind("error");
+        setStatus("Please complete the required fields and correct any highlighted values.");
+      }}
+    >
+      <input type="hidden" name="_subject" value="New HF Removals Adelaide Quote Request" />
+      <input type="hidden" name="_captcha" value="false" />
+      <input type="hidden" name="_template" value="table" />
+      <input type="hidden" name="_next" value={successUrl} />
+      <input type="hidden" name="website" value="HF Removals Adelaide Website" />
+      <input type="hidden" name="move_category" value={form.tab === "interstate" ? "Interstate Move" : "Local Adelaide Move"} />
       <div className="form-header-badge">
         <span className="badge-dot" />
-        <span>Fixed & Transparent Pricing · No Hidden Surcharges</span>
+        <span>Published reference rates · Final quote based on your move scope</span>
       </div>
 
       <div className="form-heading">
@@ -399,23 +419,23 @@ export function QuoteForm({ compact = false }: { compact?: boolean }) {
         <legend className="sr-only">Essential move details</legend>
         <label>
           <span className="field-label">Your Name <b aria-hidden="true">*</b></span>
-          <input required autoComplete="name" value={form.name} onChange={(e) => update("name", e.target.value)} placeholder="e.g. Sarah Jenkins" />
+          <input name="name" required maxLength={100} autoComplete="name" value={form.name} onChange={(e) => update("name", e.target.value)} placeholder="e.g. Alex Smith" />
         </label>
         <label>
           <span className="field-label">Phone Number <b aria-hidden="true">*</b></span>
-          <input required autoComplete="tel" inputMode="tel" pattern="[0-9+ ()-]{8,}" value={form.phone} onChange={(e) => update("phone", e.target.value)} placeholder="e.g. 0400 000 000" />
+          <input name="phone" required maxLength={32} autoComplete="tel" inputMode="tel" pattern="[0-9+ ()-]{8,}" value={form.phone} onChange={(e) => update("phone", e.target.value)} placeholder="e.g. 0400 000 000" />
         </label>
         <label>
           <span className="field-label">Moving From (Suburb) <b aria-hidden="true">*</b></span>
-          <input required autoComplete="address-level2" value={form.from} onChange={(e) => update("from", e.target.value)} placeholder="e.g. Elizabeth Vale SA" />
+          <input name="moving_from" required maxLength={180} autoComplete="address-level2" value={form.from} onChange={(e) => update("from", e.target.value)} placeholder="e.g. Elizabeth Vale SA" />
         </label>
         <label>
           <span className="field-label">Moving To (Suburb/City) <b aria-hidden="true">*</b></span>
-          <input required autoComplete="address-level2" value={form.to} onChange={(e) => update("to", e.target.value)} placeholder={form.tab === "local" ? "e.g. Marion SA" : "e.g. Melbourne VIC"} />
+          <input name="moving_to" required maxLength={180} autoComplete="address-level2" value={form.to} onChange={(e) => update("to", e.target.value)} placeholder={form.tab === "local" ? "e.g. Marion SA" : "e.g. Melbourne VIC"} />
         </label>
         <label className="form-wide">
           <span className="field-label">Move Type <b aria-hidden="true">*</b></span>
-          <select required value={form.moveType} onChange={(e) => update("moveType", e.target.value)}>
+          <select name="move_type" required value={form.moveType} onChange={(e) => update("moveType", e.target.value)}>
             <option>Residential (House / Unit)</option>
             <option>Apartment / High-Rise (Lift Access)</option>
             <option>Office / Commercial Relocation</option>
@@ -425,7 +445,7 @@ export function QuoteForm({ compact = false }: { compact?: boolean }) {
             <option>Single Item / Heavy Furniture</option>
           </select>
         </label>
-        <label className="honeypot" aria-hidden="true">Company<input tabIndex={-1} autoComplete="off" value={form.company} onChange={(e) => update("company", e.target.value)} /></label>
+        <input className="honeypot" type="text" name="_honey" tabIndex={-1} autoComplete="off" aria-hidden="true" value={form.company} onChange={(e) => update("company", e.target.value)} />
       </fieldset>
 
       <details className="form-optional" open={compact || undefined}>
@@ -437,15 +457,15 @@ export function QuoteForm({ compact = false }: { compact?: boolean }) {
           <legend className="sr-only">Optional move details</legend>
           <label>
             <span className="field-label">Email Address</span>
-            <input type="email" autoComplete="email" value={form.email} onChange={(e) => update("email", e.target.value)} placeholder="email@domain.com.au" />
+            <input name="email" type="email" maxLength={254} autoComplete="email" value={form.email} onChange={(e) => update("email", e.target.value)} placeholder="email@domain.com.au" />
           </label>
           <label>
             <span className="field-label">Preferred Moving Date</span>
-            <input type="date" value={form.date} onChange={(e) => update("date", e.target.value)} />
+            <input name="preferred_moving_date" type="date" min={earliestDate} value={form.date} onChange={(e) => update("date", e.target.value)} />
           </label>
           <label className="form-wide">
             <span className="field-label">Property Size / Volume</span>
-            <select value={form.propertySize} onChange={(e) => update("propertySize", e.target.value)}>
+            <select name="property_size" value={form.propertySize} onChange={(e) => update("propertySize", e.target.value)}>
               <option>Studio / 1 Bedroom Unit</option>
               <option>2 Bedrooms</option>
               <option>3 Bedrooms (Standard Family Home)</option>
@@ -457,7 +477,9 @@ export function QuoteForm({ compact = false }: { compact?: boolean }) {
           <label className="form-wide">
             <span className="field-label">Access & Heavy Items Notes</span>
             <textarea
+              name="details"
               value={form.details}
+              maxLength={3000}
               onChange={(e) => update("details", e.target.value)}
               placeholder="e.g. 2nd floor stairs, lift booking required, double-door fridge, heavy timber dining table, piano, packing required..."
               rows={compact ? 3 : 4}
@@ -481,7 +503,11 @@ export function QuoteForm({ compact = false }: { compact?: boolean }) {
         Need urgent assistance? Call directly: <a href={business.phones[0].href}><strong>{business.phones[0].display}</strong></a> (Open 24/7)
       </p>
 
-      {status && <p className="form-status" aria-live="polite" role="status">{status}</p>}
+      {status && (
+        <p className={`form-status is-${statusKind}`} aria-live="polite" role={statusKind === "error" ? "alert" : "status"}>
+          {status}
+        </p>
+      )}
     </form>
   );
 }
@@ -500,3 +526,4 @@ export function MobileStickyCta() {
     </aside>
   );
 }
+

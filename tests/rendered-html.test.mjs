@@ -42,13 +42,12 @@ test("renders the premium HF homepage without placeholder claims", async () => {
   assert.match(html, /Tell us about your move/i);
   assert.match(html, /Muhammad Rasheed/i);
   assert.match(html, /hf-logo-2026\.webp/i);
-  assert.doesNotMatch(html, /Jessica Taylor|David Miller|Hamza Khan/i);
   assert.match(html, /muhammad-rasheed-ceo\.webp/i);
   assert.match(html, /hf-residential-premium\.webp/i);
   assert.match(html, /hf-packing-premium\.webp/i);
   assert.match(html, /hf-office-premium\.webp/i);
   assert.match(html, /hf-interstate-premium\.webp/i);
-  assert.match(html, /The Right Equipment for/i);
+  assert.match(html, /Work in Motion/i);
   assert.match(html, /\$74/);
   assert.match(html, /\$119\.43/);
   assert.match(html, /4\.9 Google rating/i);
@@ -56,11 +55,19 @@ test("renders the premium HF homepage without placeholder claims", async () => {
   assert.match(html, /Open 24 Hours/i);
   assert.match(html, /25–45 m³/i);
   assert.match(html, /40–60 m³/i);
-  assert.doesNotMatch(html, /AggregateRating/);
+  assert.match(html, /AggregateRating/);
+  assert.match(html, /"ratingValue":4\.9/);
   assert.match(html, /application\/ld\+json/);
   assert.match(html, /<title>Adelaide Removalists \| 4\.9★ Rated Local &amp; Interstate \| HF Removals<\/title>/i);
   assert.doesNotMatch(html, /HF Removals Adelaide \| HF Removals Adelaide<\/title>/i);
   assert.doesNotMatch(html, /codex-preview|react-loading-skeleton|5\.0 from|200\+ happy|#1 Adelaide|award.winning/i);
+  assert.doesNotMatch(html, /Hamza Khan|Jessica Taylor|David Miller|Sarah Jenkins/i);
+  assert.match(html, /Mishaal/i);
+  assert.match(html, /Max Lazzaris/i);
+  assert.match(html, /Ayan Ali/i);
+  assert.match(html, /shagun sharma/i);
+  assert.match(html, /Muhammad and the team at HF Removals provided an exceptional house moving service/i);
+  assert.match(html, /Verified visible excerpt/i);
 });
 
 test("renders service, area, route, guide and contact routes", async () => {
@@ -82,7 +89,9 @@ test("renders service, area, route, guide and contact routes", async () => {
 
   const contact = await render("/contact");
   const contactHtml = await contact.text();
-  assert.match(contactHtml, /Google map showing HF Removals Adelaide in Elizabeth Vale/i);
+  assert.match(contactHtml, /Google Map showing HF Removals Adelaide/i);
+  assert.match(contactHtml, /4v1787515237189/i);
+  assert.match(contactHtml, /referrerpolicy="strict-origin-when-cross-origin"/i);
   assert.match(contactHtml, /6MW7\+J5 Elizabeth Vale/i);
   assert.match(contactHtml, /loading="lazy"/i);
   assert.match(contactHtml, /Get directions/i);
@@ -108,24 +117,26 @@ test("serves crawl discovery endpoints and unique guide metadata", async () => {
   assert.doesNotMatch(html, /href="\/(?:services|areas|pricing|about|contact|guides|interstate|privacy|terms)[^"]*\/"/i);
 });
 
-test("bounds and validates quote API requests without a configured provider", async () => {
-  const fast = await render("/api/quote", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ name: "A", phone: "0491 704 136", email: "a@example.com", from: "Adelaide", to: "Salisbury", moveType: "Residential", propertySize: "2 Bedroom", startedAt: Date.now() }) });
-  assert.equal(fast.status, 422);
+test("renders one coherent, accessible FormSubmit quote flow", async () => {
+  for (const path of ["/", "/contact"]) {
+    const response = await render(path);
+    assert.equal(response.status, 200, path);
+    const html = await response.text();
 
-  const valid = await render("/api/quote", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ name: "A", phone: "0491 704 136", email: "a@example.com", from: "Adelaide", to: "Salisbury", moveType: "Residential", propertySize: "2 Bedroom", details: "", startedAt: Date.now() - 2_000 }) });
-  assert.equal(valid.status, 503);
-
-  const essentialsOnly = await render("/api/quote", { method: "POST", headers: { "content-type": "application/json", "x-forwarded-for": "203.0.113.20" }, body: JSON.stringify({ name: "Essentials Only", phone: "0493 092 539", from: "Elizabeth Vale", to: "Adelaide", moveType: "Residential", startedAt: Date.now() - 2_000 }) });
-  assert.equal(essentialsOnly.status, 503);
-
-  let limited;
-  for (let attempt = 0; attempt < 6; attempt += 1) {
-    limited = await render("/api/quote", { method: "POST", headers: { "content-type": "application/json", "x-forwarded-for": "203.0.113.10" }, body: JSON.stringify({ name: "Rate Limit", phone: "0491 704 136", email: "rate-limit@example.com", from: "Adelaide", to: "Salisbury", moveType: "Residential", propertySize: "2 Bedroom", details: "", startedAt: Date.now() - 2_000 }) });
+    assert.match(html, /<form[^>]+action="https:\/\/formsubmit\.co\/hfremovalad@gmail\.com"[^>]+method="POST"/i, path);
+    assert.match(html, /name="_subject"[^>]+value="New HF Removals Adelaide Quote Request"/i, path);
+    assert.match(html, /name="_captcha"[^>]+value="false"/i, path);
+    assert.match(html, /name="website"[^>]+value="HF Removals Adelaide Website"/i, path);
+    assert.match(html, /name="_next"[^>]+value="https:\/\/hfremovalsadelaide\.com\.au\//i, path);
+    assert.match(html, /<input(?=[^>]*name="_honey")(?=[^>]*tabindex="-1")[^>]*>/i, path);
+    for (const field of ["name", "phone", "email", "moving_from", "moving_to", "move_type", "property_size", "preferred_moving_date", "details"]) {
+      assert.match(html, new RegExp(`name="${field}"`, "i"), `${path}: ${field}`);
+    }
   }
-  assert.equal(limited.status, 429);
 
-  const oversized = await render("/api/quote", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ details: "x".repeat(25_000) }) });
-  assert.equal(oversized.status, 413);
+  const client = await readFile(new URL("../app/components/SiteClient.tsx", import.meta.url), "utf8");
+  assert.doesNotMatch(client, /fetch\(["']\/api\/quote/i);
+  assert.doesNotMatch(client, /openEmailFallback|QUOTE_ENDPOINT_URL|formsubmit\.co\/h\[/i);
 });
 
 test("keeps verified rates, coverage wording and canonical route inventory centralized", async () => {

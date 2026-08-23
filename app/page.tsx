@@ -4,7 +4,7 @@ import { business, canonical, standardMoveFaqs } from "../lib/site-data";
 
 export const metadata: Metadata = {
   title: { absolute: "Adelaide Removalists | 4.9★ Rated Local & Interstate | HF Removals" },
-  description: "Adelaide's top-rated removalists from $74/30min with $1M transit insurance. Professional residential, apartment, office, and interstate moving services. Free quote!",
+  description: "Adelaide removalists from $74 per 30 minutes for local moves, with residential, office and listed interstate moving support. Request a scoped quote.",
   alternates: { canonical: canonical("/") },
 };
 
@@ -34,6 +34,13 @@ const schema = {
         "@type": "GeoCoordinates",
         latitude: -34.7578,
         longitude: 138.6834,
+      },
+      aggregateRating: {
+        "@type": "AggregateRating",
+        ratingValue: business.googleBusiness.rating,
+        reviewCount: business.googleBusiness.reviewCount,
+        bestRating: "5",
+        worstRating: "1",
       },
       areaServed: [
         "Adelaide Metro",
@@ -87,3 +94,4 @@ export default function Home() {
     </>
   );
 }
+
