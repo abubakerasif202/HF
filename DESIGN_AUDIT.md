@@ -2,6 +2,31 @@
 
 Audit date: 21 August 2026
 
+## Rate update and 3D viewer removal — 24 August 2026
+
+Published local rates updated to $79 per 30 minutes ($158/hr) for 2 movers and a
+truck, and $99 per 30 minutes ($198/hr) for 3 movers and a truck.
+
+The figures were retyped as literals in five places outside `lib/site-data.ts`:
+the homepage trust strip, the quote form's rate banner, two truck options in the
+3D viewer and the homepage meta description. They now read `entryLocalRate`, so
+the next change is a single edit.
+
+The 3D fleet viewer was removed at the owner's request. Alongside the component,
+this drops the `three` and `@types/three` dependencies, 514 lines of component
+code, 328 lines of CSS and a ~506KB client chunk.
+
+It also removes a defect at its source rather than by workaround. The viewer was
+`ssr: false`, so its placeholder was roughly 1.5k pixels shorter than the mounted
+section and the browser performed hash jumps against the pre-mount layout; a cold
+load of `/#reviews` previously landed 894px short on desktop and 1710px short at
+320px. The realignment added for that is gone with the component, and both cases
+now land correctly on their own.
+
+One unsourced figure disappeared with the viewer: it advertised interstate moves
+"From $135 / m³", which matches none of the published route rates ($119.43 to
+$186.06).
+
 ## Service photography refresh — 24 August 2026
 
 Replaced the four service images with owner-supplied HF-branded scenes:

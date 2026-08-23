@@ -2,7 +2,7 @@
 
 import { FormEvent, useEffect, useRef, useState } from "react";
 import { usePathname } from "next/navigation";
-import { areas, business, deployedOrigin, interstateRoutes, services } from "../../lib/site-data";
+import { areas, business, deployedOrigin, entryLocalRate, interstateRoutes, services } from "../../lib/site-data";
 
 export function UtilityBar() {
   return (
@@ -409,7 +409,7 @@ export function QuoteForm({ compact = false }: { compact?: boolean }) {
 
       <div className="form-rate-preview" aria-live="polite">
         {form.tab === "local" ? (
-          <p>⚡ <strong>Local Rate:</strong> 2 Movers + Truck from <em>$74 / 30 min</em> ($148/hr) · All protective gear included</p>
+          <p>⚡ <strong>Local Rate:</strong> {entryLocalRate.name} from <em>{entryLocalRate.halfHour} / 30 min</em> ({entryLocalRate.hourly}/hr) · All protective gear included</p>
         ) : (
           <p>⚡ <strong>Interstate Reference:</strong> Melbourne from <em>$119.43/m³</em> · Sydney from <em>$130.19/m³</em> · QLD $164/m³</p>
         )}

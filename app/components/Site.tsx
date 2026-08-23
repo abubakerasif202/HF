@@ -1,6 +1,5 @@
-import { areas, business, ContentPage, googleReviews, guides, interstatePricing, interstateRoutes, localPricing, services, standardMoveFaqs } from "../../lib/site-data";
+import { areas, business, ContentPage, entryLocalRate, googleReviews, guides, interstatePricing, interstateRoutes, localPricing, services, standardMoveFaqs } from "../../lib/site-data";
 import { Header, MobileStickyCta, MotionExperience, QuoteForm, UtilityBar } from "./SiteClient";
-import { ThreeTruckViewerClient } from "./ThreeTruckViewerClient";
 
 export function ServiceTicker({ locations = false }: { locations?: boolean }) {
   const items = locations
@@ -61,7 +60,7 @@ function TrustBar() {
         </svg>
       ),
       title: "Transparent Rates",
-      desc: "From $74/30min · Scope confirmed in quote",
+      desc: `From ${entryLocalRate.halfHour}/30min · Scope confirmed in quote`,
     },
     {
       icon: (
@@ -732,7 +731,6 @@ export function HomePage() {
       </section>
 
       <TrustBar />
-      <ThreeTruckViewerClient />
       <ServiceTicker />
       <ServicesGrid />
       <ApartmentAccessSection />

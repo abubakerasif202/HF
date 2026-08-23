@@ -33,7 +33,6 @@
   --font-ui: Inter, Manrope, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
 }
 
-
 /* ==================== ANIMATIONS & KEYFRAMES ==================== */
 @keyframes fadeInUp {
   from {
@@ -153,12 +152,6 @@ address {
 .section {
   padding: clamp(76px, 8vw, 120px) 0;
 }
-.three-loader-shell {
-  min-height: 420px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
 .scroll-progress {
   position: fixed;
   z-index: 1500;
@@ -225,7 +218,6 @@ address {
   scroll-margin-top: 100px;
   scroll-margin-bottom: 80px;
 }
-
 
 /* ==================== UTILITY ANNOUNCEMENT BAR ==================== */
 .utility-bar {
@@ -2436,256 +2428,6 @@ p {
   text-decoration: underline;
 }
 
-/* ==================== 3D INTERACTIVE FLEET EXPLORER ==================== */
-.three-section {
-  background: radial-gradient(circle at 50% 30%, rgba(15, 78, 52, 0.45), transparent 70%), #020e09;
-  border-block: 1px solid rgba(255, 215, 0, 0.3);
-  position: relative;
-  overflow: hidden;
-}
-
-.three-section-loading {
-  display: flex;
-  min-height: 420px;
-  align-items: center;
-  justify-content: center;
-}
-.three-header {
-  margin-bottom: 40px;
-}
-.three-desc {
-  color: rgba(255, 255, 255, 0.85);
-  font-size: 1.15rem;
-  line-height: 1.7;
-}
-.three-mode-tabs {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 16px;
-  max-width: 900px;
-  margin-top: 24px;
-}
-.three-tab-btn {
-  padding: 16px 20px;
-  background: rgba(4, 31, 20, 0.85);
-  border: 1.5px solid rgba(255, 215, 0, 0.28);
-  border-radius: 14px;
-  color: white;
-  text-align: left;
-  cursor: pointer;
-  transition: all 0.25s var(--ease-premium);
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-.three-tab-btn:hover {
-  border-color: var(--hf-gold-500);
-  background: rgba(9, 51, 34, 0.95);
-  transform: translateY(-2px);
-}
-.three-tab-btn.is-active {
-  background: linear-gradient(145deg, rgba(9, 51, 34, 0.98), rgba(4, 31, 20, 0.95));
-  border-color: var(--hf-gold-500);
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5), inset 0 0 24px rgba(255, 215, 0, 0.2);
-}
-.tab-title {
-  color: var(--hf-gold-300);
-  font-size: 1.1rem;
-  font-weight: 800;
-}
-.tab-sub {
-  color: rgba(255, 255, 255, 0.85);
-  font-size: 0.92rem;
-  line-height: 1.4;
-}
-.tab-price-pill {
-  display: inline-block;
-  align-self: flex-start;
-  color: var(--hf-gold-500);
-  font-weight: 900;
-  font-size: 0.85rem;
-  margin-top: 4px;
-  background: rgba(255, 215, 0, 0.12);
-  padding: 3px 10px;
-  border-radius: 6px;
-  border: 1px solid rgba(255, 215, 0, 0.3);
-}
-.three-viewport-wrap {
-  position: relative;
-  display: grid;
-  grid-template-columns: 1.4fr 0.85fr;
-  gap: 28px;
-  align-items: center;
-  background: rgba(2, 16, 11, 0.9);
-  border: 1.5px solid var(--hf-gold-500);
-  border-radius: 24px;
-  padding: 28px;
-  box-shadow: 0 28px 70px rgba(0, 0, 0, 0.6);
-}
-.three-viewport {
-  width: 100%;
-  height: 490px;
-  position: relative;
-  cursor: grab;
-  border-radius: 16px;
-  overflow: hidden;
-  background: radial-gradient(circle at center, rgba(15, 78, 52, 0.45) 0%, rgba(2, 14, 9, 0.95) 75%);
-}
-.three-viewport:active {
-  cursor: grabbing;
-}
-.three-drag-hint {
-  position: absolute;
-  top: 16px;
-  right: 16px;
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  padding: 8px 14px;
-  background: rgba(1, 8, 5, 0.85);
-  border: 1px solid rgba(255, 215, 0, 0.35);
-  border-radius: 20px;
-  color: var(--hf-gold-300);
-  font-size: 0.82rem;
-  font-weight: 700;
-  pointer-events: none;
-  backdrop-filter: blur(8px);
-}
-.three-loader {
-  position: absolute;
-  inset: 0;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 14px;
-  color: var(--hf-gold-300);
-  font-size: 1.05rem;
-  font-weight: 800;
-}
-.three-spinner {
-  width: 44px;
-  height: 44px;
-  border: 3.5px solid rgba(255, 215, 0, 0.25);
-  border-top-color: var(--hf-gold-500);
-  border-radius: 50%;
-  animation: spin 0.8s linear infinite;
-}
-.three-overlay-card {
-  padding: 28px;
-  background: rgba(4, 31, 20, 0.95);
-  border: 1.5px solid rgba(255, 215, 0, 0.35);
-  border-radius: 18px;
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-  backdrop-filter: blur(14px);
-}
-.overlay-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 10px;
-  color: var(--hf-gold-300);
-  font-size: 0.84rem;
-  font-weight: 900;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-}
-.badge-pulse {
-  width: 9px;
-  height: 9px;
-  border-radius: 50%;
-  background: #10b981;
-  animation: radarPulse 2s infinite ease-in-out;
-}
-.hotspot-list {
-  display: grid;
-  gap: 10px;
-}
-.hotspot-label {
-  color: rgba(255, 255, 255, 0.75);
-  font-size: 0.82rem;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  font-weight: 800;
-}
-.hotspot-btn {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 12px 16px;
-  background: rgba(0, 10, 7, 0.5);
-  border: 1px solid rgba(255, 215, 0, 0.25);
-  border-radius: 10px;
-  color: white;
-  cursor: pointer;
-  text-align: left;
-  transition: all 0.2s;
-}
-.hotspot-btn:hover {
-  background: rgba(255, 215, 0, 0.15);
-  border-color: var(--hf-gold-500);
-}
-.hotspot-btn.is-active {
-  background: rgba(255, 215, 0, 0.24);
-  border-color: var(--hf-gold-400);
-}
-.hotspot-dot {
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
-  background: var(--hf-gold-500);
-  box-shadow: 0 0 8px rgba(255, 215, 0, 0.85);
-}
-.hotspot-btn.is-active .hotspot-dot {
-  background: var(--hf-ruby-600);
-  box-shadow: 0 0 10px rgba(255, 42, 75, 0.9);
-}
-.hotspot-btn strong {
-  font-size: 0.96rem;
-}
-.hotspot-details {
-  padding: 18px;
-  background: rgba(1, 8, 5, 0.6);
-  border: 1px solid rgba(223, 183, 92, 0.35);
-  border-radius: 6px;
-}
-.hotspot-details strong {
-  display: block;
-  color: var(--hf-gold-300);
-  font-size: 1.05rem;
-  margin-bottom: 6px;
-}
-.hotspot-details p {
-  margin: 0;
-  color: rgba(255, 255, 255, 0.88);
-  font-size: 0.95rem;
-  line-height: 1.6;
-}
-.three-cta-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 14px;
-  flex-wrap: wrap;
-  margin-top: 8px;
-}
-.button-icon-toggle {
-  padding: 12px 18px;
-  background: transparent;
-  border: 1px solid rgba(255, 215, 0, 0.4);
-  border-radius: 10px;
-  color: var(--hf-gold-300);
-  font-size: 0.88rem;
-  font-weight: 800;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-.button-icon-toggle:hover {
-  background: rgba(255, 215, 0, 0.18);
-  border-color: var(--hf-gold-500);
-}
-
 /* ==================== RESPONSIVE BREAKPOINTS ==================== */
 @media (max-width: 1200px) {
   .desktop-nav { display: none; }
@@ -2703,9 +2445,6 @@ p {
   .inner-hero-grid { grid-template-columns: minmax(0, 1fr); }
   .inner-visual,
   .inner-monogram { min-width: 0; width: 100%; }
-  .three-viewport-wrap { grid-template-columns: 1fr; padding: 20px; }
-  .three-mode-tabs { grid-template-columns: 1fr; }
-  .three-viewport { height: 390px; }
   .apartment-grid,
   .leadership-grid,
   .packing-grid,
@@ -2843,73 +2582,6 @@ p {
   .pillar-text span {
     font-size: 0.92rem;
     color: rgba(255, 255, 255, 0.8);
-  }
-
-  /* 3D Section on Mobile */
-  .three-section {
-    padding: 52px 0;
-  }
-  .three-viewport-wrap {
-    padding: 16px;
-    gap: 18px;
-    border-radius: 18px;
-  }
-  .three-viewport {
-    height: 340px;
-    border-radius: 12px;
-  }
-  .three-drag-hint {
-    top: 10px;
-    right: 10px;
-    font-size: 0.78rem;
-    padding: 6px 12px;
-  }
-  .three-tab-btn {
-    padding: 14px 16px;
-  }
-  .tab-title {
-    font-size: 1.05rem;
-  }
-  .tab-sub {
-    font-size: 0.92rem;
-  }
-  .tab-price-pill {
-    font-size: 0.88rem;
-  }
-  .three-overlay-card {
-    padding: 20px;
-    border-radius: 14px;
-  }
-  .hotspot-btn {
-    padding: 12px 14px;
-  }
-  .hotspot-btn strong {
-    font-size: 0.96rem;
-  }
-  .hotspot-details {
-    padding: 16px;
-  }
-  .hotspot-details strong {
-    font-size: 1.02rem;
-  }
-  .hotspot-details p {
-    font-size: 0.92rem;
-  }
-  .three-cta-row {
-    flex-direction: column;
-    align-items: stretch;
-    gap: 10px;
-  }
-  .three-cta-row .button {
-    width: 100%;
-    min-height: 52px;
-    font-size: 0.98rem;
-  }
-  .button-icon-toggle {
-    width: 100%;
-    text-align: center;
-    padding: 12px;
-    font-size: 0.9rem;
   }
 
   /* Service Cards */

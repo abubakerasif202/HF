@@ -1,10 +1,10 @@
 import type { Metadata } from "next";
 import { HomePage } from "./components/Site";
-import { business, canonical, standardMoveFaqs } from "../lib/site-data";
+import { business, canonical, entryLocalRate, standardMoveFaqs } from "../lib/site-data";
 
 export const metadata: Metadata = {
   title: { absolute: `Adelaide Removalists | ${business.googleBusiness.rating}★ Rated Local & Interstate | HF Removals` },
-  description: "Adelaide removalists from $74 per 30 minutes for local moves, with residential, office and listed interstate moving support. Request a scoped quote.",
+  description: `Adelaide removalists from ${entryLocalRate.halfHour} per 30 minutes for local moves, with residential, office and listed interstate moving support. Request a scoped quote.`,
   alternates: { canonical: canonical("/") },
 };
 

@@ -50,7 +50,7 @@ test("renders the premium HF homepage without placeholder claims", async () => {
   assert.match(html, /hf-office-premium\.webp/i);
   assert.match(html, /hf-interstate-premium\.webp/i);
   assert.match(html, /Work in Motion/i);
-  assert.match(html, /\$74/);
+  assert.match(html, /\$79/);
   assert.match(html, /\$119\.43/);
   assert.match(html, /4\.9 Google rating/i);
   assert.match(html, /417(?:<!-- -->)? reviews/i);
@@ -148,8 +148,8 @@ test("renders one coherent, accessible FormSubmit quote flow", async () => {
 
 test("keeps verified rates, coverage wording and canonical route inventory centralized", async () => {
   const data = await readFile(new URL("../lib/site-data.ts", import.meta.url), "utf8");
-  assert.match(data, /\$74/);
-  assert.match(data, /\$89/);
+  assert.match(data, /\$79/);
+  assert.match(data, /\$99/);
   assert.match(data, /\$119\.43/);
   assert.match(data, /\$186\.06/);
   assert.match(data, /per m³/);
@@ -170,6 +170,12 @@ test("keeps verified rates, coverage wording and canonical route inventory centr
   const stripComments = (source) => source.replace(/\/\*[\s\S]*?\*\//g, "").replace(/\/\/.*$/gm, "");
   for (const [label, source] of [["Site", site], ["SiteClient", client], ["page", home]]) {
     assert.doesNotMatch(stripComments(source), /4\.9|417/, `${label} should read the rating from site-data`);
+  }
+  // Local rates likewise: they were retyped in the trust strip, the quote form
+  // banner and the homepage meta description.
+  assert.match(data, /export const entryLocalRate/);
+  for (const [label, source] of [["Site", site], ["SiteClient", client], ["page", home]]) {
+    assert.doesNotMatch(stripComments(source), /\$\d{2,3}\s*\/\s*30 min|\$\d{2,3}\/30min/, `${label} should read rates from site-data`);
   }
 });
 
@@ -262,15 +268,11 @@ test("layout grids declare a track for every child they render", async () => {
   assert.match(css, /\.insurance-panel>strong em\{[^}]*font-size:clamp\(2rem,13cqi,5\.2rem\)/);
 });
 
-test("deep links survive the client-only viewer mounting", async () => {
-  const wrapper = await readFile(new URL("../app/components/ThreeTruckViewerClient.tsx", import.meta.url), "utf8");
-  // The viewer is ssr:false, so the section grows ~1.5k px after the browser has
-  // already performed its hash jump. Without realignment, /#reviews landed 894px
-  // short on desktop and 1710px short at 320px.
-  assert.match(wrapper, /window\.location\.hash/);
-  assert.match(wrapper, /ResizeObserver/);
-  assert.match(wrapper, /scrollIntoView/);
-  // and the anchor it targets still exists with header clearance
+
+test("the 3D fleet viewer is fully removed", async () => {
   const html = await (await render()).text();
-  assert.match(html, /id="reviews"/);
+  assert.doesNotMatch(html, /three-section|three-viewport|three-loader|hotspot-/);
+  const pkg = JSON.parse(await readFile(new URL("../package.json", import.meta.url), "utf8"));
+  assert.ok(!pkg.dependencies.three, "three should not be a dependency");
+  assert.ok(!pkg.devDependencies["@types/three"], "@types/three should not be a devDependency");
 });

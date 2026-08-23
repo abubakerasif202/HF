@@ -109,9 +109,16 @@ export const googleReviews = [
 ] as const;
 
 export const localPricing = [
-  { name: "2 Movers + Truck", halfHour: "$74", hourly: "$148", note: "per 30 minutes" },
-  { name: "3 Movers + Truck", halfHour: "$89", hourly: "$178", note: "per 30 minutes" },
+  { name: "2 Movers + Truck", halfHour: "$79", hourly: "$158", note: "per 30 minutes" },
+  { name: "3 Movers + Truck", halfHour: "$99", hourly: "$198", note: "per 30 minutes" },
 ] as const;
+
+/**
+ * Cheapest published local rate. Headlines, meta copy, the trust strip and the quote
+ * form banner all quote "from" pricing, so they read this instead of repeating the
+ * figure and drifting apart at the next price change.
+ */
+export const entryLocalRate = localPricing[0];
 
 export const interstatePricing = [
   { slug: "adelaide-melbourne", label: "Adelaide ↔ Melbourne", price: "$119.43", unit: "per m³" },
@@ -124,7 +131,7 @@ export const standardMoveFaqs: Faq[] = [
   {
     question: "How much do removalists cost in Adelaide?",
     answer:
-      "Our local rates start from $74 per 30 minutes ($148/hr) for 2 movers and a truck, or $89 per 30 minutes ($178/hr) for 3 movers and a truck. Final cost depends on access, inventory, travel distance, and packing requirements.",
+      "Our local rates start from $79 per 30 minutes ($158/hr) for 2 movers and a truck, or $99 per 30 minutes ($198/hr) for 3 movers and a truck. Final cost depends on access, inventory, travel distance, and packing requirements.",
   },
   {
     question: "Are moving blankets, straps, and protective wraps included?",
