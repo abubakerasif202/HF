@@ -51,9 +51,9 @@ export const business = {
     "Complimentary mattress protection",
     "Complimentary side-table protective wraps",
   ],
-  logo: "/images/hf-logo-transparent.png",
-  headerLogo: "/images/hf-logo-header-mark.png",
-  logoSource: "/images/hf-logo-source.jpg",
+  logo: "/images/hf-logo-2026.webp",
+  headerLogo: "/images/hf-logo-2026.webp",
+  logoSource: "/images/hf-logo-2026-source.png",
   heroImage: "/images/hf-hero-truck-1792.webp",
   ceoImage: "/images/muhammad-rasheed-ceo.webp",
 } as const;

@@ -2,6 +2,18 @@
 
 Audit date: 21 August 2026
 
+## Logo, motion and responsive QA — 24 August 2026
+
+- Replaced the previous HF-only header mark with the supplied green, gold and ruby truck lockup across the header, footer, favicon metadata, inner-page brand art and social-sharing image.
+- Preserved the exact uploaded PNG as the master source and generated an 800px lossless WebP for the live UI, reducing the delivered logo from roughly 1.5MB to roughly 412KB.
+- Added a restrained logo entrance, hover gleam, subtle hero image drift, page scroll progress and staggered viewport reveals for headings, cards, proof points, imagery, FAQs and footer groups.
+- Kept animation progressive-enhancement only: content remains visible without JavaScript and all motion collapses under `prefers-reduced-motion`.
+- Improved keyboard access to desktop dropdowns with `:focus-within` and upgraded the mobile menu with an animated close state, staggered link entrance, focus trapping and Escape-to-close.
+- Fixed a mobile stacking-context defect where the full-screen menu was constrained by the backdrop-filtered sticky header. The menu now sits outside the header containing block and correctly occupies the full viewport.
+- Updated the Open Graph image so social previews use the supplied truck logo rather than the superseded mark.
+
+Validation completed at 1440px and 390px: no horizontal overflow, full-height mobile menu confirmed, all eight menu links visible, Escape close confirmed, TypeScript and ESLint passed, and the production build generated all 38 pages with all five rendered-route/API test groups passing.
+
 ## Follow-up review — 23 August 2026
 
 - Replaced the compact header mark and duplicated text lockup with the complete supplied transparent HF Removals Adelaide logo.

@@ -6,7 +6,7 @@ export const metadata: Metadata = {
   title: { default: "HF Removals Adelaide", template: "%s | HF Removals Adelaide" },
   description: "Local, commercial and interstate moving support from HF Removals Adelaide.",
   applicationName: "HF Removals Adelaide",
-  icons: { icon: "/images/hf-logo-transparent.png", shortcut: "/images/hf-logo-transparent.png" },
+  icons: { icon: "/images/hf-logo-2026.webp", shortcut: "/images/hf-logo-2026.webp" },
   openGraph: { type: "website", locale: "en_AU", siteName: "HF Removals Adelaide", images: [{ url: "/og.png", width: 1792, height: 896, alt: "HF Removals Adelaide — Moving Made Easy With Us" }] },
   twitter: { card: "summary_large_image", images: ["/og.png"] },
   robots: { index: true, follow: true },
@@ -35,4 +35,3 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
     </html>
   );
 }
-

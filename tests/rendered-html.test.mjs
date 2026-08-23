@@ -41,7 +41,7 @@ test("renders the premium HF homepage without placeholder claims", async () => {
   assert.match(html, /Adelaide[\s\S]*Removalists[\s\S]*You Can[\s\S]*Rely On/i);
   assert.match(html, /Tell us about your move/i);
   assert.match(html, /Muhammad Rasheed/i);
-  assert.match(html, /hf-logo-transparent\.png/i);
+  assert.match(html, /hf-logo-2026\.webp/i);
   assert.doesNotMatch(html, /Jessica Taylor|David Miller|Hamza Khan/i);
   assert.match(html, /muhammad-rasheed-ceo\.webp/i);
   assert.match(html, /hf-residential-premium\.webp/i);

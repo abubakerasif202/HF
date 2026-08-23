@@ -29,6 +29,82 @@ export function UtilityBar() {
   );
 }
 
+export function MotionExperience() {
+  const pathname = usePathname();
+  const progress = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const selector = [
+      ".section-heading",
+      ".trust-pillar",
+      ".service-card",
+      ".apartment-media",
+      ".apartment-point",
+      ".price-card",
+      ".interstate-table",
+      ".volume-grid article",
+      ".service-photo-card",
+      ".process-step",
+      ".rating-card-compact",
+      ".insurance-panel",
+      ".leader-stats > div",
+      ".area-links a",
+      ".faq-item",
+      ".inner-hero-copy",
+      ".inner-hero-media",
+      ".detail-card",
+      ".listing-card",
+      ".footer-grid > div",
+    ].join(",");
+    const targets = Array.from(document.querySelectorAll<HTMLElement>(selector));
+
+    targets.forEach((target, index) => {
+      target.classList.add("reveal-item");
+      target.style.setProperty("--reveal-delay", `${(index % 5) * 55}ms`);
+    });
+
+    const observer = reducedMotion
+      ? null
+      : new IntersectionObserver(
+          (entries) => {
+            entries.forEach((entry) => {
+              if (!entry.isIntersecting) return;
+              entry.target.classList.add("is-revealed");
+              observer?.unobserve(entry.target);
+            });
+          },
+          { rootMargin: "0px 0px -8%", threshold: 0.08 },
+        );
+
+    targets.forEach((target) => {
+      if (reducedMotion) target.classList.add("is-revealed");
+      else observer?.observe(target);
+    });
+
+    let frame = 0;
+    const updateProgress = () => {
+      frame = 0;
+      const available = document.documentElement.scrollHeight - window.innerHeight;
+      const ratio = available > 0 ? Math.min(window.scrollY / available, 1) : 0;
+      if (progress.current) progress.current.style.transform = `scaleX(${ratio})`;
+    };
+    const onScroll = () => {
+      if (!frame) frame = window.requestAnimationFrame(updateProgress);
+    };
+    updateProgress();
+    window.addEventListener("scroll", onScroll, { passive: true });
+
+    return () => {
+      observer?.disconnect();
+      window.removeEventListener("scroll", onScroll);
+      if (frame) window.cancelAnimationFrame(frame);
+    };
+  }, [pathname]);
+
+  return <div ref={progress} className="scroll-progress" aria-hidden="true" />;
+}
+
 export function Header() {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
@@ -73,10 +149,11 @@ export function Header() {
   }, [open]);
 
   return (
-    <header className={`site-header ${compact ? "is-compact" : ""}`}>
-      <div className="header-inner">
+    <>
+      <header className={`site-header ${compact ? "is-compact" : ""} ${open ? "menu-open" : ""}`}>
+        <div className="header-inner">
         <a className="brand" href="/" aria-label="HF Removals Adelaide home">
-          <img src={business.logo} alt="HF Removals Adelaide" width="1678" height="937" />
+          <img src={business.headerLogo} alt="HF Removals Adelaide" width="800" height="795" decoding="async" />
         </a>
 
         <nav className="desktop-nav" aria-label="Primary navigation">
@@ -161,13 +238,13 @@ export function Header() {
             <span>Free Quote</span>
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><path d="M5 12h14m-7-7 7 7-7 7" /></svg>
           </a>
-          <button ref={toggle} className="menu-toggle" type="button" aria-expanded={open} aria-controls="mobile-menu" onClick={() => setOpen((value) => !value)}>
+          <button ref={toggle} className={`menu-toggle ${open ? "is-open" : ""}`} type="button" aria-expanded={open} aria-controls="mobile-menu" onClick={() => setOpen((value) => !value)}>
             <span className="sr-only">{open ? "Close menu" : "Open menu"}</span>
             <span /><span /><span />
           </button>
         </div>
-      </div>
-
+        </div>
+      </header>
       <div ref={menu} id="mobile-menu" className={`mobile-menu ${open ? "is-open" : ""}`} aria-hidden={!open} role="dialog" aria-modal="true" aria-label="Mobile navigation">
         <nav aria-label="Mobile navigation">
           <a className={pathname === "/" ? "is-active" : ""} ref={firstLink} href="/" onClick={() => setOpen(false)}>
@@ -204,7 +281,7 @@ export function Header() {
           </div>
         </nav>
       </div>
-    </header>
+    </>
   );
 }
 
