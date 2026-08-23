@@ -1068,5 +1068,3 @@ export function StaticPage({ type }: { type: "about" | "contact" | "pricing" | "
     </SiteFrame>
   );
 }
-a>.</p></div></section></SiteFrame>;
-}
