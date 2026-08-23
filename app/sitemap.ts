@@ -1,6 +1,12 @@
-import type { MetadataRoute } from "next";
-import { canonical, indexablePaths } from "../lib/site-data";
+import { MetadataRoute } from "next";
+import { business, indexablePaths } from "../lib/site-data";
 
 export default function sitemap(): MetadataRoute.Sitemap {
-  return indexablePaths.map((path) => ({ url: canonical(path), changeFrequency: path === "/" ? "weekly" : "monthly", priority: path === "/" ? 1 : path.split("/").filter(Boolean).length === 1 ? 0.8 : 0.65 }));
+  const now = new Date();
+  return indexablePaths.map((path) => ({
+    url: `${business.domain}${path === "/" ? "" : path}`,
+    lastModified: now,
+    changeFrequency: path === "/" ? "weekly" : path.startsWith("/services") ? "monthly" : "yearly",
+    priority: path === "/" ? 1.0 : path.startsWith("/services") ? 0.9 : path.startsWith("/areas") ? 0.8 : 0.7,
+  }));
 }

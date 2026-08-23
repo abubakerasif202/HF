@@ -15,5 +15,15 @@ export const metadata: Metadata = {
 export const viewport: Viewport = { width: "device-width", initialScale: 1, themeColor: "#031912" };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
-  return <html lang="en-AU"><body>{children}</body></html>;
+  return (
+    <html lang="en-AU">
+      <head>
+        <link rel="preconnect" href="https://maps.googleapis.com" />
+        <link rel="preconnect" href="https://maps.gstatic.com" crossOrigin="anonymous" />
+        <link rel="preconnect" href="https://www.google.com" />
+      </head>
+      <body>{children}</body>
+    </html>
+  );
 }
+
