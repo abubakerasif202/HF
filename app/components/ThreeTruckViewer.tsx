@@ -47,18 +47,15 @@ export function ThreeTruckViewer() {
   const containerRef = useRef<HTMLDivElement>(null);
   const [activeTab, setActiveTab] = useState<string>("large");
   const [activeHotspot, setActiveHotspot] = useState<Hotspot | null>(HOTSPOTS[0]);
-  const [isRotating, setIsRotating] = useState(true);
+  const [isRotating, setIsRotating] = useState(
+    () => typeof window === "undefined" || !window.matchMedia("(prefers-reduced-motion: reduce)").matches,
+  );
   const [webglSupported, setWebglSupported] = useState(true);
   const [loading, setLoading] = useState(true);
+  const isRotatingRef = useRef(isRotating);
 
   const truckGroupRef = useRef<THREE.Group | null>(null);
   const cargoMeshRef = useRef<THREE.Mesh | null>(null);
-
-  useEffect(() => {
-    if (typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
-      setIsRotating(false);
-    }
-  }, []);
 
   useEffect(() => {
     const container = containerRef.current;
@@ -68,14 +65,18 @@ export function ThreeTruckViewer() {
       const testCanvas = document.createElement("canvas");
       const gl = testCanvas.getContext("webgl") || testCanvas.getContext("experimental-webgl");
       if (!gl) {
-        setWebglSupported(false);
-        setLoading(false);
-        return;
+        const frame = window.requestAnimationFrame(() => {
+          setWebglSupported(false);
+          setLoading(false);
+        });
+        return () => window.cancelAnimationFrame(frame);
       }
     } catch {
-      setWebglSupported(false);
-      setLoading(false);
-      return;
+      const frame = window.requestAnimationFrame(() => {
+        setWebglSupported(false);
+        setLoading(false);
+      });
+      return () => window.cancelAnimationFrame(frame);
     }
 
     const width = container.clientWidth || 800;
@@ -301,7 +302,7 @@ export function ThreeTruckViewer() {
     });
 
     scene.add(truckGroup);
-    setLoading(false);
+    const readyFrame = window.requestAnimationFrame(() => setLoading(false));
 
     // Pointer Drag & Orbit Controls
     let isDragging = false;
@@ -310,6 +311,7 @@ export function ThreeTruckViewer() {
 
     const onPointerDown = (e: MouseEvent | TouchEvent) => {
       isDragging = true;
+      isRotatingRef.current = false;
       setIsRotating(false);
       const clientX = "touches" in e ? e.touches[0].clientX : e.clientX;
       const clientY = "touches" in e ? e.touches[0].clientY : e.clientY;
@@ -357,7 +359,7 @@ export function ThreeTruckViewer() {
       animId = requestAnimationFrame(animate);
       if (!isVisible) return;
 
-      if (isRotating && truckGroupRef.current) {
+      if (isRotatingRef.current && truckGroupRef.current) {
         truckGroupRef.current.rotation.y += 0.004;
       }
 
@@ -377,6 +379,7 @@ export function ThreeTruckViewer() {
 
     return () => {
       observer.disconnect();
+      cancelAnimationFrame(readyFrame);
       cancelAnimationFrame(animId);
       dom.removeEventListener("mousedown", onPointerDown);
       dom.removeEventListener("touchstart", onPointerDown);
@@ -388,7 +391,7 @@ export function ThreeTruckViewer() {
       renderer.dispose();
       if (dom.parentNode) dom.parentNode.removeChild(dom);
     };
-  }, [isRotating]);
+  }, []);
 
   const handleModeChange = (modeId: string) => {
     setActiveTab(modeId);
@@ -469,6 +472,7 @@ export function ThreeTruckViewer() {
                   className={`hotspot-btn ${activeHotspot?.id === spot.id ? "is-active" : ""}`}
                   onClick={() => {
                     setActiveHotspot(spot);
+                    isRotatingRef.current = false;
                     setIsRotating(false);
                   }}
                 >
@@ -489,7 +493,11 @@ export function ThreeTruckViewer() {
               <button
                 type="button"
                 className="button-icon-toggle"
-                onClick={() => setIsRotating(!isRotating)}
+                onClick={() => {
+                  const next = !isRotating;
+                  isRotatingRef.current = next;
+                  setIsRotating(next);
+                }}
                 aria-label={isRotating ? "Pause 3D rotation" : "Start 3D rotation"}
               >
                 {isRotating ? "⏸ Pause Auto-Spin" : "▶ Resume Auto-Spin"}

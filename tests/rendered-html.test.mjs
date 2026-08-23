@@ -41,13 +41,14 @@ test("renders the premium HF homepage without placeholder claims", async () => {
   assert.match(html, /Adelaide[\s\S]*Removalists[\s\S]*You Can[\s\S]*Rely On/i);
   assert.match(html, /Tell us about your move/i);
   assert.match(html, /Muhammad Rasheed/i);
-  assert.match(html, /hf-logo-header-mark\.png/i);
+  assert.match(html, /hf-logo-transparent\.png/i);
+  assert.doesNotMatch(html, /Jessica Taylor|David Miller|Hamza Khan/i);
   assert.match(html, /muhammad-rasheed-ceo\.webp/i);
   assert.match(html, /hf-residential-premium\.webp/i);
   assert.match(html, /hf-packing-premium\.webp/i);
   assert.match(html, /hf-office-premium\.webp/i);
   assert.match(html, /hf-interstate-premium\.webp/i);
-  assert.match(html, /Moving support in action/i);
+  assert.match(html, /The Right Equipment for/i);
   assert.match(html, /\$74/);
   assert.match(html, /\$119\.43/);
   assert.match(html, /4\.9 Google rating/i);
@@ -57,7 +58,7 @@ test("renders the premium HF homepage without placeholder claims", async () => {
   assert.match(html, /40–60 m³/i);
   assert.doesNotMatch(html, /AggregateRating/);
   assert.match(html, /application\/ld\+json/);
-  assert.match(html, /<title>Adelaide Removalists \| HF Removals Adelaide<\/title>/i);
+  assert.match(html, /<title>Adelaide Removalists \| 4\.9★ Rated Local &amp; Interstate \| HF Removals<\/title>/i);
   assert.doesNotMatch(html, /HF Removals Adelaide \| HF Removals Adelaide<\/title>/i);
   assert.doesNotMatch(html, /codex-preview|react-loading-skeleton|5\.0 from|200\+ happy|#1 Adelaide|award.winning/i);
 });

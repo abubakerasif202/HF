@@ -2,6 +2,16 @@
 
 Audit date: 21 August 2026
 
+## Follow-up review — 23 August 2026
+
+- Replaced the compact header mark and duplicated text lockup with the complete supplied transparent HF Removals Adelaide logo.
+- Confirmed the uploaded source logo is byte-identical to `public/images/hf-logo-source.jpg`.
+- Removed four locally authored testimonial cards because their exact wording could not be verified against a primary source; the linked Google rating summary remains.
+- Repaired the dependency lockfile so clean, reproducible installs work again.
+- Moved the browser-only dynamic 3D viewer into a Client Component to restore Next.js 16 production builds.
+- Prevented the WebGL scene from being destroyed and rebuilt when auto-rotation is paused, and corrected reduced-motion/loading state handling.
+- Updated stale rendered-HTML regression expectations and strengthened coverage against reintroducing unverified testimonial names.
+
 ## Scope reviewed
 
 - Homepage
@@ -66,4 +76,3 @@ Key before/after files are stored under:
 - `audit/after/desktop/`
 - `audit/after/tablet/`
 - `audit/after/mobile/`
-

@@ -35,13 +35,6 @@ const schema = {
         latitude: -34.7578,
         longitude: 138.6834,
       },
-      aggregateRating: {
-        "@type": "AggregateRating",
-        ratingValue: business.googleBusiness.rating,
-        reviewCount: business.googleBusiness.reviewCount,
-        bestRating: "5",
-        worstRating: "1",
-      },
       areaServed: [
         "Adelaide Metro",
         "Adelaide CBD",
@@ -94,4 +87,3 @@ export default function Home() {
     </>
   );
 }
-

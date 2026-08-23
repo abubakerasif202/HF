@@ -138,6 +138,12 @@ address {
 .section {
   padding: clamp(76px, 8vw, 120px) 0;
 }
+.three-loader-shell {
+  min-height: 420px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
 .skip-link {
   position: fixed;
   z-index: 9999;
@@ -375,32 +381,11 @@ p {
   transform: scale(1.02);
 }
 .brand img {
-  width: 72px;
+  width: 148px;
+  max-height: 62px;
   height: auto;
-  padding: 3px 6px;
   object-fit: contain;
-  background: var(--hf-ivory);
-  border: 1px solid var(--hf-gold-500);
-  border-radius: 8px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-}
-.brand-copy {
-  display: grid;
-  gap: 2px;
-  line-height: 1;
-  text-transform: uppercase;
-  white-space: nowrap;
-}
-.brand-copy strong {
-  color: var(--hf-ivory);
-  font-size: 0.95rem;
-  letter-spacing: 0.05em;
-}
-.brand-copy small {
-  color: var(--hf-gold-400);
-  font-size: 0.64rem;
-  font-weight: 800;
-  letter-spacing: 0.18em;
+  filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.28));
 }
 .desktop-nav {
   display: flex;

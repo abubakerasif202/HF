@@ -76,11 +76,7 @@ export function Header() {
     <header className={`site-header ${compact ? "is-compact" : ""}`}>
       <div className="header-inner">
         <a className="brand" href="/" aria-label="HF Removals Adelaide home">
-          <img src={business.headerLogo} alt="HF Removals logo" width="320" height="164" />
-          <span className="brand-copy">
-            <strong>HF Removals</strong>
-            <small>Adelaide · Est. 2026</small>
-          </span>
+          <img src={business.logo} alt="HF Removals Adelaide" width="1678" height="937" />
         </a>
 
         <nav className="desktop-nav" aria-label="Primary navigation">
@@ -427,4 +423,3 @@ export function MobileStickyCta() {
     </aside>
   );
 }
-

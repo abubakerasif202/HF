@@ -1,21 +1,6 @@
-import dynamic from "next/dynamic";
-import { areas, business, ContentPage, guides, interstatePricing, interstateRoutes, localPricing, reviews, services, standardMoveFaqs } from "../../lib/site-data";
+import { areas, business, ContentPage, guides, interstatePricing, interstateRoutes, localPricing, services, standardMoveFaqs } from "../../lib/site-data";
 import { Header, MobileStickyCta, QuoteForm, UtilityBar } from "./SiteClient";
-
-const ThreeTruckViewer = dynamic(
-  () => import("./ThreeTruckViewer").then((mod) => mod.ThreeTruckViewer),
-  {
-    ssr: false,
-    loading: () => (
-      <div className="section three-section" style={{ minHeight: "420px", display: "flex", alignItems: "center", justifyContent: "center" }}>
-        <div className="three-loader">
-          <div className="three-spinner" />
-          <span>Loading 3D Fleet Visualizer...</span>
-        </div>
-      </div>
-    ),
-  }
-);
+import { ThreeTruckViewerClient } from "./ThreeTruckViewerClient";
 
 export function ServiceTicker({ locations = false }: { locations?: boolean }) {
   const items = locations
@@ -407,24 +392,6 @@ function ReviewsSection() {
           </div>
         </div>
 
-        <div className="reviews-cards-grid">
-          {reviews.map((rev, index) => (
-            <article className="review-card" key={index}>
-              <div className="review-card-head">
-                <div className="review-stars">★★★★★</div>
-                <span className="review-date">{rev.date}</span>
-              </div>
-              <p className="review-content">“{rev.content}”</p>
-              <div className="review-author-wrap">
-                <div className="review-avatar">{rev.author.charAt(0)}</div>
-                <div>
-                  <strong>{rev.author}</strong>
-                  <span>{rev.moveType}</span>
-                </div>
-              </div>
-            </article>
-          ))}
-        </div>
       </div>
     </section>
   );
@@ -551,7 +518,7 @@ function ContactMapSection() {
           </a>
         </div>
         <div className="map-frame">
-          <iframe src={google.mapEmbedUrl} title="Google Map showing HF Removals Adelaide" loading="lazy" referrerPolicy="no-referrer-when-downgrade" allowFullScreen />
+          <iframe src={google.mapEmbedUrl} title="Google map showing HF Removals Adelaide in Elizabeth Vale" loading="lazy" referrerPolicy="no-referrer-when-downgrade" allowFullScreen />
         </div>
       </div>
     </section>
@@ -735,7 +702,7 @@ export function HomePage() {
       </section>
 
       <TrustBar />
-      <ThreeTruckViewer />
+      <ThreeTruckViewerClient />
       <ServiceTicker />
       <ServicesGrid />
       <ApartmentAccessSection />

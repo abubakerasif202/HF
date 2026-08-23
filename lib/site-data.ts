@@ -70,50 +70,6 @@ export const interstatePricing = [
   { slug: "adelaide-perth", label: "Adelaide ↔ Perth", price: "$186.06", unit: "per m³" },
 ] as const;
 
-export type Review = {
-  author: string;
-  rating: number;
-  date: string;
-  content: string;
-  source: string;
-  moveType: string;
-};
-
-export const reviews: Review[] = [
-  {
-    author: "Hamza Khan",
-    rating: 5,
-    date: "August 2026",
-    moveType: "3-Bedroom House Move (Elizabeth Vale to Marion)",
-    content: "Muhammad and the HF Removals team were incredible. They arrived right on time, wrapped every single piece of timber furniture, and took special care of our large double door fridge and heavy glass dining table. Completely stress-free move and very fair pricing!",
-    source: "Google Review",
-  },
-  {
-    author: "Jessica Taylor",
-    rating: 5,
-    date: "July 2026",
-    moveType: "Apartment Relocation (Adelaide CBD)",
-    content: "Moving out of an 8th-floor CBD apartment with strict lift booking times seemed daunting, but HF Removals handled it seamlessly. They brought protective floor runners, handled the loading dock regulations smoothly, and finished 30 minutes ahead of schedule.",
-    source: "Google Review",
-  },
-  {
-    author: "David Miller",
-    rating: 5,
-    date: "June 2026",
-    moveType: "Interstate Move (Adelaide to Melbourne)",
-    content: "Best removalists in Adelaide by far! Sent my entire 4-bedroom home interstate to Melbourne. Everything arrived in immaculate condition without a single scratch or broken dish. Transparent cubic metre pricing with zero hidden charges.",
-    source: "Google Review",
-  },
-  {
-    author: "Sarah Jenkins",
-    rating: 5,
-    date: "August 2026",
-    moveType: "Office Relocation (Salisbury)",
-    content: "Professional, polite, and extremely hard-working crew. They moved our entire 15-workstation office over the weekend with zero disruption to our Monday business operations. Highly recommended!",
-    source: "Google Review",
-  },
-];
-
 export const standardMoveFaqs: Faq[] = [
   {
     question: "How much do removalists cost in Adelaide?",
