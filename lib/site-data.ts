@@ -13,28 +13,42 @@ export type ContentPage = {
   unit?: string;
 };
 
-/**
- * The single canonical production origin. Drives canonicals, sitemap, robots,
- * Open Graph/Twitter URLs, JSON-LD @ids and the quote-form success redirect.
- *
- * Everything else derives from this constant — change it here and nowhere else.
- * `next.config.ts` permanently redirects the apex domain and the Vercel alias
- * here so only one host is ever indexable.
- */
-export const deployedOrigin = "https://www.hfremovalsadelaide.com";
+export const siteOrigin = "https://www.hfremovalsadelaide.com";
+export const quoteFormEndpoint = "https://formspree.io/f/mdenjrnl";
 
 export const business = {
   name: "HF Removals Adelaide",
   legalName: "HFremovalsadelaide - BeMovedWithUs",
   tagline: "Moving Made Easy With Us",
-  domain: deployedOrigin,
+  domain: siteOrigin,
   phones: [
     { display: "0491 704 136", href: "tel:+61491704136", primary: true },
     { display: "0493 092 539", href: "tel:+61493092539", primary: false },
   ],
-  emails: ["info@hfremovalsadelaide.com.au", "hfremovalad@gmail.com"],
-  address: "20 Prunus Ave, Elizabeth Vale SA 5112, Australia",
+  emails: ["hfremovalad@gmail.com"],
+  address: {
+    full: "20 Prunus Ave, Elizabeth Vale SA 5112, Australia",
+    street: "20 Prunus Ave",
+    suburb: "Elizabeth Vale",
+    state: "SA",
+    postcode: "5112",
+    countryCode: "AU",
+  },
+  areaServed: [
+    "Adelaide Metro",
+    "Adelaide CBD",
+    "Elizabeth Vale",
+    "Elizabeth",
+    "Salisbury",
+    "Blakeview",
+    "Gawler",
+    "Marion",
+    "Norwood",
+    "Glenelg",
+    "South Australia",
+  ],
   ceo: { name: "Muhammad Rasheed", title: "CEO, HF Removals Adelaide" },
+  insuranceAmount: "$1,000,000",
   insurance: "Up to $1,000,000 Public Liability & Transit Insurance",
   insuranceQualifier:
     "Coverage and eligibility depend on the applicable policy terms and the scope of the move. Ask us about the details relevant to your move.",
@@ -44,6 +58,7 @@ export const business = {
     hoursLabel: "Open 24 Hours",
     category: "Moving and storage service",
     plusCode: "6MW7+J5 Elizabeth Vale, South Australia",
+    coordinates: { latitude: -34.7578, longitude: 138.6834 },
     verifiedAt: "2026-08-21",
     directionsUrl:
       "https://www.google.com/maps/dir/?api=1&destination=20%20Prunus%20Ave%2C%20Elizabeth%20Vale%20SA%205112%2C%20Australia",
@@ -70,6 +85,9 @@ export const business = {
   heroImage: "/images/hf-hero-truck-1792.webp",
   ceoImage: "/images/muhammad-rasheed-ceo.webp",
 } as const;
+
+// Discovery, metadata, schema and sitemap URLs all read from this single origin.
+
 
 /**
  * Google review excerpts transcribed from supplied Google Business Profile

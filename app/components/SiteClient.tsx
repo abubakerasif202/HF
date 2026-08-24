@@ -2,7 +2,7 @@
 
 import { FormEvent, useEffect, useRef, useState } from "react";
 import { usePathname } from "next/navigation";
-import { areas, business, deployedOrigin, entryLocalRate, interstateRoutes, services } from "../../lib/site-data";
+import { areas, business, entryLocalRate, interstatePricing, interstateRoutes, quoteFormEndpoint, services } from "../../lib/site-data";
 
 export function UtilityBar() {
   return (
@@ -10,7 +10,7 @@ export function UtilityBar() {
       <div className="container utility-inner">
         <div className="utility-badge">
           <span className="utility-pulse" />
-          <span>Adelaide Removalists · Open 24 Hours · Up to $1M Public Liability & Transit Insurance</span>
+          <span>Adelaide Removalists · {business.googleBusiness.hoursLabel} · {business.insurance}</span>
         </div>
         <div className="utility-contact">
           <a href="https://maps.google.com/?cid=10700874558509895358" target="_blank" rel="noopener noreferrer" className="utility-rating">
@@ -345,9 +345,6 @@ const createEmptyForm = (): FormDataShape => ({
   floorAccess: "Ground Floor / Driveway Access", parkingAccess: "On-Street Parking (Nearby)", boxesNeeded: "Not Sure Yet", services: []
 });
 
-const WEB3FORMS_ENDPOINT = "https://api.web3forms.com/submit";
-const WEB3FORMS_ACCESS_KEY = "80371c58-c1d4-486e-8796-201b7930b1f2";
-
 function getAdelaideDateInputValue(date = new Date()) {
   const parts = new Intl.DateTimeFormat("en-AU", {
     timeZone: "Australia/Adelaide",
@@ -367,19 +364,9 @@ export function QuoteForm({ compact = false }: { compact?: boolean }) {
   const [statusKind, setStatusKind] = useState<"success" | "error" | "info">("info");
   const submitting = useRef(false);
   const earliestDate = getAdelaideDateInputValue();
-  const successUrl = `${deployedOrigin}${pathname}?quote=sent#quote`;
-
-  useEffect(() => {
-    const search = new URLSearchParams(window.location.search);
-    if (search.get("quote") !== "sent") return;
-
-    const statusTimer = window.setTimeout(() => {
-      setStatusKind("success");
-      setStatus("Thank you. Your move details have been submitted to HF Removals Adelaide.");
-      window.history.replaceState(null, "", `${window.location.pathname}${window.location.hash}`);
-    }, 0);
-    return () => window.clearTimeout(statusTimer);
-  }, []);
+  const melbourneRate = interstatePricing.find((route) => route.slug === "adelaide-melbourne")!;
+  const sydneyRate = interstatePricing.find((route) => route.slug === "adelaide-sydney")!;
+  const queenslandRate = interstatePricing.find((route) => route.slug === "adelaide-queensland")!;
 
   const update = (field: Exclude<keyof FormDataShape, "services">, value: string) =>
     setForm((current) => ({ ...current, [field]: value }));
@@ -399,13 +386,12 @@ export function QuoteForm({ compact = false }: { compact?: boolean }) {
     buttons?.[next === "local" ? 0 : 1]?.focus();
   };
 
-  function submit(event: FormEvent<HTMLFormElement>) {
+  async function submit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
     if (submitting.current) {
-      event.preventDefault();
       return;
     }
     if (form.company) {
-      event.preventDefault();
       setForm(createEmptyForm());
       setStatusKind("success");
       setStatus("Thank you. Your request has been received.");
@@ -416,12 +402,33 @@ export function QuoteForm({ compact = false }: { compact?: boolean }) {
     setLoading(true);
     setStatusKind("info");
     setStatus("Submitting your move details securely…");
+
+    try {
+      const response = await fetch(quoteFormEndpoint, {
+        method: "POST",
+        body: new FormData(event.currentTarget),
+        headers: { Accept: "application/json" },
+      });
+
+      if (!response.ok) throw new Error(`Formspree returned ${response.status}`);
+
+      setForm(createEmptyForm());
+      setStatusKind("success");
+      setStatus("Thank you. Your move details have been sent to HF Removals Adelaide. We’ll be in touch shortly.");
+    } catch {
+      setStatusKind("error");
+      setStatus(`We couldn’t send your request. Please try again or call ${business.phones[0].display}.`);
+    } finally {
+      submitting.current = false;
+      setLoading(false);
+    }
   }
 
   return (
     <form
-      action={WEB3FORMS_ENDPOINT}
+      action={quoteFormEndpoint}
       method="POST"
+      acceptCharset="UTF-8"
       className={`quote-form ${compact ? "quote-form-compact" : ""}`}
       id="quote"
       onSubmit={submit}
@@ -430,10 +437,9 @@ export function QuoteForm({ compact = false }: { compact?: boolean }) {
         setStatus("Please complete the required fields and correct any highlighted values.");
       }}
     >
-      <input type="hidden" name="access_key" value={WEB3FORMS_ACCESS_KEY} />
-      <input type="hidden" name="subject" value="New HF Removals Adelaide Quote Request" />
-      <input type="hidden" name="from_name" value="HF Removals Adelaide Website" />
-      <input type="hidden" name="redirect" value={successUrl} />
+      <input type="hidden" name="_subject" value="New HF Removals Adelaide Quote Request" />
+      <input type="hidden" name="form_source" value="HF Removals Adelaide Website" />
+      <input type="hidden" name="source_page" value={pathname} />
       <input type="hidden" name="move_category" value={form.tab === "interstate" ? "Interstate Move" : "Local Adelaide Move"} />
       <div className="form-header-badge">
         <span className="badge-dot" />
@@ -480,7 +486,7 @@ export function QuoteForm({ compact = false }: { compact?: boolean }) {
         {form.tab === "local" ? (
           <p>⚡ <strong>Local Rate:</strong> {entryLocalRate.name} from <em>{entryLocalRate.halfHour} / 30 min</em> ({entryLocalRate.hourly}/hr) · All protective gear included</p>
         ) : (
-          <p>⚡ <strong>Interstate Reference:</strong> Melbourne from <em>$119.43/m³</em> · Sydney from <em>$130.19/m³</em> · QLD $164/m³</p>
+          <p>⚡ <strong>Interstate Reference:</strong> Melbourne from <em>{melbourneRate.price}/{melbourneRate.unit.replace("per ", "")}</em> · Sydney from <em>{sydneyRate.price}/{sydneyRate.unit.replace("per ", "")}</em> · Queensland from <em>{queenslandRate.price}/{queenslandRate.unit.replace("per ", "")}</em></p>
         )}
       </div>
 
@@ -521,7 +527,7 @@ export function QuoteForm({ compact = false }: { compact?: boolean }) {
             <option>Student Move (Share House)</option>
           </select>
         </label>
-        <input className="honeypot" type="text" name="botcheck" tabIndex={-1} autoComplete="off" aria-hidden="true" value={form.company} onChange={(e) => update("company", e.target.value)} />
+        <input className="honeypot" type="text" name="_gotcha" tabIndex={-1} autoComplete="off" aria-hidden="true" value={form.company} onChange={(e) => update("company", e.target.value)} />
       </fieldset>
 
       <details className="form-optional" open={compact || undefined}>
@@ -618,7 +624,7 @@ export function QuoteForm({ compact = false }: { compact?: boolean }) {
       </details>
 
       <button className="button button-ruby form-submit" type="submit" disabled={loading} aria-busy={loading}>
-        <span>{loading ? "Processing..." : "Get My Free Quote"}</span>
+        <span>{loading ? "Sending..." : "Get My Free Quote"}</span>
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M5 12h14m-7-7 7 7-7 7" /></svg>
       </button>
 
@@ -629,7 +635,7 @@ export function QuoteForm({ compact = false }: { compact?: boolean }) {
       </div>
 
       <p className="form-note">
-        Need urgent assistance? Call directly: <a href={business.phones[0].href}><strong>{business.phones[0].display}</strong></a> (Open 24/7)
+        Need urgent assistance? Call directly: <a href={business.phones[0].href}><strong>{business.phones[0].display}</strong></a> ({business.googleBusiness.hoursLabel})
       </p>
 
       {status && (
@@ -655,4 +661,3 @@ export function MobileStickyCta() {
     </aside>
   );
 }
-

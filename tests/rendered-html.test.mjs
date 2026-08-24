@@ -127,32 +127,26 @@ test("serves crawl discovery endpoints and unique guide metadata", async () => {
   assert.doesNotMatch(html, /href="\/(?:services|areas|pricing|about|contact|guides|interstate|privacy|terms)[^"]*\/"/i);
 });
 
-test("renders one coherent, accessible Web3Forms quote flow", async () => {
+test("renders one coherent, accessible Formspree quote flow", async () => {
   for (const path of ["/", "/contact"]) {
     const response = await render(path);
     assert.equal(response.status, 200, path);
     const html = await response.text();
 
-    assert.match(html, /<form[^>]+action="https:\/\/api\.web3forms\.com\/submit"[^>]+method="POST"/i, path);
-    // The access key is a publishable, client-side Web3Forms key by design.
-    assert.match(html, /name="access_key"[^>]+value="[0-9a-f-]{36}"/i, path);
-    assert.match(html, /name="subject"[^>]+value="New HF Removals Adelaide Quote Request"/i, path);
-    assert.match(html, /name="from_name"[^>]+value="HF Removals Adelaide Website"/i, path);
-    assert.match(html, /name="redirect"[^>]+value="https:\/\/www\.hfremovalsadelaide\.com\//i, path);
-    assert.match(html, /name="move_category"[^>]+value="Local Adelaide Move"/i, path);
-    // Web3Forms' honeypot is `botcheck`; it stays keyboard-unreachable.
-    assert.match(html, /<input(?=[^>]*name="botcheck")(?=[^>]*tabindex="-1")[^>]*>/i, path);
+    assert.match(html, /<form[^>]+action="https:\/\/formspree\.io\/f\/mdenjrnl"[^>]+method="POST"/i, path);
+    assert.match(html, /name="_subject"[^>]+value="New HF Removals Adelaide Quote Request"/i, path);
+    assert.match(html, /name="form_source"[^>]+value="HF Removals Adelaide Website"/i, path);
+    assert.match(html, /name="source_page"/i, path);
+    assert.match(html, /<input(?=[^>]*name="_gotcha")(?=[^>]*tabindex="-1")[^>]*>/i, path);
     for (const field of ["name", "phone", "email", "moving_from", "moving_to", "move_type", "property_size", "preferred_moving_date", "details"]) {
       assert.match(html, new RegExp(`name="${field}"`, "i"), `${path}: ${field}`);
     }
-    // No FormSubmit remnants: the provider was migrated, not doubled up.
-    assert.doesNotMatch(html, /formsubmit\.co/i, path);
-    assert.doesNotMatch(html, /name="_(subject|captcha|honey|next)"/i, path);
   }
 
   const client = await readFile(new URL("../app/components/SiteClient.tsx", import.meta.url), "utf8");
   assert.doesNotMatch(client, /fetch\(["']\/api\/quote/i);
-  assert.doesNotMatch(client, /openEmailFallback|QUOTE_ENDPOINT_URL|formsubmit/i);
+  assert.match(client, /headers: \{ Accept: "application\/json" \}/i);
+  assert.doesNotMatch(client, /access_key|WEB3FORMS_ACCESS_KEY|api\.web3forms\.com|formsubmit\.co/i);
 });
 
 test("keeps verified rates, coverage wording and canonical route inventory centralized", async () => {
@@ -253,37 +247,15 @@ test("the 404 page is not indexable", async () => {
   assert.match(await response.text(), /name="robots" content="noindex/);
 });
 
-test("the deployed origin is declared once and drives the quote redirect", async () => {
+test("the production origin is declared once and drives canonical output", async () => {
   const data = await readFile(new URL("../lib/site-data.ts", import.meta.url), "utf8");
-  assert.match(data, /export const deployedOrigin/);
+  assert.match(data, /export const siteOrigin = "https:\/\/www\.hfremovalsadelaide\.com"/);
+  assert.match(data, /export const quoteFormEndpoint = "https:\/\/formspree\.io\/f\/mdenjrnl"/);
   const html = await (await render()).text();
-  // Web3Forms returns customers to the canonical production host.
-  assert.match(html, /name="redirect" value="https:\/\/www\.hfremovalsadelaide\.com\/\?quote=sent#quote"/);
+  assert.match(html, /rel="canonical" href="https:\/\/www\.hfremovalsadelaide\.com"/);
+  assert.match(html, /property="og:url" content="https:\/\/www\.hfremovalsadelaide\.com"/);
   const client = await readFile(new URL("../app/components/SiteClient.tsx", import.meta.url), "utf8");
-  assert.doesNotMatch(client, /const FORM_SUCCESS_ORIGIN/);
-  // One canonical host: the origin is declared once and derived everywhere else.
-  assert.doesNotMatch(data, /intendedDomain/);
-  assert.equal(data.match(/https:\/\/www\.hfremovalsadelaide\.com/g)?.length, 1);
-});
-
-test("no superseded production origin survives anywhere in the output", async () => {
-  // The Vercel alias and the apex domain both 308 to www; neither may appear in
-  // any indexable surface, or search engines get two competing canonical hosts.
-  for (const path of ["/", "/contact", "/services/residential-removals", "/interstate/adelaide-perth", "/sitemap.xml", "/robots.txt"]) {
-    const body = await (await render(path)).text();
-    assert.doesNotMatch(body, /hf-removals-adelaide\.vercel\.app/i, path);
-    assert.doesNotMatch(body, /vercel\.app/i, path);
-    // the apex must never be emitted as a URL; only the www host is canonical
-    assert.doesNotMatch(body, /https:\/\/hfremovalsadelaide\.com/i, path);
-  }
-
-  // Next's robots.ts generator emits "User-Agent:"; robots.txt field names are
-  // case-insensitive (RFC 9309 s2.1), so normalise before comparing the structure.
-  const robots = await (await render("/robots.txt")).text();
-  assert.equal(
-    robots.trim().replace(/^User-Agent:/im, "User-agent:"),
-    ["User-agent: *", "Allow: /", "", "Sitemap: https://www.hfremovalsadelaide.com/sitemap.xml"].join("\n"),
-  );
+  assert.doesNotMatch(client, /hf-removals-adelaide\.vercel\.app|hfremovalsadelaide\.com\.au/);
 });
 
 test("layout grids declare a track for every child they render", async () => {

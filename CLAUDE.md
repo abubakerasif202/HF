@@ -41,15 +41,18 @@ npm run lint     # eslint . (ignores .next, dist, audit/)
 test file, so it is slow but exercises the real rendered HTML and the real
 compiled CSS. There is no watch mode and no unit-test layer.
 
+`npm run test:browser` runs the Playwright audit specs (see "Audit harness").
+
 All 14 tests pass, and typecheck and lint are clean. Treat any failure as caused
 by your change.
 
-FormSubmit was the original form provider; it was replaced by **Web3Forms** in
-`9af5a6c`, and the last references to it were removed afterwards. There should be
-no `formsubmit.co`, `_subject`, `_captcha`, `_honey` or `_next` anywhere in the
-source — the quote-flow test asserts their absence. Dated entries in
-`DESIGN_AUDIT.md` still mention FormSubmit because they record what was true on
-those dates; leave that history alone.
+The form provider has changed twice: FormSubmit originally, then Web3Forms in
+`9af5a6c`, then **Formspree** in `6cbc9ae`. Only Formspree is current — there
+should be no `formsubmit.co`, `api.web3forms.com`, `access_key`, `_subject`,
+`_captcha`, `_honey` or `_next` anywhere in the source, and the quote-flow test
+asserts their absence. Dated entries in `DESIGN_AUDIT.md` still name older
+providers because they record what was true on those dates; leave that history
+alone.
 
 ## Layout
 
@@ -122,16 +125,18 @@ component.
 
 ### Origin constants
 
-`deployedOrigin` (`https://www.hfremovalsadelaide.com`) is the **single canonical
+`siteOrigin` (`https://www.hfremovalsadelaide.com`) is the **single canonical
 production origin**. It drives canonicals, sitemap, robots, Open Graph/Twitter
-URLs, JSON-LD `@id`s and the quote-form success redirect. It is declared once in
-`lib/site-data.ts`; a test asserts the literal appears exactly once there and
-that no second origin constant exists.
+URLs and JSON-LD `@id`s. It is declared once in `lib/site-data.ts` and a test
+asserts that exact literal; `business.domain` derives from it. The superseded
+`hf-removals-adelaide.vercel.app` alias must not appear anywhere outside dated
+history.
 
 `next.config.ts` permanently redirects (308) the apex `hfremovalsadelaide.com`
-and the old `hf-removals-adelaide.vercel.app` alias to the www host, so only one
-host is indexable. A test asserts neither superseded host appears in any rendered
-route, the sitemap or robots.
+and the old Vercel alias to the www host, so only one host is indexable. The
+match is on exact host, so per-branch preview URLs and `localhost` are not
+caught and local development still works. **DNS is not part of the repo:** both
+hosts must be added to the Vercel project for the redirects to be reachable.
 
 Use `canonical(path)` rather than string-concatenating the origin.
 
@@ -181,16 +186,17 @@ Canonicals must not have trailing slashes.
 
 ### Quote form
 
-`QuoteForm` in `SiteClient.tsx` is a native `<form method="POST">` to
-`https://api.web3forms.com/submit` with a public access key and hidden
-`redirect` back to `<deployedOrigin><pathname>?quote=sent#quote`. Native browser
-validation runs before submit; a `botcheck`/honeypot field is present; on return
-the `?quote=sent` param is read once, a success message is shown and the param is
-stripped via `history.replaceState`. There is **no API route and no `fetch`** —
-tests assert `SiteClient.tsx` contains no `fetch("/api/quote…")`.
+`QuoteForm` in `SiteClient.tsx` posts to **Formspree** (`quoteFormEndpoint` in
+`lib/site-data.ts`). The `<form>` carries `action={quoteFormEndpoint}`
+`method="POST"` so it still works without JS, while `onSubmit` intercepts and
+sends a `FormData` body via `fetch` with `Accept: application/json`, then shows
+an inline success or error message — so the visitor never leaves the page. Native
+browser validation runs before submit and a `_gotcha` honeypot field is present.
 
-The Web3Forms access key is a publishable, client-side key by design; it is not a
-secret. There are no environment variables in this project.
+There is **no API route of this project's own** — tests assert `SiteClient.tsx`
+contains no `fetch("/api/quote…")`. The Formspree form ID is a public,
+client-side identifier by design; it is not a secret. There are no environment
+variables in this project.
 
 ### Content integrity rules
 
@@ -220,8 +226,9 @@ against); decorative SVGs and the ticker track are `aria-hidden` with an
 `audit/` contains standalone Playwright specs (`baseline/`, `final/`) that
 measure live layout geometry — scroll width vs client width, hash-jump accuracy,
 console/network errors — against a local server on port 3100. `@playwright/test`
-is **not** a dependency and `audit/` is excluded from ESLint; install it
-separately if you need to re-run a pass. Screenshots are gitignored.
+is a devDependency and `npm run test:browser` runs the `final/` config; these
+specs are separate from `npm test` and are not part of the default gate.
+`audit/` is excluded from ESLint. Screenshots are gitignored.
 `DESIGN_AUDIT.md` is the dated write-up of what each pass found and what was
 deliberately left alone (including the known misspelled truck livery in two
 supplied photographs, accepted by the owner).

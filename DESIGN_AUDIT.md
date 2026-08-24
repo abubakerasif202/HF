@@ -2,6 +2,15 @@
 
 Audit date: 21 August 2026
 
+## Production domain, form and brand refresh — 25 August 2026
+
+- Switched canonical, Open Graph, schema, robots and sitemap output to `https://www.hfremovalsadelaide.com` through the central site origin.
+- Replaced the drifted Web3Forms implementation and exposed client access key with the supplied Formspree endpoint, accessible in-page success/error feedback, duplicate-submit protection and a no-JavaScript fallback.
+- Updated the privacy disclosure and regression tests to match the actual form processor.
+- Regenerated the optimized header/footer logo, browser icons and 1200×630 social image directly from the latest supplied transparent PNG; the repository's existing high-resolution reference master remains archived separately.
+- Removed the inaccessible `.com.au` mailbox from visible contact details; the confirmed Gmail address remains published.
+- Added the missing Playwright dependency and a portable Chromium test command. The current execution environment blocked the browser-binary download, so the new run is limited to the fully passing rendered-route suite; the stored multi-viewport browser audit remains the visual baseline because the layout system was not changed.
+
 ## Rate update and 3D viewer removal — 24 August 2026
 
 Published local rates updated to $79 per 30 minutes ($158/hr) for 2 movers and a
@@ -82,12 +91,10 @@ live layout geometry, not by inspection alone.
   430px; the packing checklist stacks below 520px; the mobile menu contains its own
   scroll chaining.
 
-### Deliberately unchanged
+### Superseded production-origin note
 
-The FormSubmit success redirect still targets the Vercel production alias. The custom
-domain currently serves a different, older Apache-hosted site, so returning customers
-to `business.domain` would drop them on an unrelated page. The origin is now declared
-once as `deployedOrigin` in `lib/site-data.ts` with the cutover documented there.
+The previous Vercel-alias redirect decision was superseded on 25 August 2026 when the
+new `.com` production domain and Formspree flow were confirmed.
 
 ## Logo, motion and responsive QA — 24 August 2026
 
@@ -152,7 +159,7 @@ No testimonials, awards, clients, statistics or operational claims were invented
 - `npm run typecheck` — passed
 - `npm run lint` — passed
 - `npm test` — passed: production build, 38 generated pages and 5 test groups
-- FormSubmit endpoint, field mapping, honeypot, native validation, loading state and success-return flow — passed regression and browser coverage
+- Formspree endpoint, field mapping, honeypot, native validation, loading state and success/error flow — passed rendered-HTML regression coverage
 - Browser interaction QA — passed for optional disclosure, mobile menu open/Escape close, active navigation, page overflow and contextual hero imagery
 - Final screenshots captured at 1440, 1024, 768 and 390 pixels
 

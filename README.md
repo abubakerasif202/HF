@@ -2,8 +2,6 @@
 
 Premium multi-route website for HF Removals Adelaide, built with Next.js and deployed exclusively on Vercel.
 
-The canonical production domain is **https://www.hfremovalsadelaide.com**. It is declared once as `deployedOrigin` in `lib/site-data.ts`; the apex domain and the old Vercel alias both redirect there permanently via `next.config.ts`.
-
 ## Local development
 
 Requires Node.js 22.13 or newer.
@@ -16,11 +14,20 @@ npm test
 npm run lint
 ```
 
+For the responsive Chromium QA suite, install the browser once and run:
+
+```powershell
+npx playwright install chromium
+npm run test:browser
+```
+
+## Production domain
+
+The canonical production origin is `https://www.hfremovalsadelaide.com`. Metadata, Open Graph URLs, structured data, robots.txt and the sitemap all read from the central site configuration in `lib/site-data.ts`.
+
 ## Quote delivery
 
-The homepage and Contact quote forms submit directly to [Web3Forms](https://web3forms.com) via a native `POST` to `https://api.web3forms.com/submit`. Native browser validation runs before submission, a `botcheck` honeypot field is included, and successful submissions return to the originating route on the canonical production domain (`?quote=sent#quote`) with an on-site confirmation message.
-
-The Web3Forms access key is a publishable, client-side key by design — it is not a secret, and no form-delivery environment variable is required. There is no API route and no client-side `fetch`; the browser posts the form directly.
+The homepage and Contact quote forms submit to the owner's Formspree form at `https://formspree.io/f/mdenjrnl`. JavaScript submissions keep the customer on-site and provide accessible success/error feedback; the native form action remains available as a no-JavaScript fallback. Browser validation, duplicate-submit protection and Formspree's `_gotcha` honeypot are enabled. No form-delivery secret is committed to the client.
 
 ## Supplied facts and media
 

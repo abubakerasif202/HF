@@ -49,7 +49,7 @@ function TrustBar() {
           <polyline points="12 6 12 12 16 14" />
         </svg>
       ),
-      title: "Open 24 Hours",
+      title: business.googleBusiness.hoursLabel,
       desc: "Same-Day & Urgent Moves",
     },
     {
@@ -306,7 +306,7 @@ function PricingSection() {
                 <li>✓ Full truck equipped with blankets & straps</li>
                 <li>✓ Complimentary mattress protection wrap</li>
                 <li>✓ No extra charges for stairs (disclosed in brief)</li>
-                <li>✓ Up to $1,000,000 Public Liability & Transit Insurance; terms apply</li>
+                <li>✓ {business.insurance}; terms apply</li>
               </ul>
               <a className="button button-ruby" href="/#quote">Book This Option</a>
             </article>
@@ -444,7 +444,7 @@ function LeadershipSection() {
               <span>Insurance; terms apply</span>
             </div>
             <div>
-              <strong>24/7</strong>
+              <strong>{business.googleBusiness.hoursLabel.replace("Open ", "")}</strong>
               <span>Availability</span>
             </div>
           </div>
@@ -474,7 +474,7 @@ function PackingSection() {
         </div>
         <div className="insurance-panel">
           <span className="panel-number">VERIFIED BUSINESS COVERAGE</span>
-          <strong>Up to<br /><em>$1,000,000</em></strong>
+          <strong>Up to<br /><em>{business.insuranceAmount}</em></strong>
           <h3>Public Liability & Transit Insurance</h3>
           <p>{business.insuranceQualifier}</p>
         </div>
@@ -517,7 +517,7 @@ function ContactMapSection() {
         <div>
           <p className="eyebrow">Elizabeth Vale Operations Base</p>
           <h2 id="contact-map-title">Servicing All Adelaide & Regional SA</h2>
-          <p>{business.address}</p>
+          <p>{business.address.full}</p>
           <dl>
             <div>
               <dt>Hours</dt>
@@ -631,7 +631,7 @@ function Footer() {
             </a>
             <a href={business.phones[1].href}>📞 {business.phones[1].display} (Secondary)</a>
             <a href={`mailto:${business.emails[0]}`}>✉️ {business.emails[0]}</a>
-            <span>📍 {business.address}</span>
+            <span>📍 {business.address.full}</span>
             <span>⭐ {business.googleBusiness.rating} Google Rating · {business.googleBusiness.reviewCount} Reviews</span>
           </address>
         </div>
@@ -716,7 +716,7 @@ export function HomePage() {
               You Can Rely On
             </h1>
             <p className="hero-lead">
-              Plan home, apartment, office and interstate moves with published reference rates and up to $1,000,000 Public Liability and Transit Insurance, subject to applicable policy terms.
+              Plan home, apartment, office and interstate moves with published reference rates. Coverage includes {business.insurance}, subject to applicable policy terms.
             </p>
             <div className="hero-actions">
               <a className="button button-ruby" href="#quote">
@@ -730,7 +730,7 @@ export function HomePage() {
               <span>✓ Local Adelaide Crew</span>
               <span>✓ Up to $1M Insurance</span>
               <span>✓ Free Mattress Wraps</span>
-              <span>✓ 24/7 Availability</span>
+              <span>✓ {business.googleBusiness.hoursLabel}</span>
             </div>
           </div>
           <QuoteForm />
@@ -1032,7 +1032,7 @@ export function StaticPage({ type }: { type: "about" | "contact" | "pricing" | "
               </a>
               <address>
                 <span>Business base</span>
-                {business.address}
+                {business.address.full}
                 <small>{business.googleBusiness.hoursLabel}. Serving all Adelaide metro, hills, and regional SA.</small>
               </address>
             </div>
@@ -1075,7 +1075,7 @@ export function StaticPage({ type }: { type: "about" | "contact" | "pricing" | "
           <h2>{privacy ? "Contact and delivery" : "Pricing and insurance wording"}</h2>
           <p>
             {privacy
-              ? `HF can also be contacted directly at ${business.emails[0]} or ${business.phones[0].display}. Quote-form details are sent to HF through Web3Forms, a third-party form-delivery service, so the information you enter is shared with that provider for delivery of your enquiry.`
+              ? `HF can also be contacted directly at ${business.emails[0]} or ${business.phones[0].display}. Quote-form details are sent to HF through Formspree, a third-party form-delivery service, so the information you enter is shared with that provider for delivery of your enquiry.`
               : "Published prices are reference rates reproduced from supplied business material. Interstate prices are per cubic metre, not total move prices. Insurance references are subject to applicable policy terms and the individual move scope."}
           </p>
           <h2>Contact</h2>
