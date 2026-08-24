@@ -2,7 +2,7 @@
 
 import { FormEvent, useEffect, useRef, useState } from "react";
 import { usePathname } from "next/navigation";
-import { areas, business, entryLocalRate, interstatePricing, interstateRoutes, quoteFormEndpoint, services } from "../../lib/site-data";
+import { areas, business, entryLocalRate, interstatePricing, interstateRoutes, quoteFormEndpoint, services, web3FormsAccessKey } from "../../lib/site-data";
 
 export function UtilityBar() {
   return (
@@ -404,13 +404,18 @@ export function QuoteForm({ compact = false }: { compact?: boolean }) {
     setStatus("Submitting your move details securely…");
 
     try {
+      const formData = new FormData(event.currentTarget);
+      formData.append("access_key", web3FormsAccessKey);
+
       const response = await fetch(quoteFormEndpoint, {
         method: "POST",
-        body: new FormData(event.currentTarget),
-        headers: { Accept: "application/json" },
+        body: formData,
       });
 
-      if (!response.ok) throw new Error(`Formspree returned ${response.status}`);
+      const data: { success?: boolean; message?: string } = await response.json();
+      if (!response.ok || !data.success) {
+        throw new Error(data.message || `Web3Forms returned ${response.status}`);
+      }
 
       setForm(createEmptyForm());
       setStatusKind("success");
@@ -437,9 +442,9 @@ export function QuoteForm({ compact = false }: { compact?: boolean }) {
         setStatus("Please complete the required fields and correct any highlighted values.");
       }}
     >
-      <input type="hidden" name="_subject" value="New HF Removals Adelaide Quote Request" />
-      <input type="hidden" name="form_source" value="HF Removals Adelaide Website" />
-      <input type="hidden" name="source_page" value={pathname} />
+      <input type="hidden" name="subject" value="New HF Removals Adelaide Quote Request" />
+      <input type="hidden" name="from_name" value="HF Removals Adelaide Website" />
+      <input type="hidden" name="source_page" value={`${business.domain}${pathname}`} />
       <input type="hidden" name="move_category" value={form.tab === "interstate" ? "Interstate Move" : "Local Adelaide Move"} />
       <div className="form-header-badge">
         <span className="badge-dot" />

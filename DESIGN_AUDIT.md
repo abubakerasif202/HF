@@ -5,7 +5,7 @@ Audit date: 21 August 2026
 ## Production domain, form and brand refresh — 25 August 2026
 
 - Switched canonical, Open Graph, schema, robots and sitemap output to `https://www.hfremovalsadelaide.com` through the central site origin.
-- Replaced the drifted Web3Forms implementation and exposed client access key with the supplied Formspree endpoint, accessible in-page success/error feedback, duplicate-submit protection and a no-JavaScript fallback.
+- Configured Web3Forms as the sole quote-delivery provider, with accessible in-page success/error feedback, duplicate-submit protection and a honeypot.
 - Updated the privacy disclosure and regression tests to match the actual form processor.
 - Regenerated the optimized header/footer logo, browser icons and 1200×630 social image directly from the latest supplied transparent PNG; the repository's existing high-resolution reference master remains archived separately.
 - Removed the inaccessible `.com.au` mailbox from visible contact details; the confirmed Gmail address remains published.
@@ -94,7 +94,7 @@ live layout geometry, not by inspection alone.
 ### Superseded production-origin note
 
 The previous Vercel-alias redirect decision was superseded on 25 August 2026 when the
-new `.com` production domain and Formspree flow were confirmed.
+new `.com` production domain and Web3Forms flow were confirmed.
 
 ## Logo, motion and responsive QA — 24 August 2026
 
@@ -159,7 +159,7 @@ No testimonials, awards, clients, statistics or operational claims were invented
 - `npm run typecheck` — passed
 - `npm run lint` — passed
 - `npm test` — passed: production build, 38 generated pages and 5 test groups
-- Formspree endpoint, field mapping, honeypot, native validation, loading state and success/error flow — passed rendered-HTML regression coverage
+- Web3Forms endpoint, field mapping, honeypot, native validation, loading state and success/error flow — covered by rendered-HTML regression tests
 - Browser interaction QA — passed for optional disclosure, mobile menu open/Escape close, active navigation, page overflow and contextual hero imagery
 - Final screenshots captured at 1440, 1024, 768 and 390 pixels
 

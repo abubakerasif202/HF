@@ -27,7 +27,7 @@ The canonical production origin is `https://www.hfremovalsadelaide.com`. Metadat
 
 ## Quote delivery
 
-The homepage and Contact quote forms submit to the owner's Formspree form at `https://formspree.io/f/mdenjrnl`. JavaScript submissions keep the customer on-site and provide accessible success/error feedback; the native form action remains available as a no-JavaScript fallback. Browser validation, duplicate-submit protection and Formspree's `_gotcha` honeypot are enabled. No form-delivery secret is committed to the client.
+The homepage and Contact quote forms submit to Web3Forms. JavaScript submissions keep the customer on-site and provide accessible success/error feedback. Browser validation, duplicate-submit protection and the existing honeypot are enabled. The Web3Forms access key is a public form identifier used by the browser, not a server-side secret.
 
 ## Supplied facts and media
 
