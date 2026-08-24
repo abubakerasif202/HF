@@ -13,11 +13,14 @@ export type ContentPage = {
   unit?: string;
 };
 
+export const deployedOrigin = "https://hf-removals-adelaide.vercel.app";
+export const intendedDomain = "https://hfremovalsadelaide.com.au";
+
 export const business = {
   name: "HF Removals Adelaide",
   legalName: "HFremovalsadelaide - BeMovedWithUs",
   tagline: "Moving Made Easy With Us",
-  domain: "https://hfremovalsadelaide.com.au",
+  domain: deployedOrigin,
   phones: [
     { display: "0491 704 136", href: "tel:+61491704136", primary: true },
     { display: "0493 092 539", href: "tel:+61493092539", primary: false },
@@ -61,15 +64,8 @@ export const business = {
   ceoImage: "/images/muhammad-rasheed-ceo.webp",
 } as const;
 
-/**
- * The custom domain currently serves a different, older website; this Next.js site
- * is live on the Vercel production alias. Canonical URLs, the sitemap and JSON-LD
- * therefore still declare `business.domain` (the intended long-term home), while the
- * FormSubmit success redirect must target a URL that actually serves this app.
- *
- * At DNS cutover, point `deployedOrigin` at `business.domain` and the split is gone.
- */
-export const deployedOrigin = "https://hf-removals-adelaide.vercel.app";
+// Keep discovery, canonical and form-return URLs on the origin that currently
+// serves this application. Switch both constants atomically when DNS is cut over.
 
 
 /**

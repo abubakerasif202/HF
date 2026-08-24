@@ -28,21 +28,28 @@ function contentTitle(page: NonNullable<ReturnType<typeof findContentPage>>) {
   return page.title;
 }
 
+function socialMetadata(title: string, description: string, path: string) {
+  return {
+    openGraph: { type: "website" as const, locale: "en_AU", siteName: business.name, title, description, url: canonical(path), images: [{ url: "/og.webp", width: 1200, height: 630, alt: "HF Removals Adelaide — Moving Made Easy With Us" }] },
+    twitter: { card: "summary_large_image" as const, title, description, images: ["/og.webp"] },
+  };
+}
+
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
   const path = pathFor(slug);
   if (slug.length === 1 && staticPages[slug[0]]) {
     const page = staticPages[slug[0]];
-    return { title: page.title, description: page.description, alternates: { canonical: canonical(path) } };
+    return { title: page.title, description: page.description, alternates: { canonical: canonical(path) }, ...socialMetadata(page.title, page.description, path) };
   }
   if (slug.length === 1 && listingPages[slug[0]]) {
     const page = listingPages[slug[0]];
-    return { title: page.title, description: page.description, alternates: { canonical: canonical(path) } };
+    return { title: page.title, description: page.description, alternates: { canonical: canonical(path) }, ...socialMetadata(page.title, page.description, path) };
   }
   const page = findContentPage(slug);
   if (!page) return {};
   const title = contentTitle(page);
-  return { title, description: page.description, alternates: { canonical: canonical(path) }, openGraph: { title, description: page.description, url: canonical(path) } };
+  return { title, description: page.description, alternates: { canonical: canonical(path) }, ...socialMetadata(title, page.description, path) };
 }
 
 export function generateStaticParams() {

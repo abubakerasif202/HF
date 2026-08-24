@@ -42,5 +42,6 @@ next-env.d.ts
 /outputs/
 /work/
 /qa-artifacts/
+/test-results/
 /.node_modules-partial-*/
 /.dev-server.*.log

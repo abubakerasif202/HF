@@ -7,7 +7,7 @@ export function ServiceTicker({ locations = false }: { locations?: boolean }) {
     : ["RESIDENTIAL REMOVALS", "APARTMENT & HIGH-RISE", "OFFICE RELOCATIONS", "INTERSTATE MOVES", "BACKLOADING", "PACKING & UNPACKING"];
   const content = [...items, ...items];
   return (
-    <div className="ticker" tabIndex={0}>
+    <div className="ticker">
       <p className="sr-only">{items.join(", ")}. Moving ticker banner.</p>
       <div className="ticker-track" aria-hidden="true">
         {content.map((item, index) => (
@@ -39,8 +39,8 @@ function TrustBar() {
           <path d="m9 12 2 2 4-4" />
         </svg>
       ),
-      title: "$1M Transit Insurance",
-      desc: "Comprehensive Public Liability",
+      title: "Up to $1M insurance",
+      desc: "Policy terms and move scope apply",
     },
     {
       icon: (
@@ -213,7 +213,7 @@ function ApartmentAccessSection() {
             ))}
           </div>
           <div className="apartment-cta">
-            <a className="button button-gold" href="/#quote">Plan Your Apartment Move</a>
+            <a className="button button-ruby" href="/#quote">Plan Your Apartment Move</a>
             <a className="button button-outline" href={business.phones[0].href}>Call {business.phones[0].display}</a>
           </div>
         </div>
@@ -306,9 +306,9 @@ function PricingSection() {
                 <li>✓ Full truck equipped with blankets & straps</li>
                 <li>✓ Complimentary mattress protection wrap</li>
                 <li>✓ No extra charges for stairs (disclosed in brief)</li>
-                <li>✓ $1,000,000 Transit & Public Liability Insurance</li>
+                <li>✓ Up to $1,000,000 Public Liability & Transit Insurance; terms apply</li>
               </ul>
-              <a className="button button-gold" href="/#quote">Book This Option</a>
+              <a className="button button-ruby" href="/#quote">Book This Option</a>
             </article>
           ))}
         </div>
@@ -318,7 +318,7 @@ function PricingSection() {
             <p className="eyebrow">Interstate Volume Pricing</p>
             <h3>Route Reference Rates</h3>
             <p>Calculated per cubic metre (m³) so you only pay for the exact volume you transport.</p>
-            <a className="button button-gold" href="/interstate">View All Routes</a>
+            <a className="button button-ruby" href="/interstate">View All Routes</a>
           </div>
           <div className="table-routes">
             {interstatePricing.map((item) => (
@@ -440,15 +440,15 @@ function LeadershipSection() {
               <span>5-Star Reviews</span>
             </div>
             <div>
-              <strong>$1M</strong>
-              <span>Transit Cover</span>
+              <strong>Up to $1M</strong>
+              <span>Insurance; terms apply</span>
             </div>
             <div>
               <strong>24/7</strong>
               <span>Availability</span>
             </div>
           </div>
-          <a className="button button-gold" href="/about">Learn More About HF <span>→</span></a>
+          <a className="button button-ruby" href="/about">Learn More About HF <span>→</span></a>
         </div>
       </div>
     </section>
@@ -470,7 +470,7 @@ function PackingSection() {
               </span>
             ))}
           </div>
-          <a className="button button-gold" href="/services/packing-unpacking">Explore Packing Services</a>
+          <a className="button button-ruby" href="/services/packing-unpacking">Explore Packing Services</a>
         </div>
         <div className="insurance-panel">
           <span className="panel-number">VERIFIED BUSINESS COVERAGE</span>
@@ -485,11 +485,11 @@ function PackingSection() {
 
 function ProcessSection() {
   const steps = [
-    ["1. Instant Quote", "Submit your move dates, suburbs, and inventory."],
-    ["2. Scope & Review", "We confirm access, truck size, and exact inclusions."],
-    ["3. Professional Packing", "Furniture is wrapped and secured with protective gear."],
-    ["4. Careful Transport", "Safe transit under $1,000,000 insurance coverage."],
-    ["5. Room Placement", "Boxes and furniture placed exactly where you want them."],
+    ["Instant Quote", "Submit your move dates, suburbs, and inventory."],
+    ["Scope & Review", "We confirm access, truck size, and exact inclusions."],
+    ["Professional Packing", "Furniture is wrapped and secured with protective gear."],
+    ["Careful Transport", "Belongings are secured for transport; applicable insurance terms depend on the move scope."],
+    ["Room Placement", "Boxes and furniture placed exactly where you want them."],
   ];
   return (
     <section className="section process-section">
@@ -532,7 +532,7 @@ function ContactMapSection() {
               <dd>{google.plusCode}</dd>
             </div>
           </dl>
-          <a className="button button-gold" href={google.directionsUrl} target="_blank" rel="noopener noreferrer">
+          <a className="button button-ruby" href={google.directionsUrl} target="_blank" rel="noopener noreferrer">
             Get Directions on Google Maps
           </a>
         </div>
@@ -590,7 +590,7 @@ export function FaqSection({ faqs = standardMoveFaqs, title = "Frequently Asked 
             <details key={index} className="faq-item">
               <summary>
                 <span>{faq.question}</span>
-                <span className="faq-plus">+</span>
+                <span className="faq-plus" aria-hidden="true">+</span>
               </summary>
               <p>{faq.answer}</p>
             </details>
@@ -610,7 +610,7 @@ function QuoteStrip() {
           <h2>Get Your Free, Transparent Quote From HF Removals Today.</h2>
         </div>
         <div className="quote-strip-actions">
-          <a className="button button-gold" href="/#quote">Request Free Quote <span>→</span></a>
+          <a className="button button-ruby" href="/#quote">Request Free Quote <span>→</span></a>
           <a className="button button-outline" href={business.phones[0].href}>Call {business.phones[0].display}</a>
         </div>
       </div>
@@ -658,7 +658,7 @@ function Footer() {
         </div>
       </div>
       <div className="container footer-bottom">
-        <span>© {new Date().getFullYear()} HF Removals Adelaide (ABN: {business.legalName})</span>
+        <span>© {new Date().getFullYear()} HF Removals Adelaide · Legal name: {business.legalName}</span>
         <span>
           <a href="/privacy">Privacy Policy</a>
           <a href="/terms">Website Terms</a>
@@ -719,7 +719,7 @@ export function HomePage() {
               Plan home, apartment, office and interstate moves with published reference rates and up to $1,000,000 Public Liability and Transit Insurance, subject to applicable policy terms.
             </p>
             <div className="hero-actions">
-              <a className="button button-gold" href="#quote">
+              <a className="button button-ruby" href="#quote">
                 Get a Free Quote <span>→</span>
               </a>
               <a className="button button-outline" href={business.phones[0].href}>
@@ -781,13 +781,13 @@ function PageHero({
           <h1>{title}</h1>
           <p>{description}</p>
           <div className="hero-actions">
-            <a className="button button-gold" href="/#quote">Get a free quote <span>→</span></a>
+            <a className="button button-ruby" href="/#quote">Get a free quote <span>→</span></a>
             <a className="button button-outline" href={business.phones[0].href}>Call {business.phones[0].display}</a>
           </div>
           <div className="inner-proof" aria-label="HF business profile summary">
             <span><b>{business.googleBusiness.rating}★</b> Rating</span>
             <span><b>{business.googleBusiness.reviewCount}</b> Reviews</span>
-            <span><b>$1M</b> Transit Cover</span>
+            <span><b>Up to $1M</b> Insurance</span>
             <span><b>24h</b> Enquiries</span>
           </div>
         </div>
@@ -917,7 +917,7 @@ export function DetailPage({ page }: { page: ContentPage }) {
               <p className="eyebrow">Start your enquiry</p>
               <h3>Share the essentials</h3>
               <p>Both suburbs, move type, preferred date, and access notes help HF review the scope.</p>
-              <a className="button button-gold" href="/#quote">
+              <a className="button button-ruby" href="/#quote">
                 Request a quote <span>→</span>
               </a>
               <a className="aside-call" href={business.phones[0].href}>
@@ -1075,7 +1075,7 @@ export function StaticPage({ type }: { type: "about" | "contact" | "pricing" | "
           <h2>{privacy ? "Contact and delivery" : "Pricing and insurance wording"}</h2>
           <p>
             {privacy
-              ? `HF can also be contacted directly at ${business.emails[0]} or ${business.phones[0].display}. Online form delivery is only enabled when the server-side provider is configured.`
+              ? `HF can also be contacted directly at ${business.emails[0]} or ${business.phones[0].display}. Quote-form details are sent to HF through FormSubmit, a third-party form-delivery service, so the information you enter is shared with that provider for delivery of your enquiry.`
               : "Published prices are reference rates reproduced from supplied business material. Interstate prices are per cubic metre, not total move prices. Insurance references are subject to applicable policy terms and the individual move scope."}
           </p>
           <h2>Contact</h2>

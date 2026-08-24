@@ -109,6 +109,7 @@ export function MotionExperience() {
 export function Header() {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
+  const [openDropdown, setOpenDropdown] = useState<"services" | "locations" | null>(null);
   const [compact, setCompact] = useState(false);
   const firstLink = useRef<HTMLAnchorElement>(null);
   const menu = useRef<HTMLDivElement>(null);
@@ -122,7 +123,9 @@ export function Header() {
 
   useEffect(() => {
     document.body.classList.toggle("menu-locked", open);
-    const focusTimer = open ? window.setTimeout(() => firstLink.current?.focus(), 0) : undefined;
+    // Let the click that opened the drawer finish before moving focus into it;
+    // otherwise the trigger can reclaim focus in Chromium after a zero-delay timer.
+    const focusTimer = open ? window.setTimeout(() => firstLink.current?.focus(), 80) : undefined;
     const onKey = (event: KeyboardEvent) => {
       if (event.key === "Escape" && open) {
         setOpen(false);
@@ -149,6 +152,38 @@ export function Header() {
     };
   }, [open]);
 
+  useEffect(() => {
+    const closeResponsiveMenus = () => {
+      if (window.innerWidth > 900) setOpen(false);
+      setOpenDropdown(null);
+    };
+    window.addEventListener("resize", closeResponsiveMenus);
+    window.addEventListener("orientationchange", closeResponsiveMenus);
+    return () => {
+      window.removeEventListener("resize", closeResponsiveMenus);
+      window.removeEventListener("orientationchange", closeResponsiveMenus);
+    };
+  }, []);
+
+  useEffect(() => {
+    const closeDropdown = (event: PointerEvent) => {
+      if (!(event.target as Element).closest(".nav-dropdown")) setOpenDropdown(null);
+    };
+    const closeOnEscape = (event: KeyboardEvent) => {
+      if (event.key === "Escape" && openDropdown) {
+        const trigger = document.querySelector<HTMLButtonElement>(`[aria-controls="${openDropdown}-menu"]`);
+        setOpenDropdown(null);
+        window.setTimeout(() => trigger?.focus(), 0);
+      }
+    };
+    document.addEventListener("pointerdown", closeDropdown);
+    document.addEventListener("keydown", closeOnEscape);
+    return () => {
+      document.removeEventListener("pointerdown", closeDropdown);
+      document.removeEventListener("keydown", closeOnEscape);
+    };
+  }, [openDropdown]);
+
   return (
     <>
       <header className={`site-header ${compact ? "is-compact" : ""} ${open ? "menu-open" : ""}`}>
@@ -162,12 +197,12 @@ export function Header() {
             Home
           </a>
 
-          <div className="nav-dropdown">
-            <button className={`nav-dropdown-btn ${pathname.startsWith("/services") ? "is-active" : ""}`} type="button" aria-haspopup="true">
+          <div className={`nav-dropdown ${openDropdown === "services" ? "is-open" : ""}`}>
+            <button className={`nav-dropdown-btn ${pathname.startsWith("/services") ? "is-active" : ""}`} type="button" aria-haspopup="true" aria-expanded={openDropdown === "services"} aria-controls="services-menu" onClick={() => setOpenDropdown((value) => value === "services" ? null : "services")}>
               <span>Services</span>
               <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="m6 9 6 6 6-6" /></svg>
             </button>
-            <div className="nav-dropdown-menu">
+            <div className="nav-dropdown-menu" id="services-menu">
               {services.map((item) => (
                 <a key={item.slug} href={`/services/${item.slug}`} className="nav-dropdown-item">
                   <strong>{item.eyebrow}</strong>
@@ -180,12 +215,12 @@ export function Header() {
             </div>
           </div>
 
-          <div className="nav-dropdown">
-            <button className={`nav-dropdown-btn ${pathname.startsWith("/areas") || pathname.startsWith("/interstate") ? "is-active" : ""}`} type="button" aria-haspopup="true">
+          <div className={`nav-dropdown ${openDropdown === "locations" ? "is-open" : ""}`}>
+            <button className={`nav-dropdown-btn ${pathname.startsWith("/areas") || pathname.startsWith("/interstate") ? "is-active" : ""}`} type="button" aria-haspopup="true" aria-expanded={openDropdown === "locations"} aria-controls="locations-menu" onClick={() => setOpenDropdown((value) => value === "locations" ? null : "locations")}>
               <span>Locations & Routes</span>
               <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="m6 9 6 6 6-6" /></svg>
             </button>
-            <div className="nav-dropdown-menu nav-dropdown-wide">
+            <div className="nav-dropdown-menu nav-dropdown-wide" id="locations-menu">
               <div className="nav-dropdown-columns">
                 <div>
                   <span className="dropdown-col-title">Adelaide Suburbs</span>
@@ -214,7 +249,7 @@ export function Header() {
           <a className={pathname === "/pricing" ? "is-active" : ""} aria-current={pathname === "/pricing" ? "page" : undefined} href="/pricing">
             Pricing
           </a>
-          <a className={pathname === "/#reviews" ? "is-active" : ""} href="/#reviews">
+          <a href="/#reviews">
             Reviews
           </a>
           <a className={pathname === "/about" ? "is-active" : ""} aria-current={pathname === "/about" ? "page" : undefined} href="/about">
@@ -235,7 +270,7 @@ export function Header() {
               <strong>{business.phones[0].display}</strong>
             </div>
           </a>
-          <a className="button button-gold header-quote" href="/#quote">
+          <a className="button button-ruby header-quote" href="/#quote">
             <span>Free Quote</span>
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><path d="M5 12h14m-7-7 7 7-7 7" /></svg>
           </a>
@@ -246,7 +281,7 @@ export function Header() {
         </div>
         </div>
       </header>
-      <div ref={menu} id="mobile-menu" className={`mobile-menu ${open ? "is-open" : ""}`} aria-hidden={!open} role="dialog" aria-modal="true" aria-label="Mobile navigation">
+      <div ref={menu} id="mobile-menu" className={`mobile-menu ${open ? "is-open" : ""}`} aria-hidden={!open} inert={!open} role="dialog" aria-modal="true" aria-label="Mobile navigation" onPointerDown={(event) => { if (event.target === event.currentTarget) setOpen(false); }}>
         <nav aria-label="Mobile navigation">
           <a className={pathname === "/" ? "is-active" : ""} ref={firstLink} href="/" onClick={() => setOpen(false)}>
             Home <span>↗</span>
@@ -273,7 +308,7 @@ export function Header() {
             Contact <span>↗</span>
           </a>
           <div className="mobile-menu-actions">
-            <a className="button button-gold" href="/#quote" onClick={() => setOpen(false)}>
+            <a className="button button-ruby" href="/#quote" onClick={() => setOpen(false)}>
               Request Free Quote <span>→</span>
             </a>
             <a className="button button-outline" href={business.phones[0].href}>
@@ -332,6 +367,14 @@ export function QuoteForm({ compact = false }: { compact?: boolean }) {
   }, []);
 
   const update = (field: keyof FormDataShape, value: string) => setForm((current) => ({ ...current, [field]: value }));
+  const handleTabKey = (event: React.KeyboardEvent<HTMLButtonElement>) => {
+    if (!["ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown"].includes(event.key)) return;
+    event.preventDefault();
+    const next = form.tab === "local" ? "interstate" : "local";
+    update("tab", next);
+    const buttons = event.currentTarget.parentElement?.querySelectorAll<HTMLButtonElement>('[role="radio"]');
+    buttons?.[next === "local" ? 0 : 1]?.focus();
+  };
 
   function submit(event: FormEvent<HTMLFormElement>) {
     if (submitting.current) {
@@ -389,8 +432,10 @@ export function QuoteForm({ compact = false }: { compact?: boolean }) {
           type="button"
           role="radio"
           aria-checked={form.tab === "local"}
+          tabIndex={form.tab === "local" ? 0 : -1}
           className={`form-tab-btn ${form.tab === "local" ? "is-active" : ""}`}
           onClick={() => update("tab", "local")}
+          onKeyDown={handleTabKey}
         >
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2"><path d="m3 11 9-7 9 7v9h-6v-6H9v6H3Z"/></svg>
           <span>Local Adelaide Move</span>
@@ -399,8 +444,10 @@ export function QuoteForm({ compact = false }: { compact?: boolean }) {
           type="button"
           role="radio"
           aria-checked={form.tab === "interstate"}
+          tabIndex={form.tab === "interstate" ? 0 : -1}
           className={`form-tab-btn ${form.tab === "interstate" ? "is-active" : ""}`}
           onClick={() => update("tab", "interstate")}
+          onKeyDown={handleTabKey}
         >
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2"><path d="M3 6h11v11H3Zm11 4h4l3 3v4h-7M7 20a2 2 0 1 0 0-4 2 2 0 0 0 0 4Zm11 0a2 2 0 1 0 0-4 2 2 0 0 0 0 4Z"/></svg>
           <span>Interstate Move</span>
@@ -488,15 +535,15 @@ export function QuoteForm({ compact = false }: { compact?: boolean }) {
         </fieldset>
       </details>
 
-      <button className="button button-gold form-submit" type="submit" disabled={loading}>
+      <button className="button button-ruby form-submit" type="submit" disabled={loading} aria-busy={loading}>
         <span>{loading ? "Processing..." : "Get My Free Quote"}</span>
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M5 12h14m-7-7 7 7-7 7" /></svg>
       </button>
 
       <div className="form-footer-guarantee">
-        <span>🛡️ Up to $1,000,000 Transit Insurance Included</span>
+        <span>🛡️ {business.insurance}</span>
         <span>•</span>
-        <span>No Booking Fee Until Confirmed</span>
+        <span>Policy terms and move scope apply</span>
       </div>
 
       <p className="form-note">
@@ -519,7 +566,7 @@ export function MobileStickyCta() {
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z" /></svg>
         <span>Call {business.phones[0].display}</span>
       </a>
-      <a href="/#quote" className="mobile-sticky-quote">
+      <a href="/#quote" className="mobile-sticky-quote button-ruby">
         <span>Get Free Quote</span>
         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M5 12h14m-7-7 7 7-7 7" /></svg>
       </a>

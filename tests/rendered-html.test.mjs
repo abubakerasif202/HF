@@ -114,12 +114,12 @@ test("serves crawl discovery endpoints and unique guide metadata", async () => {
   const robots = await render("/robots.txt");
   assert.equal(robots.status, 200);
   assert.match(robots.headers.get("content-type") ?? "", /text\/plain/);
-  assert.match(await robots.text(), /Sitemap: https:\/\/hfremovalsadelaide\.com\.au\/sitemap\.xml/);
+  assert.match(await robots.text(), /Sitemap: https:\/\/hf-removals-adelaide\.vercel\.app\/sitemap\.xml/);
 
   const sitemap = await render("/sitemap.xml");
   assert.equal(sitemap.status, 200);
   assert.match(sitemap.headers.get("content-type") ?? "", /xml/);
-  assert.match(await sitemap.text(), /https:\/\/hfremovalsadelaide\.com\.au\/services\/residential-removals/);
+  assert.match(await sitemap.text(), /https:\/\/hf-removals-adelaide\.vercel\.app\/services\/residential-removals/);
 
   const guide = await render("/guides/office-relocation-checklist");
   const html = await guide.text();

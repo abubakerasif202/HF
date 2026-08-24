@@ -6,6 +6,8 @@ export const metadata: Metadata = {
   title: { absolute: `Adelaide Removalists | ${business.googleBusiness.rating}★ Rated Local & Interstate | HF Removals` },
   description: `Adelaide removalists from ${entryLocalRate.halfHour} per 30 minutes for local moves, with residential, office and listed interstate moving support. Request a scoped quote.`,
   alternates: { canonical: canonical("/") },
+  openGraph: { type: "website", locale: "en_AU", siteName: business.name, title: `Adelaide Removalists | ${business.googleBusiness.rating}★ Rated Local & Interstate | HF Removals`, description: `Adelaide removalists from ${entryLocalRate.halfHour} per 30 minutes for local moves, with residential, office and listed interstate moving support. Request a scoped quote.`, url: canonical("/"), images: [{ url: "/og.webp", width: 1200, height: 630, alt: "HF Removals Adelaide — Moving Made Easy With Us" }] },
+  twitter: { card: "summary_large_image", title: `Adelaide Removalists | ${business.googleBusiness.rating}★ Rated Local & Interstate | HF Removals`, description: `Adelaide removalists from ${entryLocalRate.halfHour} per 30 minutes for local moves, with residential, office and listed interstate moving support. Request a scoped quote.`, images: ["/og.webp"] },
 };
 
 const schema = {

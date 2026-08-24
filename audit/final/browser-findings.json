@@ -1,0 +1,555 @@
+[
+  {
+    "label": "home-desktop-1440",
+    "route": "/",
+    "type": "metrics",
+    "viewport": [
+      1440,
+      1000
+    ],
+    "clientWidth": 1440,
+    "scrollWidth": 1440,
+    "bodyScrollWidth": 1440,
+    "title": "Adelaide Removalists | 4.9★ Rated Local & Interstate | HF Removals",
+    "h1Count": 1,
+    "canonical": "https://hf-removals-adelaide.vercel.app/"
+  },
+  {
+    "label": "home-mobile-390",
+    "route": "/",
+    "type": "metrics",
+    "viewport": [
+      390,
+      844
+    ],
+    "clientWidth": 390,
+    "scrollWidth": 390,
+    "bodyScrollWidth": 390,
+    "title": "Adelaide Removalists | 4.9★ Rated Local & Interstate | HF Removals",
+    "h1Count": 1,
+    "canonical": "https://hf-removals-adelaide.vercel.app/"
+  },
+  {
+    "label": "mobile-menu-entry-focus",
+    "type": "interaction",
+    "tag": "BUTTON",
+    "text": "Close menu",
+    "inert": false
+  },
+  {
+    "label": "mobile-menu-backdrop",
+    "type": "interaction",
+    "backdropTarget": {
+      "tag": "DIV",
+      "id": "",
+      "className": "hero-overlay"
+    },
+    "closed": true
+  },
+  {
+    "label": "mobile-orientation-landscape",
+    "type": "metrics",
+    "width": 844,
+    "scrollWidth": 844
+  },
+  {
+    "label": "contact-desktop-1440",
+    "route": "/contact",
+    "type": "metrics",
+    "viewport": [
+      1440,
+      1000
+    ],
+    "clientWidth": 1440,
+    "scrollWidth": 1440,
+    "bodyScrollWidth": 1440,
+    "title": "Contact | HF Removals Adelaide",
+    "h1Count": 1,
+    "canonical": "https://hf-removals-adelaide.vercel.app/contact"
+  },
+  {
+    "label": "contact-mobile-390",
+    "route": "/contact",
+    "type": "metrics",
+    "viewport": [
+      390,
+      844
+    ],
+    "clientWidth": 390,
+    "scrollWidth": 390,
+    "bodyScrollWidth": 390,
+    "title": "Contact | HF Removals Adelaide",
+    "h1Count": 1,
+    "canonical": "https://hf-removals-adelaide.vercel.app/contact"
+  },
+  {
+    "label": "overflow-320",
+    "route": "/",
+    "type": "metrics",
+    "viewport": [
+      320,
+      844
+    ],
+    "clientWidth": 320,
+    "scrollWidth": 320,
+    "bodyScrollWidth": 320,
+    "title": "Adelaide Removalists | 4.9★ Rated Local & Interstate | HF Removals",
+    "h1Count": 1,
+    "canonical": "https://hf-removals-adelaide.vercel.app/"
+  },
+  {
+    "label": "overflow-320",
+    "type": "overflow",
+    "pixels": 0
+  },
+  {
+    "label": "overflow-360",
+    "route": "/",
+    "type": "metrics",
+    "viewport": [
+      360,
+      844
+    ],
+    "clientWidth": 360,
+    "scrollWidth": 360,
+    "bodyScrollWidth": 360,
+    "title": "Adelaide Removalists | 4.9★ Rated Local & Interstate | HF Removals",
+    "h1Count": 1,
+    "canonical": "https://hf-removals-adelaide.vercel.app/"
+  },
+  {
+    "label": "overflow-360",
+    "type": "overflow",
+    "pixels": 0
+  },
+  {
+    "label": "overflow-375",
+    "route": "/",
+    "type": "metrics",
+    "viewport": [
+      375,
+      844
+    ],
+    "clientWidth": 375,
+    "scrollWidth": 375,
+    "bodyScrollWidth": 375,
+    "title": "Adelaide Removalists | 4.9★ Rated Local & Interstate | HF Removals",
+    "h1Count": 1,
+    "canonical": "https://hf-removals-adelaide.vercel.app/"
+  },
+  {
+    "label": "overflow-375",
+    "type": "overflow",
+    "pixels": 0
+  },
+  {
+    "label": "overflow-390",
+    "route": "/",
+    "type": "metrics",
+    "viewport": [
+      390,
+      844
+    ],
+    "clientWidth": 390,
+    "scrollWidth": 390,
+    "bodyScrollWidth": 390,
+    "title": "Adelaide Removalists | 4.9★ Rated Local & Interstate | HF Removals",
+    "h1Count": 1,
+    "canonical": "https://hf-removals-adelaide.vercel.app/"
+  },
+  {
+    "label": "overflow-390",
+    "type": "overflow",
+    "pixels": 0
+  },
+  {
+    "label": "overflow-412",
+    "route": "/",
+    "type": "metrics",
+    "viewport": [
+      412,
+      844
+    ],
+    "clientWidth": 412,
+    "scrollWidth": 412,
+    "bodyScrollWidth": 412,
+    "title": "Adelaide Removalists | 4.9★ Rated Local & Interstate | HF Removals",
+    "h1Count": 1,
+    "canonical": "https://hf-removals-adelaide.vercel.app/"
+  },
+  {
+    "label": "overflow-412",
+    "type": "overflow",
+    "pixels": 0
+  },
+  {
+    "label": "overflow-430",
+    "route": "/",
+    "type": "metrics",
+    "viewport": [
+      430,
+      844
+    ],
+    "clientWidth": 430,
+    "scrollWidth": 430,
+    "bodyScrollWidth": 430,
+    "title": "Adelaide Removalists | 4.9★ Rated Local & Interstate | HF Removals",
+    "h1Count": 1,
+    "canonical": "https://hf-removals-adelaide.vercel.app/"
+  },
+  {
+    "label": "overflow-430",
+    "type": "overflow",
+    "pixels": 0
+  },
+  {
+    "label": "overflow-768",
+    "route": "/",
+    "type": "metrics",
+    "viewport": [
+      768,
+      900
+    ],
+    "clientWidth": 768,
+    "scrollWidth": 768,
+    "bodyScrollWidth": 768,
+    "title": "Adelaide Removalists | 4.9★ Rated Local & Interstate | HF Removals",
+    "h1Count": 1,
+    "canonical": "https://hf-removals-adelaide.vercel.app/"
+  },
+  {
+    "label": "overflow-768",
+    "type": "overflow",
+    "pixels": 0
+  },
+  {
+    "label": "overflow-820",
+    "route": "/",
+    "type": "metrics",
+    "viewport": [
+      820,
+      900
+    ],
+    "clientWidth": 820,
+    "scrollWidth": 820,
+    "bodyScrollWidth": 820,
+    "title": "Adelaide Removalists | 4.9★ Rated Local & Interstate | HF Removals",
+    "h1Count": 1,
+    "canonical": "https://hf-removals-adelaide.vercel.app/"
+  },
+  {
+    "label": "overflow-820",
+    "type": "overflow",
+    "pixels": 0
+  },
+  {
+    "label": "overflow-1024",
+    "route": "/",
+    "type": "metrics",
+    "viewport": [
+      1024,
+      900
+    ],
+    "clientWidth": 1024,
+    "scrollWidth": 1024,
+    "bodyScrollWidth": 1024,
+    "title": "Adelaide Removalists | 4.9★ Rated Local & Interstate | HF Removals",
+    "h1Count": 1,
+    "canonical": "https://hf-removals-adelaide.vercel.app/"
+  },
+  {
+    "label": "overflow-1024",
+    "type": "overflow",
+    "pixels": 0
+  },
+  {
+    "label": "overflow-1280",
+    "route": "/",
+    "type": "metrics",
+    "viewport": [
+      1280,
+      900
+    ],
+    "clientWidth": 1280,
+    "scrollWidth": 1280,
+    "bodyScrollWidth": 1280,
+    "title": "Adelaide Removalists | 4.9★ Rated Local & Interstate | HF Removals",
+    "h1Count": 1,
+    "canonical": "https://hf-removals-adelaide.vercel.app/"
+  },
+  {
+    "label": "overflow-1280",
+    "type": "overflow",
+    "pixels": 0
+  },
+  {
+    "label": "overflow-1366",
+    "route": "/",
+    "type": "metrics",
+    "viewport": [
+      1366,
+      900
+    ],
+    "clientWidth": 1366,
+    "scrollWidth": 1366,
+    "bodyScrollWidth": 1366,
+    "title": "Adelaide Removalists | 4.9★ Rated Local & Interstate | HF Removals",
+    "h1Count": 1,
+    "canonical": "https://hf-removals-adelaide.vercel.app/"
+  },
+  {
+    "label": "overflow-1366",
+    "type": "overflow",
+    "pixels": 0
+  },
+  {
+    "label": "overflow-1440",
+    "route": "/",
+    "type": "metrics",
+    "viewport": [
+      1440,
+      900
+    ],
+    "clientWidth": 1440,
+    "scrollWidth": 1440,
+    "bodyScrollWidth": 1440,
+    "title": "Adelaide Removalists | 4.9★ Rated Local & Interstate | HF Removals",
+    "h1Count": 1,
+    "canonical": "https://hf-removals-adelaide.vercel.app/"
+  },
+  {
+    "label": "overflow-1440",
+    "type": "overflow",
+    "pixels": 0
+  },
+  {
+    "label": "overflow-1536",
+    "route": "/",
+    "type": "metrics",
+    "viewport": [
+      1536,
+      900
+    ],
+    "clientWidth": 1536,
+    "scrollWidth": 1536,
+    "bodyScrollWidth": 1536,
+    "title": "Adelaide Removalists | 4.9★ Rated Local & Interstate | HF Removals",
+    "h1Count": 1,
+    "canonical": "https://hf-removals-adelaide.vercel.app/"
+  },
+  {
+    "label": "overflow-1536",
+    "type": "overflow",
+    "pixels": 0
+  },
+  {
+    "label": "overflow-1920",
+    "route": "/",
+    "type": "metrics",
+    "viewport": [
+      1920,
+      900
+    ],
+    "clientWidth": 1920,
+    "scrollWidth": 1920,
+    "bodyScrollWidth": 1920,
+    "title": "Adelaide Removalists | 4.9★ Rated Local & Interstate | HF Removals",
+    "h1Count": 1,
+    "canonical": "https://hf-removals-adelaide.vercel.app/"
+  },
+  {
+    "label": "overflow-1920",
+    "type": "overflow",
+    "pixels": 0
+  },
+  {
+    "label": "form-keyboard",
+    "route": "/",
+    "type": "metrics",
+    "viewport": [
+      390,
+      844
+    ],
+    "clientWidth": 390,
+    "scrollWidth": 390,
+    "bodyScrollWidth": 390,
+    "title": "Adelaide Removalists | 4.9★ Rated Local & Interstate | HF Removals",
+    "h1Count": 1,
+    "canonical": "https://hf-removals-adelaide.vercel.app/"
+  },
+  {
+    "label": "form-keyboard",
+    "type": "requestfailed",
+    "text": "GET https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3278.0861872991422!2d138.66031787548314!3d-34.75342166541935!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x6ab0ad918429ad09%3A0x94810a85444deebe!2sHF%20Removals%20Adelaide!5e0!3m2!1sen!2sau!4v1787515237189!5m2!1sen!2sau :: net::ERR_ABORTED"
+  },
+  {
+    "label": "links-home",
+    "route": "/",
+    "type": "metrics",
+    "viewport": [
+      1440,
+      900
+    ],
+    "clientWidth": 1440,
+    "scrollWidth": 1440,
+    "bodyScrollWidth": 1440,
+    "title": "Adelaide Removalists | 4.9★ Rated Local & Interstate | HF Removals",
+    "h1Count": 1,
+    "canonical": "https://hf-removals-adelaide.vercel.app/"
+  },
+  {
+    "label": "internal-link",
+    "type": "status",
+    "href": "/",
+    "status": 200
+  },
+  {
+    "label": "internal-link",
+    "type": "status",
+    "href": "/services/residential-removals",
+    "status": 200
+  },
+  {
+    "label": "internal-link",
+    "type": "status",
+    "href": "/services/office-commercial-removals",
+    "status": 200
+  },
+  {
+    "label": "internal-link",
+    "type": "status",
+    "href": "/services/interstate-removals",
+    "status": 200
+  },
+  {
+    "label": "internal-link",
+    "type": "status",
+    "href": "/services/backloading",
+    "status": 200
+  },
+  {
+    "label": "internal-link",
+    "type": "status",
+    "href": "/services/packing-unpacking",
+    "status": 200
+  },
+  {
+    "label": "internal-link",
+    "type": "status",
+    "href": "/services",
+    "status": 200
+  },
+  {
+    "label": "internal-link",
+    "type": "status",
+    "href": "/areas/elizabeth-vale",
+    "status": 200
+  },
+  {
+    "label": "internal-link",
+    "type": "status",
+    "href": "/areas/elizabeth",
+    "status": 200
+  },
+  {
+    "label": "internal-link",
+    "type": "status",
+    "href": "/areas/salisbury",
+    "status": 200
+  },
+  {
+    "label": "internal-link",
+    "type": "status",
+    "href": "/areas/blakeview",
+    "status": 200
+  },
+  {
+    "label": "internal-link",
+    "type": "status",
+    "href": "/areas/gawler",
+    "status": 200
+  },
+  {
+    "label": "internal-link",
+    "type": "status",
+    "href": "/adelaide-removalists",
+    "status": 200
+  },
+  {
+    "label": "internal-link",
+    "type": "status",
+    "href": "/interstate/adelaide-melbourne",
+    "status": 200
+  },
+  {
+    "label": "internal-link",
+    "type": "status",
+    "href": "/interstate/adelaide-sydney",
+    "status": 200
+  },
+  {
+    "label": "internal-link",
+    "type": "status",
+    "href": "/interstate/adelaide-queensland",
+    "status": 200
+  },
+  {
+    "label": "internal-link",
+    "type": "status",
+    "href": "/interstate/adelaide-perth",
+    "status": 200
+  },
+  {
+    "label": "internal-link",
+    "type": "status",
+    "href": "/pricing",
+    "status": 200
+  },
+  {
+    "label": "internal-link",
+    "type": "status",
+    "href": "/about",
+    "status": 200
+  },
+  {
+    "label": "internal-link",
+    "type": "status",
+    "href": "/contact",
+    "status": 200
+  },
+  {
+    "label": "internal-link",
+    "type": "status",
+    "href": "/areas",
+    "status": 200
+  },
+  {
+    "label": "internal-link",
+    "type": "status",
+    "href": "/interstate",
+    "status": 200
+  },
+  {
+    "label": "internal-link",
+    "type": "status",
+    "href": "/guides",
+    "status": 200
+  },
+  {
+    "label": "internal-link",
+    "type": "status",
+    "href": "/privacy",
+    "status": 200
+  },
+  {
+    "label": "internal-link",
+    "type": "status",
+    "href": "/terms",
+    "status": 200
+  },
+  {
+    "label": "unknown-route",
+    "type": "status",
+    "status": 404
+  }
+]
