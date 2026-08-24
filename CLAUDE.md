@@ -46,13 +46,15 @@ compiled CSS. There is no watch mode and no unit-test layer.
 All 14 tests pass, and typecheck and lint are clean. Treat any failure as caused
 by your change.
 
-The form provider has changed twice: FormSubmit originally, then Web3Forms in
-`9af5a6c`, then **Formspree** in `6cbc9ae`. Only Formspree is current — there
-should be no `formsubmit.co`, `api.web3forms.com`, `access_key`, `_subject`,
-`_captcha`, `_honey` or `_next` anywhere in the source, and the quote-flow test
-asserts their absence. Dated entries in `DESIGN_AUDIT.md` still name older
-providers because they record what was true on those dates; leave that history
-alone.
+The form provider has changed several times: FormSubmit, then Web3Forms
+(`9af5a6c`), then Formspree (`6cbc9ae`), then back to **Web3Forms** in
+`54c369f`. Web3Forms is current, and it is the sole provider — there should be
+no `formspree.io`, `formsubmit.co`, `_subject`, `_captcha`, `_honey` or `_next`
+anywhere in the source, and the quote-flow test asserts their absence. Check
+`quoteFormEndpoint` in `lib/site-data.ts` before believing any prose about the
+provider, this file included. Dated entries in `DESIGN_AUDIT.md` still name
+older providers because they record what was true on those dates; leave that
+history alone.
 
 ## Layout
 
@@ -186,15 +188,23 @@ Canonicals must not have trailing slashes.
 
 ### Quote form
 
-`QuoteForm` in `SiteClient.tsx` posts to **Formspree** (`quoteFormEndpoint` in
-`lib/site-data.ts`). The `<form>` carries `action={quoteFormEndpoint}`
-`method="POST"` so it still works without JS, while `onSubmit` intercepts and
-sends a `FormData` body via `fetch` with `Accept: application/json`, then shows
-an inline success or error message — so the visitor never leaves the page. Native
-browser validation runs before submit and a `_gotcha` honeypot field is present.
+`QuoteForm` in `SiteClient.tsx` posts to **Web3Forms**; both
+`quoteFormEndpoint` and `web3FormsAccessKey` live in `lib/site-data.ts` and a
+test asserts each literal. `onSubmit` builds a `FormData` from the form, appends
+`access_key`, `fetch`es the endpoint and parses the JSON reply, treating
+`success !== true` as an error, then shows an inline message — so the visitor
+never leaves the page. Native browser validation runs before submit, a `_gotcha`
+honeypot is present, and `subject`, `from_name`, `source_page` and
+`move_category` ride along as hidden inputs.
+
+Note that `access_key` is appended in JS rather than rendered as a hidden input,
+while the `<form>` still carries `action={quoteFormEndpoint}` `method="POST"`.
+The scripted path is the working one; a no-JS native submit would post without
+the key. Keep that in mind before describing the form as a progressive-
+enhancement fallback.
 
 There is **no API route of this project's own** — tests assert `SiteClient.tsx`
-contains no `fetch("/api/quote…")`. The Formspree form ID is a public,
+contains no `fetch("/api/quote…")`. The Web3Forms access key is a publishable,
 client-side identifier by design; it is not a secret. There are no environment
 variables in this project.
 

@@ -2,7 +2,7 @@
 
 import { FormEvent, useEffect, useRef, useState } from "react";
 import { usePathname } from "next/navigation";
-import { areas, business, entryLocalRate, interstatePricing, interstateRoutes, quoteFormEndpoint, services } from "../../lib/site-data";
+import { areas, business, entryLocalRate, interstatePricing, interstateRoutes, localPricing, quoteFormEndpoint, services, web3FormsAccessKey } from "../../lib/site-data";
 
 export function UtilityBar() {
   return (
@@ -323,7 +323,7 @@ export function Header() {
 
 type FormDataShape = {
   name: string; phone: string; email: string; date: string; from: string; to: string;
-  moveType: string; propertySize: string; details: string; company: string; tab: "local" | "interstate";
+  moveType: string; movingPackage: string; propertySize: string; details: string; company: string; tab: "local" | "interstate";
   floorAccess: string; parkingAccess: string; boxesNeeded: string; services: string[];
 };
 
@@ -341,7 +341,7 @@ const ADDITIONAL_SERVICES = [
 
 const createEmptyForm = (): FormDataShape => ({
   name: "", phone: "", email: "", date: "", from: "", to: "",
-  moveType: "Residential (House / Unit)", propertySize: "2 Bedrooms", details: "", company: "", tab: "local",
+  moveType: "Residential (House / Unit)", movingPackage: "2 Men + Truck", propertySize: "2 Bedrooms", details: "", company: "", tab: "local",
   floorAccess: "Ground Floor / Driveway Access", parkingAccess: "On-Street Parking (Nearby)", boxesNeeded: "Not Sure Yet", services: []
 });
 
@@ -404,13 +404,18 @@ export function QuoteForm({ compact = false }: { compact?: boolean }) {
     setStatus("Submitting your move details securely…");
 
     try {
+      const formData = new FormData(event.currentTarget);
+      formData.append("access_key", web3FormsAccessKey);
+
       const response = await fetch(quoteFormEndpoint, {
         method: "POST",
-        body: new FormData(event.currentTarget),
-        headers: { Accept: "application/json" },
+        body: formData,
       });
 
-      if (!response.ok) throw new Error(`Formspree returned ${response.status}`);
+      const data: { success?: boolean; message?: string } = await response.json();
+      if (!response.ok || !data.success) {
+        throw new Error(data.message || `Web3Forms returned ${response.status}`);
+      }
 
       setForm(createEmptyForm());
       setStatusKind("success");
@@ -437,9 +442,9 @@ export function QuoteForm({ compact = false }: { compact?: boolean }) {
         setStatus("Please complete the required fields and correct any highlighted values.");
       }}
     >
-      <input type="hidden" name="_subject" value="New HF Removals Adelaide Quote Request" />
-      <input type="hidden" name="form_source" value="HF Removals Adelaide Website" />
-      <input type="hidden" name="source_page" value={pathname} />
+      <input type="hidden" name="subject" value="New HF Removals Adelaide Quote Request" />
+      <input type="hidden" name="from_name" value="HF Removals Adelaide Website" />
+      <input type="hidden" name="source_page" value={`${business.domain}${pathname}`} />
       <input type="hidden" name="move_category" value={form.tab === "interstate" ? "Interstate Move" : "Local Adelaide Move"} />
       <div className="form-header-badge">
         <span className="badge-dot" />
@@ -489,6 +494,32 @@ export function QuoteForm({ compact = false }: { compact?: boolean }) {
           <p>⚡ <strong>Interstate Reference:</strong> Melbourne from <em>{melbourneRate.price}/{melbourneRate.unit.replace("per ", "")}</em> · Sydney from <em>{sydneyRate.price}/{sydneyRate.unit.replace("per ", "")}</em> · Queensland from <em>{queenslandRate.price}/{queenslandRate.unit.replace("per ", "")}</em></p>
         )}
       </div>
+
+      <fieldset className="package-selection">
+        <legend className="field-label">Select Your Moving Package <b aria-hidden="true">*</b></legend>
+        <div className="package-options">
+          {localPricing.map((pricing, index) => {
+            const packageName = `${index + 2} Men + Truck`;
+            return (
+              <label className="package-option" key={pricing.name}>
+                <input
+                  type="radio"
+                  name="moving_package"
+                  value={packageName}
+                  checked={form.movingPackage === packageName}
+                  onChange={(event) => update("movingPackage", event.target.value)}
+                  required
+                />
+                <span className="package-option-copy">
+                  <strong>{packageName}</strong>
+                  <small>{pricing.halfHour} / 30 min · {pricing.hourly}/hr</small>
+                </span>
+                <span className="package-radio" aria-hidden="true" />
+              </label>
+            );
+          })}
+        </div>
+      </fieldset>
 
       <fieldset className="form-grid form-core">
         <legend className="sr-only">Essential move details</legend>

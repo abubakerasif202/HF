@@ -127,26 +127,29 @@ test("serves crawl discovery endpoints and unique guide metadata", async () => {
   assert.doesNotMatch(html, /href="\/(?:services|areas|pricing|about|contact|guides|interstate|privacy|terms)[^"]*\/"/i);
 });
 
-test("renders one coherent, accessible Formspree quote flow", async () => {
+test("renders one coherent, accessible Web3Forms quote flow", async () => {
   for (const path of ["/", "/contact"]) {
     const response = await render(path);
     assert.equal(response.status, 200, path);
     const html = await response.text();
 
-    assert.match(html, /<form[^>]+action="https:\/\/formspree\.io\/f\/mdenjrnl"[^>]+method="POST"/i, path);
-    assert.match(html, /name="_subject"[^>]+value="New HF Removals Adelaide Quote Request"/i, path);
-    assert.match(html, /name="form_source"[^>]+value="HF Removals Adelaide Website"/i, path);
+    assert.match(html, /<form[^>]+action="https:\/\/api\.web3forms\.com\/submit"[^>]+method="POST"/i, path);
+    assert.match(html, /name="subject"[^>]+value="New HF Removals Adelaide Quote Request"/i, path);
+    assert.match(html, /name="from_name"[^>]+value="HF Removals Adelaide Website"/i, path);
     assert.match(html, /name="source_page"/i, path);
     assert.match(html, /<input(?=[^>]*name="_gotcha")(?=[^>]*tabindex="-1")[^>]*>/i, path);
-    for (const field of ["name", "phone", "email", "moving_from", "moving_to", "move_type", "property_size", "preferred_moving_date", "details"]) {
+    for (const field of ["name", "phone", "email", "moving_from", "moving_to", "move_type", "moving_package", "property_size", "preferred_moving_date", "details"]) {
       assert.match(html, new RegExp(`name="${field}"`, "i"), `${path}: ${field}`);
     }
+    assert.match(html, /name="moving_package"[^>]+value="2 Men \+ Truck"/i, path);
+    assert.match(html, /name="moving_package"[^>]+value="3 Men \+ Truck"/i, path);
   }
 
   const client = await readFile(new URL("../app/components/SiteClient.tsx", import.meta.url), "utf8");
   assert.doesNotMatch(client, /fetch\(["']\/api\/quote/i);
-  assert.match(client, /headers: \{ Accept: "application\/json" \}/i);
-  assert.doesNotMatch(client, /access_key|WEB3FORMS_ACCESS_KEY|api\.web3forms\.com|formsubmit\.co/i);
+  assert.match(client, /formData\.append\("access_key", web3FormsAccessKey\)/i);
+  assert.match(client, /data\.success/i);
+  assert.doesNotMatch(client, /formspree\.io|formsubmit\.co/i);
 });
 
 test("keeps verified rates, coverage wording and canonical route inventory centralized", async () => {
@@ -250,7 +253,8 @@ test("the 404 page is not indexable", async () => {
 test("the production origin is declared once and drives canonical output", async () => {
   const data = await readFile(new URL("../lib/site-data.ts", import.meta.url), "utf8");
   assert.match(data, /export const siteOrigin = "https:\/\/www\.hfremovalsadelaide\.com"/);
-  assert.match(data, /export const quoteFormEndpoint = "https:\/\/formspree\.io\/f\/mdenjrnl"/);
+  assert.match(data, /export const quoteFormEndpoint = "https:\/\/api\.web3forms\.com\/submit"/);
+  assert.match(data, /export const web3FormsAccessKey = "a6214fc2-9669-49a0-abf4-4f8bd77c3f88"/);
   const html = await (await render()).text();
   assert.match(html, /rel="canonical" href="https:\/\/www\.hfremovalsadelaide\.com"/);
   assert.match(html, /property="og:url" content="https:\/\/www\.hfremovalsadelaide\.com"/);
