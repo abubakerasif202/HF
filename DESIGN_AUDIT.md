@@ -7,7 +7,7 @@ Audit date: 21 August 2026
 - Switched canonical, Open Graph, schema, robots and sitemap output to `https://www.hfremovalsadelaide.com` through the central site origin.
 - Replaced the drifted Web3Forms implementation and exposed client access key with the supplied Formspree endpoint, accessible in-page success/error feedback, duplicate-submit protection and a no-JavaScript fallback.
 - Updated the privacy disclosure and regression tests to match the actual form processor.
-- Replaced the logo master with the latest supplied transparent PNG and regenerated the optimized header/footer logo, browser icons and 1200×630 social image from that source.
+- Regenerated the optimized header/footer logo, browser icons and 1200×630 social image directly from the latest supplied transparent PNG; the repository's existing high-resolution reference master remains archived separately.
 - Removed the inaccessible `.com.au` mailbox from visible contact details; the confirmed Gmail address remains published.
 - Added the missing Playwright dependency and a portable Chromium test command. The current execution environment blocked the browser-binary download, so the new run is limited to the fully passing rendered-route suite; the stored multi-viewport browser audit remains the visual baseline because the layout system was not changed.
 
