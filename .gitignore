@@ -45,3 +45,4 @@ next-env.d.ts
 /test-results/
 /.node_modules-partial-*/
 /.dev-server.*.log
+tsconfig.tsbuildinfo

@@ -324,14 +324,29 @@ export function Header() {
 type FormDataShape = {
   name: string; phone: string; email: string; date: string; from: string; to: string;
   moveType: string; propertySize: string; details: string; company: string; tab: "local" | "interstate";
+  floorAccess: string; parkingAccess: string; boxesNeeded: string; services: string[];
 };
+
+const ADDITIONAL_SERVICES = [
+  "Full Packing Service",
+  "Unpacking Service",
+  "Furniture Disassembly / Reassembly",
+  "Piano / Pool Table Moving",
+  "Short/Long-Term Storage",
+  "Extra Transit Insurance / Cover",
+  "Packing Boxes & Materials Supply",
+  "Cleaning (End of Lease)",
+  "Rubbish/Junk Removal",
+] as const;
 
 const createEmptyForm = (): FormDataShape => ({
   name: "", phone: "", email: "", date: "", from: "", to: "",
-  moveType: "Residential (House / Unit)", propertySize: "2 Bedrooms", details: "", company: "", tab: "local"
+  moveType: "Residential (House / Unit)", propertySize: "2 Bedrooms", details: "", company: "", tab: "local",
+  floorAccess: "Ground Floor / Driveway Access", parkingAccess: "On-Street Parking (Nearby)", boxesNeeded: "Not Sure Yet", services: []
 });
 
-const FORM_SUBMIT_ENDPOINT = "https://formsubmit.co/hfremovalad@gmail.com";
+const FORM_SUBMIT_ENDPOINT = "https://api.web3forms.com/submit";
+const WEB3FORMS_ACCESS_KEY = "80371c58-c1d4-486e-8796-201b7930b1f2";
 
 function getAdelaideDateInputValue(date = new Date()) {
   const parts = new Intl.DateTimeFormat("en-AU", {
@@ -366,7 +381,15 @@ export function QuoteForm({ compact = false }: { compact?: boolean }) {
     return () => window.clearTimeout(statusTimer);
   }, []);
 
-  const update = (field: keyof FormDataShape, value: string) => setForm((current) => ({ ...current, [field]: value }));
+  const update = (field: Exclude<keyof FormDataShape, "services">, value: string) =>
+    setForm((current) => ({ ...current, [field]: value }));
+  const toggleService = (service: string) =>
+    setForm((current) => ({
+      ...current,
+      services: current.services.includes(service)
+        ? current.services.filter((item) => item !== service)
+        : [...current.services, service],
+    }));
   const handleTabKey = (event: React.KeyboardEvent<HTMLButtonElement>) => {
     if (!["ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown"].includes(event.key)) return;
     event.preventDefault();
@@ -407,11 +430,10 @@ export function QuoteForm({ compact = false }: { compact?: boolean }) {
         setStatus("Please complete the required fields and correct any highlighted values.");
       }}
     >
-      <input type="hidden" name="_subject" value="New HF Removals Adelaide Quote Request" />
-      <input type="hidden" name="_captcha" value="false" />
-      <input type="hidden" name="_template" value="table" />
-      <input type="hidden" name="_next" value={successUrl} />
-      <input type="hidden" name="website" value="HF Removals Adelaide Website" />
+      <input type="hidden" name="access_key" value={WEB3FORMS_ACCESS_KEY} />
+      <input type="hidden" name="subject" value="New HF Removals Adelaide Quote Request" />
+      <input type="hidden" name="from_name" value="HF Removals Adelaide Website" />
+      <input type="hidden" name="redirect" value={successUrl} />
       <input type="hidden" name="move_category" value={form.tab === "interstate" ? "Interstate Move" : "Local Adelaide Move"} />
       <div className="form-header-badge">
         <span className="badge-dot" />
@@ -485,14 +507,21 @@ export function QuoteForm({ compact = false }: { compact?: boolean }) {
           <select name="move_type" required value={form.moveType} onChange={(e) => update("moveType", e.target.value)}>
             <option>Residential (House / Unit)</option>
             <option>Apartment / High-Rise (Lift Access)</option>
+            <option>Studio / Granny Flat</option>
             <option>Office / Commercial Relocation</option>
+            <option>Retail / Warehouse Relocation</option>
             <option>Interstate Long Distance</option>
             <option>Backloading Route</option>
             <option>Packing & Protection Only</option>
             <option>Single Item / Heavy Furniture</option>
+            <option>Piano / Pool Table Move</option>
+            <option>Storage Drop-Off / Pick-Up</option>
+            <option>End-of-Lease Move + Clean</option>
+            <option>Senior / Downsizing Move</option>
+            <option>Student Move (Share House)</option>
           </select>
         </label>
-        <input className="honeypot" type="text" name="_honey" tabIndex={-1} autoComplete="off" aria-hidden="true" value={form.company} onChange={(e) => update("company", e.target.value)} />
+        <input className="honeypot" type="text" name="botcheck" tabIndex={-1} autoComplete="off" aria-hidden="true" value={form.company} onChange={(e) => update("company", e.target.value)} />
       </fieldset>
 
       <details className="form-optional" open={compact || undefined}>
@@ -516,11 +545,64 @@ export function QuoteForm({ compact = false }: { compact?: boolean }) {
               <option>Studio / 1 Bedroom Unit</option>
               <option>2 Bedrooms</option>
               <option>3 Bedrooms (Standard Family Home)</option>
-              <option>4+ Bedrooms (Large Family Home)</option>
+              <option>4 Bedrooms (Large Family Home)</option>
+              <option>5+ Bedrooms (Very Large Home)</option>
               <option>Office / Commercial Space</option>
+              <option>Warehouse / Industrial Space</option>
               <option>Few Items / Selected Furniture</option>
+              <option>Single Room / Share House Room</option>
             </select>
           </label>
+          <label>
+            <span className="field-label">Floor / Building Access</span>
+            <select name="floor_access" value={form.floorAccess} onChange={(e) => update("floorAccess", e.target.value)}>
+              <option>Ground Floor / Driveway Access</option>
+              <option>1st Floor (Stairs Only)</option>
+              <option>2nd Floor (Stairs Only)</option>
+              <option>3+ Floors (Stairs Only)</option>
+              <option>Upper Floor with Lift Access</option>
+              <option>Not Sure Yet</option>
+            </select>
+          </label>
+          <label>
+            <span className="field-label">Parking / Truck Access</span>
+            <select name="parking_access" value={form.parkingAccess} onChange={(e) => update("parkingAccess", e.target.value)}>
+              <option>Driveway (Truck Fits Directly)</option>
+              <option>On-Street Parking (Nearby)</option>
+              <option>Restricted / Permit Parking</option>
+              <option>Long Carry Required (50m+)</option>
+              <option>Loading Dock (Commercial)</option>
+              <option>Not Sure Yet</option>
+            </select>
+          </label>
+          <label>
+            <span className="field-label">Packing Boxes Needed</span>
+            <select name="boxes_needed" value={form.boxesNeeded} onChange={(e) => update("boxesNeeded", e.target.value)}>
+              <option>Not Sure Yet</option>
+              <option>None — Already Packed</option>
+              <option>1–10 Boxes</option>
+              <option>11–25 Boxes</option>
+              <option>26–50 Boxes</option>
+              <option>50+ Boxes</option>
+            </select>
+          </label>
+          <fieldset className="form-wide form-services">
+            <legend className="field-label">Additional Services (Select All That Apply)</legend>
+            <div className="services-grid">
+              {ADDITIONAL_SERVICES.map((service) => (
+                <label key={service} className="service-check">
+                  <input
+                    type="checkbox"
+                    name="services[]"
+                    value={service}
+                    checked={form.services.includes(service)}
+                    onChange={() => toggleService(service)}
+                  />
+                  <span>{service}</span>
+                </label>
+              ))}
+            </div>
+          </fieldset>
           <label className="form-wide">
             <span className="field-label">Access & Heavy Items Notes</span>
             <textarea
