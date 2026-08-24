@@ -114,12 +114,12 @@ test("serves crawl discovery endpoints and unique guide metadata", async () => {
   const robots = await render("/robots.txt");
   assert.equal(robots.status, 200);
   assert.match(robots.headers.get("content-type") ?? "", /text\/plain/);
-  assert.match(await robots.text(), /Sitemap: https:\/\/hf-removals-adelaide\.vercel\.app\/sitemap\.xml/);
+  assert.match(await robots.text(), /Sitemap: https:\/\/www\.hfremovalsadelaide\.com\/sitemap\.xml/);
 
   const sitemap = await render("/sitemap.xml");
   assert.equal(sitemap.status, 200);
   assert.match(sitemap.headers.get("content-type") ?? "", /xml/);
-  assert.match(await sitemap.text(), /https:\/\/hf-removals-adelaide\.vercel\.app\/services\/residential-removals/);
+  assert.match(await sitemap.text(), /https:\/\/www\.hfremovalsadelaide\.com\/services\/residential-removals/);
 
   const guide = await render("/guides/office-relocation-checklist");
   const html = await guide.text();
@@ -138,7 +138,7 @@ test("renders one coherent, accessible Web3Forms quote flow", async () => {
     assert.match(html, /name="access_key"[^>]+value="[0-9a-f-]{36}"/i, path);
     assert.match(html, /name="subject"[^>]+value="New HF Removals Adelaide Quote Request"/i, path);
     assert.match(html, /name="from_name"[^>]+value="HF Removals Adelaide Website"/i, path);
-    assert.match(html, /name="redirect"[^>]+value="https:\/\/hf-removals-adelaide\.vercel\.app\//i, path);
+    assert.match(html, /name="redirect"[^>]+value="https:\/\/www\.hfremovalsadelaide\.com\//i, path);
     assert.match(html, /name="move_category"[^>]+value="Local Adelaide Move"/i, path);
     // Web3Forms' honeypot is `botcheck`; it stays keyboard-unreachable.
     assert.match(html, /<input(?=[^>]*name="botcheck")(?=[^>]*tabindex="-1")[^>]*>/i, path);
@@ -257,11 +257,33 @@ test("the deployed origin is declared once and drives the quote redirect", async
   const data = await readFile(new URL("../lib/site-data.ts", import.meta.url), "utf8");
   assert.match(data, /export const deployedOrigin/);
   const html = await (await render()).text();
-  // The custom domain still serves a different, older site, so Web3Forms must
-  // return customers to the origin that actually serves this app.
-  assert.match(html, /name="redirect" value="https:\/\/hf-removals-adelaide\.vercel\.app\/\?quote=sent#quote"/);
+  // Web3Forms returns customers to the canonical production host.
+  assert.match(html, /name="redirect" value="https:\/\/www\.hfremovalsadelaide\.com\/\?quote=sent#quote"/);
   const client = await readFile(new URL("../app/components/SiteClient.tsx", import.meta.url), "utf8");
   assert.doesNotMatch(client, /const FORM_SUCCESS_ORIGIN/);
+  // One canonical host: the origin is declared once and derived everywhere else.
+  assert.doesNotMatch(data, /intendedDomain/);
+  assert.equal(data.match(/https:\/\/www\.hfremovalsadelaide\.com/g)?.length, 1);
+});
+
+test("no superseded production origin survives anywhere in the output", async () => {
+  // The Vercel alias and the apex domain both 308 to www; neither may appear in
+  // any indexable surface, or search engines get two competing canonical hosts.
+  for (const path of ["/", "/contact", "/services/residential-removals", "/interstate/adelaide-perth", "/sitemap.xml", "/robots.txt"]) {
+    const body = await (await render(path)).text();
+    assert.doesNotMatch(body, /hf-removals-adelaide\.vercel\.app/i, path);
+    assert.doesNotMatch(body, /vercel\.app/i, path);
+    // the apex must never be emitted as a URL; only the www host is canonical
+    assert.doesNotMatch(body, /https:\/\/hfremovalsadelaide\.com/i, path);
+  }
+
+  // Next's robots.ts generator emits "User-Agent:"; robots.txt field names are
+  // case-insensitive (RFC 9309 s2.1), so normalise before comparing the structure.
+  const robots = await (await render("/robots.txt")).text();
+  assert.equal(
+    robots.trim().replace(/^User-Agent:/im, "User-agent:"),
+    ["User-agent: *", "Allow: /", "", "Sitemap: https://www.hfremovalsadelaide.com/sitemap.xml"].join("\n"),
+  );
 });
 
 test("layout grids declare a track for every child they render", async () => {

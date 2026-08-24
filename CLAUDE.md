@@ -122,11 +122,16 @@ component.
 
 ### Origin constants
 
-`deployedOrigin` (`https://hf-removals-adelaide.vercel.app`) drives canonicals,
-sitemap, robots and the quote-form success redirect. `intendedDomain`
-(`hfremovalsadelaide.com.au`) is declared but **not yet in use** — the custom
-domain still serves an older site. Switch both atomically at DNS cutover; do not
-half-migrate one.
+`deployedOrigin` (`https://www.hfremovalsadelaide.com`) is the **single canonical
+production origin**. It drives canonicals, sitemap, robots, Open Graph/Twitter
+URLs, JSON-LD `@id`s and the quote-form success redirect. It is declared once in
+`lib/site-data.ts`; a test asserts the literal appears exactly once there and
+that no second origin constant exists.
+
+`next.config.ts` permanently redirects (308) the apex `hfremovalsadelaide.com`
+and the old `hf-removals-adelaide.vercel.app` alias to the www host, so only one
+host is indexable. A test asserts neither superseded host appears in any rendered
+route, the sitemap or robots.
 
 Use `canonical(path)` rather than string-concatenating the origin.
 

@@ -2,6 +2,8 @@
 
 Premium multi-route website for HF Removals Adelaide, built with Next.js and deployed exclusively on Vercel.
 
+The canonical production domain is **https://www.hfremovalsadelaide.com**. It is declared once as `deployedOrigin` in `lib/site-data.ts`; the apex domain and the old Vercel alias both redirect there permanently via `next.config.ts`.
+
 ## Local development
 
 Requires Node.js 22.13 or newer.
@@ -16,7 +18,7 @@ npm run lint
 
 ## Quote delivery
 
-The homepage and Contact quote forms submit directly to [Web3Forms](https://web3forms.com) via a native `POST` to `https://api.web3forms.com/submit`. Native browser validation runs before submission, a `botcheck` honeypot field is included, and successful submissions return to the originating route on the public Vercel production alias (`?quote=sent#quote`) with an on-site confirmation message.
+The homepage and Contact quote forms submit directly to [Web3Forms](https://web3forms.com) via a native `POST` to `https://api.web3forms.com/submit`. Native browser validation runs before submission, a `botcheck` honeypot field is included, and successful submissions return to the originating route on the canonical production domain (`?quote=sent#quote`) with an on-site confirmation message.
 
 The Web3Forms access key is a publishable, client-side key by design — it is not a secret, and no form-delivery environment variable is required. There is no API route and no client-side `fetch`; the browser posts the form directly.
 

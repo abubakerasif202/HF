@@ -13,8 +13,15 @@ export type ContentPage = {
   unit?: string;
 };
 
-export const deployedOrigin = "https://hf-removals-adelaide.vercel.app";
-export const intendedDomain = "https://hfremovalsadelaide.com.au";
+/**
+ * The single canonical production origin. Drives canonicals, sitemap, robots,
+ * Open Graph/Twitter URLs, JSON-LD @ids and the quote-form success redirect.
+ *
+ * Everything else derives from this constant — change it here and nowhere else.
+ * `next.config.ts` permanently redirects the apex domain and the Vercel alias
+ * here so only one host is ever indexable.
+ */
+export const deployedOrigin = "https://www.hfremovalsadelaide.com";
 
 export const business = {
   name: "HF Removals Adelaide",
@@ -63,10 +70,6 @@ export const business = {
   heroImage: "/images/hf-hero-truck-1792.webp",
   ceoImage: "/images/muhammad-rasheed-ceo.webp",
 } as const;
-
-// Keep discovery, canonical and form-return URLs on the origin that currently
-// serves this application. Switch both constants atomically when DNS is cut over.
-
 
 /**
  * Google review excerpts transcribed from supplied Google Business Profile
