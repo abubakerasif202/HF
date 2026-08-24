@@ -114,12 +114,12 @@ test("serves crawl discovery endpoints and unique guide metadata", async () => {
   const robots = await render("/robots.txt");
   assert.equal(robots.status, 200);
   assert.match(robots.headers.get("content-type") ?? "", /text\/plain/);
-  assert.match(await robots.text(), /Sitemap: https:\/\/hf-removals-adelaide\.vercel\.app\/sitemap\.xml/);
+  assert.match(await robots.text(), /Sitemap: https:\/\/www\.hfremovalsadelaide\.com\/sitemap\.xml/);
 
   const sitemap = await render("/sitemap.xml");
   assert.equal(sitemap.status, 200);
   assert.match(sitemap.headers.get("content-type") ?? "", /xml/);
-  assert.match(await sitemap.text(), /https:\/\/hf-removals-adelaide\.vercel\.app\/services\/residential-removals/);
+  assert.match(await sitemap.text(), /https:\/\/www\.hfremovalsadelaide\.com\/services\/residential-removals/);
 
   const guide = await render("/guides/office-relocation-checklist");
   const html = await guide.text();
@@ -127,18 +127,17 @@ test("serves crawl discovery endpoints and unique guide metadata", async () => {
   assert.doesNotMatch(html, /href="\/(?:services|areas|pricing|about|contact|guides|interstate|privacy|terms)[^"]*\/"/i);
 });
 
-test("renders one coherent, accessible FormSubmit quote flow", async () => {
+test("renders one coherent, accessible Formspree quote flow", async () => {
   for (const path of ["/", "/contact"]) {
     const response = await render(path);
     assert.equal(response.status, 200, path);
     const html = await response.text();
 
-    assert.match(html, /<form[^>]+action="https:\/\/formsubmit\.co\/hfremovalad@gmail\.com"[^>]+method="POST"/i, path);
+    assert.match(html, /<form[^>]+action="https:\/\/formspree\.io\/f\/mdenjrnl"[^>]+method="POST"/i, path);
     assert.match(html, /name="_subject"[^>]+value="New HF Removals Adelaide Quote Request"/i, path);
-    assert.match(html, /name="_captcha"[^>]+value="false"/i, path);
-    assert.match(html, /name="website"[^>]+value="HF Removals Adelaide Website"/i, path);
-    assert.match(html, /name="_next"[^>]+value="https:\/\/hf-removals-adelaide\.vercel\.app\//i, path);
-    assert.match(html, /<input(?=[^>]*name="_honey")(?=[^>]*tabindex="-1")[^>]*>/i, path);
+    assert.match(html, /name="form_source"[^>]+value="HF Removals Adelaide Website"/i, path);
+    assert.match(html, /name="source_page"/i, path);
+    assert.match(html, /<input(?=[^>]*name="_gotcha")(?=[^>]*tabindex="-1")[^>]*>/i, path);
     for (const field of ["name", "phone", "email", "moving_from", "moving_to", "move_type", "property_size", "preferred_moving_date", "details"]) {
       assert.match(html, new RegExp(`name="${field}"`, "i"), `${path}: ${field}`);
     }
@@ -146,7 +145,8 @@ test("renders one coherent, accessible FormSubmit quote flow", async () => {
 
   const client = await readFile(new URL("../app/components/SiteClient.tsx", import.meta.url), "utf8");
   assert.doesNotMatch(client, /fetch\(["']\/api\/quote/i);
-  assert.doesNotMatch(client, /openEmailFallback|QUOTE_ENDPOINT_URL|formsubmit\.co\/h\[/i);
+  assert.match(client, /headers: \{ Accept: "application\/json" \}/i);
+  assert.doesNotMatch(client, /access_key|WEB3FORMS_ACCESS_KEY|api\.web3forms\.com|formsubmit\.co/i);
 });
 
 test("keeps verified rates, coverage wording and canonical route inventory centralized", async () => {
@@ -247,15 +247,15 @@ test("the 404 page is not indexable", async () => {
   assert.match(await response.text(), /name="robots" content="noindex/);
 });
 
-test("the deployed origin is declared once and drives the quote redirect", async () => {
+test("the production origin is declared once and drives canonical output", async () => {
   const data = await readFile(new URL("../lib/site-data.ts", import.meta.url), "utf8");
-  assert.match(data, /export const deployedOrigin/);
+  assert.match(data, /export const siteOrigin = "https:\/\/www\.hfremovalsadelaide\.com"/);
+  assert.match(data, /export const quoteFormEndpoint = "https:\/\/formspree\.io\/f\/mdenjrnl"/);
   const html = await (await render()).text();
-  // The custom domain still serves a different, older site, so FormSubmit must
-  // return customers to the origin that actually serves this app.
-  assert.match(html, /name="_next" value="https:\/\/hf-removals-adelaide\.vercel\.app\/\?quote=sent#quote"/);
+  assert.match(html, /rel="canonical" href="https:\/\/www\.hfremovalsadelaide\.com"/);
+  assert.match(html, /property="og:url" content="https:\/\/www\.hfremovalsadelaide\.com"/);
   const client = await readFile(new URL("../app/components/SiteClient.tsx", import.meta.url), "utf8");
-  assert.doesNotMatch(client, /const FORM_SUCCESS_ORIGIN/);
+  assert.doesNotMatch(client, /hf-removals-adelaide\.vercel\.app|hfremovalsadelaide\.com\.au/);
 });
 
 test("layout grids declare a track for every child they render", async () => {

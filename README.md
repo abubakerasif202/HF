@@ -14,11 +14,20 @@ npm test
 npm run lint
 ```
 
+For the responsive Chromium QA suite, install the browser once and run:
+
+```powershell
+npx playwright install chromium
+npm run test:browser
+```
+
+## Production domain
+
+The canonical production origin is `https://www.hfremovalsadelaide.com`. Metadata, Open Graph URLs, structured data, robots.txt and the sitemap all read from the central site configuration in `lib/site-data.ts`.
+
 ## Quote delivery
 
-The homepage and Contact quote forms submit directly to FormSubmit for `hfremovalad@gmail.com`. Native browser validation runs before submission, FormSubmit's honeypot remains enabled, and successful submissions return to the originating route on the public Vercel production alias with an on-site confirmation message.
-
-The FormSubmit destination was activated by the mailbox owner on 24 August 2026. No form-delivery secret or environment variable is required.
+The homepage and Contact quote forms submit to the owner's Formspree form at `https://formspree.io/f/mdenjrnl`. JavaScript submissions keep the customer on-site and provide accessible success/error feedback; the native form action remains available as a no-JavaScript fallback. Browser validation, duplicate-submit protection and Formspree's `_gotcha` honeypot are enabled. No form-delivery secret is committed to the client.
 
 ## Supplied facts and media
 

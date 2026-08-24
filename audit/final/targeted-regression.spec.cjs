@@ -1,6 +1,6 @@
 const { test, expect } = require('@playwright/test');
 
-test.use({ channel: 'chrome', viewport: { width: 390, height: 844 }, reducedMotion: 'reduce' });
+test.use({ browserName: 'chromium', viewport: { width: 390, height: 844 }, reducedMotion: 'reduce' });
 
 test('mobile menu focus and process numbering regression', async ({ page }) => {
   await page.goto('http://127.0.0.1:3100/', { waitUntil: 'networkidle' });

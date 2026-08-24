@@ -6,6 +6,6 @@ module.exports = defineConfig({
   workers: 1,
   retries: 0,
   reporter: [['line'], ['html', { outputFolder: `${__dirname}/html-report`, open: 'never' }]],
-  use: { channel: 'chrome', trace: 'retain-on-failure', screenshot: 'only-on-failure' },
+  use: { browserName: 'chromium', trace: 'retain-on-failure', screenshot: 'only-on-failure' },
   outputDir: `${__dirname}/test-results`,
 });

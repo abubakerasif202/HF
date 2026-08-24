@@ -26,11 +26,11 @@ const schema = {
       hasMap: business.googleBusiness.mapEmbedUrl,
       address: {
         "@type": "PostalAddress",
-        streetAddress: "20 Prunus Ave",
-        addressLocality: "Elizabeth Vale",
-        addressRegion: "SA",
-        postalCode: "5112",
-        addressCountry: "AU",
+        streetAddress: business.address.street,
+        addressLocality: business.address.suburb,
+        addressRegion: business.address.state,
+        postalCode: business.address.postcode,
+        addressCountry: business.address.countryCode,
       },
       // No aggregateRating here on purpose. The 4.9/417 figures come from the
       // business's Google profile, and Google's review-snippet policy expects
@@ -39,22 +39,10 @@ const schema = {
       // reviews section still cites Google as the source and links to the profile.
       geo: {
         "@type": "GeoCoordinates",
-        latitude: -34.7578,
-        longitude: 138.6834,
+        latitude: business.googleBusiness.coordinates.latitude,
+        longitude: business.googleBusiness.coordinates.longitude,
       },
-      areaServed: [
-        "Adelaide Metro",
-        "Adelaide CBD",
-        "Elizabeth Vale",
-        "Elizabeth",
-        "Salisbury",
-        "Blakeview",
-        "Gawler",
-        "Marion",
-        "Norwood",
-        "Glenelg",
-        "South Australia",
-      ],
+      areaServed: business.areaServed,
       openingHoursSpecification: [
         {
           "@type": "OpeningHoursSpecification",
