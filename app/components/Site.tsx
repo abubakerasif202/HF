@@ -1075,7 +1075,7 @@ export function StaticPage({ type }: { type: "about" | "contact" | "pricing" | "
           <h2>{privacy ? "Contact and delivery" : "Pricing and insurance wording"}</h2>
           <p>
             {privacy
-              ? `HF can also be contacted directly at ${business.emails[0]} or ${business.phones[0].display}. Quote-form details are sent to HF through FormSubmit, a third-party form-delivery service, so the information you enter is shared with that provider for delivery of your enquiry.`
+              ? `HF can also be contacted directly at ${business.emails[0]} or ${business.phones[0].display}. Quote-form details are sent to HF through Web3Forms, a third-party form-delivery service, so the information you enter is shared with that provider for delivery of your enquiry.`
               : "Published prices are reference rates reproduced from supplied business material. Interstate prices are per cubic metre, not total move prices. Insurance references are subject to applicable policy terms and the individual move scope."}
           </p>
           <h2>Contact</h2>

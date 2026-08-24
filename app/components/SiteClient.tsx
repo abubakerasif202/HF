@@ -345,7 +345,7 @@ const createEmptyForm = (): FormDataShape => ({
   floorAccess: "Ground Floor / Driveway Access", parkingAccess: "On-Street Parking (Nearby)", boxesNeeded: "Not Sure Yet", services: []
 });
 
-const FORM_SUBMIT_ENDPOINT = "https://api.web3forms.com/submit";
+const WEB3FORMS_ENDPOINT = "https://api.web3forms.com/submit";
 const WEB3FORMS_ACCESS_KEY = "80371c58-c1d4-486e-8796-201b7930b1f2";
 
 function getAdelaideDateInputValue(date = new Date()) {
@@ -420,7 +420,7 @@ export function QuoteForm({ compact = false }: { compact?: boolean }) {
 
   return (
     <form
-      action={FORM_SUBMIT_ENDPOINT}
+      action={WEB3FORMS_ENDPOINT}
       method="POST"
       className={`quote-form ${compact ? "quote-form-compact" : ""}`}
       id="quote"

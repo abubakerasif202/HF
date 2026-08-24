@@ -16,9 +16,9 @@ npm run lint
 
 ## Quote delivery
 
-The homepage and Contact quote forms submit directly to FormSubmit for `hfremovalad@gmail.com`. Native browser validation runs before submission, FormSubmit's honeypot remains enabled, and successful submissions return to the originating route on the public Vercel production alias with an on-site confirmation message.
+The homepage and Contact quote forms submit directly to [Web3Forms](https://web3forms.com) via a native `POST` to `https://api.web3forms.com/submit`. Native browser validation runs before submission, a `botcheck` honeypot field is included, and successful submissions return to the originating route on the public Vercel production alias (`?quote=sent#quote`) with an on-site confirmation message.
 
-The FormSubmit destination was activated by the mailbox owner on 24 August 2026. No form-delivery secret or environment variable is required.
+The Web3Forms access key is a publishable, client-side key by design — it is not a secret, and no form-delivery environment variable is required. There is no API route and no client-side `fetch`; the browser posts the form directly.
 
 ## Supplied facts and media
 

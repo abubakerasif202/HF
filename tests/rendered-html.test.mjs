@@ -127,26 +127,32 @@ test("serves crawl discovery endpoints and unique guide metadata", async () => {
   assert.doesNotMatch(html, /href="\/(?:services|areas|pricing|about|contact|guides|interstate|privacy|terms)[^"]*\/"/i);
 });
 
-test("renders one coherent, accessible FormSubmit quote flow", async () => {
+test("renders one coherent, accessible Web3Forms quote flow", async () => {
   for (const path of ["/", "/contact"]) {
     const response = await render(path);
     assert.equal(response.status, 200, path);
     const html = await response.text();
 
-    assert.match(html, /<form[^>]+action="https:\/\/formsubmit\.co\/hfremovalad@gmail\.com"[^>]+method="POST"/i, path);
-    assert.match(html, /name="_subject"[^>]+value="New HF Removals Adelaide Quote Request"/i, path);
-    assert.match(html, /name="_captcha"[^>]+value="false"/i, path);
-    assert.match(html, /name="website"[^>]+value="HF Removals Adelaide Website"/i, path);
-    assert.match(html, /name="_next"[^>]+value="https:\/\/hf-removals-adelaide\.vercel\.app\//i, path);
-    assert.match(html, /<input(?=[^>]*name="_honey")(?=[^>]*tabindex="-1")[^>]*>/i, path);
+    assert.match(html, /<form[^>]+action="https:\/\/api\.web3forms\.com\/submit"[^>]+method="POST"/i, path);
+    // The access key is a publishable, client-side Web3Forms key by design.
+    assert.match(html, /name="access_key"[^>]+value="[0-9a-f-]{36}"/i, path);
+    assert.match(html, /name="subject"[^>]+value="New HF Removals Adelaide Quote Request"/i, path);
+    assert.match(html, /name="from_name"[^>]+value="HF Removals Adelaide Website"/i, path);
+    assert.match(html, /name="redirect"[^>]+value="https:\/\/hf-removals-adelaide\.vercel\.app\//i, path);
+    assert.match(html, /name="move_category"[^>]+value="Local Adelaide Move"/i, path);
+    // Web3Forms' honeypot is `botcheck`; it stays keyboard-unreachable.
+    assert.match(html, /<input(?=[^>]*name="botcheck")(?=[^>]*tabindex="-1")[^>]*>/i, path);
     for (const field of ["name", "phone", "email", "moving_from", "moving_to", "move_type", "property_size", "preferred_moving_date", "details"]) {
       assert.match(html, new RegExp(`name="${field}"`, "i"), `${path}: ${field}`);
     }
+    // No FormSubmit remnants: the provider was migrated, not doubled up.
+    assert.doesNotMatch(html, /formsubmit\.co/i, path);
+    assert.doesNotMatch(html, /name="_(subject|captcha|honey|next)"/i, path);
   }
 
   const client = await readFile(new URL("../app/components/SiteClient.tsx", import.meta.url), "utf8");
   assert.doesNotMatch(client, /fetch\(["']\/api\/quote/i);
-  assert.doesNotMatch(client, /openEmailFallback|QUOTE_ENDPOINT_URL|formsubmit\.co\/h\[/i);
+  assert.doesNotMatch(client, /openEmailFallback|QUOTE_ENDPOINT_URL|formsubmit/i);
 });
 
 test("keeps verified rates, coverage wording and canonical route inventory centralized", async () => {
@@ -251,9 +257,9 @@ test("the deployed origin is declared once and drives the quote redirect", async
   const data = await readFile(new URL("../lib/site-data.ts", import.meta.url), "utf8");
   assert.match(data, /export const deployedOrigin/);
   const html = await (await render()).text();
-  // The custom domain still serves a different, older site, so FormSubmit must
+  // The custom domain still serves a different, older site, so Web3Forms must
   // return customers to the origin that actually serves this app.
-  assert.match(html, /name="_next" value="https:\/\/hf-removals-adelaide\.vercel\.app\/\?quote=sent#quote"/);
+  assert.match(html, /name="redirect" value="https:\/\/hf-removals-adelaide\.vercel\.app\/\?quote=sent#quote"/);
   const client = await readFile(new URL("../app/components/SiteClient.tsx", import.meta.url), "utf8");
   assert.doesNotMatch(client, /const FORM_SUCCESS_ORIGIN/);
 });

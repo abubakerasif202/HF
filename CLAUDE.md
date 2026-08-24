@@ -41,22 +41,15 @@ npm run lint     # eslint . (ignores .next, dist, audit/)
 test file, so it is slow but exercises the real rendered HTML and the real
 compiled CSS. There is no watch mode and no unit-test layer.
 
-### Known-failing tests (pre-existing)
+All 14 tests pass, and typecheck and lint are clean. Treat any failure as caused
+by your change.
 
-As of the current `main`, `npm test` reports **12 passing / 2 failing**:
-
-- `renders one coherent, accessible FormSubmit quote flow`
-- `the deployed origin is declared once and drives the quote redirect`
-
-Both fail for the same reason: the quote form was migrated from FormSubmit to
-**Web3Forms** in commit `9af5a6c`, but `tests/rendered-html.test.mjs` still
-asserts the FormSubmit contract (`action="https://formsubmit.co/…"`, `_subject`,
-`_captcha`, `_honey`, `_next`). `README.md` is stale in the same way. Typecheck
-and lint are clean.
-
-Do not treat these two failures as caused by your change. If you touch the quote
-form, update the assertions to the Web3Forms contract rather than reverting the
-component.
+FormSubmit was the original form provider; it was replaced by **Web3Forms** in
+`9af5a6c`, and the last references to it were removed afterwards. There should be
+no `formsubmit.co`, `_subject`, `_captcha`, `_honey` or `_next` anywhere in the
+source — the quote-flow test asserts their absence. Dated entries in
+`DESIGN_AUDIT.md` still mention FormSubmit because they record what was true on
+those dates; leave that history alone.
 
 ## Layout
 
@@ -231,8 +224,8 @@ supplied photographs, accepted by the owner).
 ## Working agreements
 
 - Branch work as instructed; do not push to `main`.
-- Run `npm run typecheck`, `npm run lint` and `npm test` before pushing, and
-  compare failures against the two known-failing tests above.
+- Run `npm run typecheck`, `npm run lint` and `npm test` before pushing; all
+  three should be clean.
 - Change a business fact in `lib/site-data.ts` and nowhere else.
 - When you change something the tests describe in prose (the form provider, the
   origin, an asset name), update the assertions in the same commit.
