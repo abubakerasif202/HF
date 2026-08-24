@@ -731,6 +731,10 @@ p {
   animation: heroImageDrift 18s ease-in-out infinite alternate;
   will-change: transform;
 }
+.hero > picture {
+  position: absolute;
+  inset: 0;
+}
 .hero-overlay {
   position: absolute;
   inset: 0;

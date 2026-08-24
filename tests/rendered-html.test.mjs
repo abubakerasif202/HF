@@ -49,6 +49,9 @@ test("renders the premium HF homepage without placeholder claims", async () => {
   assert.match(html, /hf-packing-premium\.webp/i);
   assert.match(html, /hf-office-premium\.webp/i);
   assert.match(html, /hf-interstate-premium\.webp/i);
+  assert.match(html, /hf-apartment-removals\.webp/i);
+  assert.match(html, /hf-hero-mobile-480\.webp/i);
+  assert.match(html, /hf-hero-mobile-768\.webp/i);
   assert.match(html, /Work in Motion/i);
   assert.match(html, /\$79/);
   assert.match(html, /\$119\.43/);

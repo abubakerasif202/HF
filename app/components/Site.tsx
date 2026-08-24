@@ -189,7 +189,7 @@ function ApartmentAccessSection() {
     <section className="section apartment-section" aria-labelledby="apartment-title">
       <div className="container apartment-grid">
         <div className="apartment-media">
-          <img src="/images/hf-office-premium.webp" alt="HF Removals Adelaide movers wheeling cartons, office chairs and a filing cabinet into a city office building" width="1672" height="941" loading="lazy" />
+          <img src="/images/hf-apartment-removals.webp" alt="HF Removals Adelaide crew moving labelled cartons into a residential property" width="1672" height="941" loading="lazy" />
           <div className="apartment-media-badge">
             <strong>Adelaide CBD & apartment move planning</strong>
             <span>Share lift, loading-zone and common-area requirements before moving day</span>
@@ -686,16 +686,23 @@ export function HomePage() {
   return (
     <SiteFrame>
       <section className="hero">
-        <img
-          className="hero-image"
-          src="/images/hf-hero-truck-1792.webp"
-          srcSet="/images/hf-hero-truck-480.webp 480w, /images/hf-hero-truck-768.webp 768w, /images/hf-hero-truck-1024.webp 1024w, /images/hf-hero-truck-1440.webp 1440w, /images/hf-hero-truck-1792.webp 1792w"
-          sizes="100vw"
-          alt="HF branded moving truck in an Adelaide streetscape"
-          width="1792"
-          height="896"
-          fetchPriority="high"
-        />
+        <picture>
+          <source
+            media="(max-width: 640px)"
+            srcSet="/images/hf-hero-mobile-480.webp 480w, /images/hf-hero-mobile-768.webp 768w"
+            sizes="100vw"
+          />
+          <img
+            className="hero-image"
+            src="/images/hf-hero-truck-1792.webp"
+            srcSet="/images/hf-hero-truck-480.webp 480w, /images/hf-hero-truck-768.webp 768w, /images/hf-hero-truck-1024.webp 1024w, /images/hf-hero-truck-1440.webp 1440w, /images/hf-hero-truck-1792.webp 1792w"
+            sizes="100vw"
+            alt="HF Removals Adelaide truck and movers outside a modern Adelaide home"
+            width="1792"
+            height="1008"
+            fetchPriority="high"
+          />
+        </picture>
         <div className="hero-overlay" />
         <div className="container hero-grid">
           <div className="hero-copy">
