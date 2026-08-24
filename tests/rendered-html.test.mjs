@@ -138,9 +138,11 @@ test("renders one coherent, accessible Web3Forms quote flow", async () => {
     assert.match(html, /name="from_name"[^>]+value="HF Removals Adelaide Website"/i, path);
     assert.match(html, /name="source_page"/i, path);
     assert.match(html, /<input(?=[^>]*name="_gotcha")(?=[^>]*tabindex="-1")[^>]*>/i, path);
-    for (const field of ["name", "phone", "email", "moving_from", "moving_to", "move_type", "property_size", "preferred_moving_date", "details"]) {
+    for (const field of ["name", "phone", "email", "moving_from", "moving_to", "move_type", "moving_package", "property_size", "preferred_moving_date", "details"]) {
       assert.match(html, new RegExp(`name="${field}"`, "i"), `${path}: ${field}`);
     }
+    assert.match(html, /name="moving_package"[^>]+value="2 Men \+ Truck"/i, path);
+    assert.match(html, /name="moving_package"[^>]+value="3 Men \+ Truck"/i, path);
   }
 
   const client = await readFile(new URL("../app/components/SiteClient.tsx", import.meta.url), "utf8");
