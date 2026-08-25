@@ -25,7 +25,6 @@ const schema = {
       telephone: business.phones[0].display,
       email: business.emails[0],
       image: `${business.domain}${business.heroImage}`,
-      priceRange: "$$",
       hasMap: business.googleBusiness.mapEmbedUrl,
       address: {
         "@type": "PostalAddress",

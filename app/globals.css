@@ -1981,6 +1981,9 @@ p {
   gap: clamp(48px, 8vw, 110px);
   align-items: center;
 }
+.leadership-grid > * {
+  min-width: 0;
+}
 .portrait-wrap {
   position: relative;
   display: grid;
@@ -2027,7 +2030,7 @@ p {
 }
 .leader-stats {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 16px;
   margin: 28px 0;
   padding: 16px 0;
@@ -2035,7 +2038,7 @@ p {
 }
 .leader-stats strong {
   display: block;
-  font: 600 2.2rem var(--font-display);
+  font: 600 clamp(1.55rem, 7vw, 2.2rem) var(--font-display);
   color: var(--hf-gold-300);
   line-height: 1;
 }

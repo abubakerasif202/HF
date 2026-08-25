@@ -2,6 +2,9 @@ import type { NextConfig } from "next";
 import path from "node:path";
 
 const nextConfig: NextConfig = {
+  // Handle legacy trailing-slash variants in the redirect table so they reach
+  // their canonical replacement directly instead of first normalising the URL.
+  skipTrailingSlashRedirect: true,
   turbopack: {
     root: path.resolve(process.cwd()),
   },
@@ -26,7 +29,17 @@ const nextConfig: NextConfig = {
         permanent: true,
       },
       {
+        source: "/about-us/",
+        destination: "https://www.hfremovalsadelaide.com.au/about",
+        permanent: true,
+      },
+      {
         source: "/contact-us",
+        destination: "https://www.hfremovalsadelaide.com.au/contact",
+        permanent: true,
+      },
+      {
+        source: "/contact-us/",
         destination: "https://www.hfremovalsadelaide.com.au/contact",
         permanent: true,
       },
@@ -36,7 +49,17 @@ const nextConfig: NextConfig = {
         permanent: true,
       },
       {
+        source: "/interstate-removal-services/",
+        destination: "https://www.hfremovalsadelaide.com.au/services/interstate-removals",
+        permanent: true,
+      },
+      {
         source: "/blog",
+        destination: "https://www.hfremovalsadelaide.com.au/guides",
+        permanent: true,
+      },
+      {
+        source: "/blog/",
         destination: "https://www.hfremovalsadelaide.com.au/guides",
         permanent: true,
       },
@@ -44,6 +67,11 @@ const nextConfig: NextConfig = {
         source: "/:path*",
         has: [{ type: "host", value: "www.hfremovalsadelaide.com" }],
         destination: "https://www.hfremovalsadelaide.com.au/:path*",
+        permanent: true,
+      },
+      {
+        source: "/:path+/",
+        destination: "/:path+",
         permanent: true,
       },
     ];

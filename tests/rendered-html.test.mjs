@@ -95,7 +95,7 @@ test("renders service, area, route, guide and contact routes", async () => {
   }
 
   const about = await render("/about");
-  assert.match(await about.text(), /<title>About \| HF Removals Adelaide<\/title>/i);
+  assert.match(await about.text(), /<title>About Our Adelaide Removalists \| HF Removals Adelaide<\/title>/i);
 
   const contact = await render("/contact");
   const contactHtml = await contact.text();
@@ -276,10 +276,47 @@ test("legacy WordPress URLs permanently redirect to the closest current page", a
     ["/interstate-removal-services", "https://www.hfremovalsadelaide.com.au/services/interstate-removals"],
     ["/blog", "https://www.hfremovalsadelaide.com.au/guides"],
   ]) {
-    const response = await render(source, { redirect: "manual", headers: { host: "www.hfremovalsadelaide.com" } });
-    assert.equal(response.status, 308, source);
-    assert.equal(response.headers.get("location"), destination, source);
+    for (const variant of [source, `${source}/`]) {
+      const response = await render(variant, { redirect: "manual", headers: { host: "www.hfremovalsadelaide.com.au" } });
+      assert.equal(response.status, 308, variant);
+      assert.equal(response.headers.get("location"), destination, variant);
+    }
   }
+});
+
+test("canonical routes normalize trailing slashes instead of serving duplicates", async () => {
+  for (const source of ["/about/", "/services/", "/services/residential-removals/", "/sitemap.xml/"]) {
+    const response = await render(source, { redirect: "manual", headers: { host: "www.hfremovalsadelaide.com.au" } });
+    assert.equal(response.status, 308, source);
+    assert.equal(response.headers.get("location"), source.slice(0, -1), source);
+  }
+});
+
+test("priority pages keep distinct metadata and useful page-level schema", async () => {
+  const home = await (await render("/")).text();
+  assert.match(home, /name="description" content="Adelaide removalists for house, furniture, office and interstate moves\./i);
+  assert.doesNotMatch(home, /"priceRange":"\$\$"/);
+
+  const servicesHtml = await (await render("/services")).text();
+  assert.match(servicesHtml, /<title>Removal Services in Adelaide \| HF Removals Adelaide<\/title>/i);
+  assert.match(servicesHtml, /"@type":"CollectionPage"/);
+  assert.match(servicesHtml, /"@type":"ItemList"/);
+  assert.match(servicesHtml, /"@type":"BreadcrumbList"/);
+  assert.match(servicesHtml, /alt="HF Removals Adelaide logo"/);
+
+  const houseHtml = await (await render("/services/residential-removals")).text();
+  assert.match(houseHtml, /<title>House removals Adelaide \| HF Removals Adelaide<\/title>/i);
+  assert.match(houseHtml, /<h1>House removals: A clear plan for moving home<\/h1>/i);
+
+  const hubHtml = await (await render("/adelaide-removalists")).text();
+  assert.match(hubHtml, /<title>Adelaide Moving Guide &amp; Service Hub \| HF Removals Adelaide<\/title>/i);
+});
+
+test("sitemap contains only canonical indexable routes", async () => {
+  const xml = await (await render("/sitemap.xml")).text();
+  assert.doesNotMatch(xml, /hfremovalsadelaide\.com<|https:\/\/hfremovalsadelaide\.com\.au/i);
+  assert.doesNotMatch(xml, /about-us|contact-us|interstate-removal-services|<loc>[^<]*\/blog\/?<\/loc>/i);
+  assert.equal((xml.match(/<loc>/g) ?? []).length, 33);
 });
 
 test("high-intent pricing surfaces expose the ruby package hierarchy", async () => {

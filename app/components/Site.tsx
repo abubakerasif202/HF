@@ -717,7 +717,7 @@ export function HomePage() {
               You Can Rely On
             </h1>
             <p className="hero-lead">
-              Plan home, apartment, office and interstate moves with published reference rates. Coverage includes {business.insurance}, subject to applicable policy terms.
+              HF is an Adelaide moving company for home, apartment, office and interstate moves, with published reference rates. Coverage includes {business.insurance}, subject to applicable policy terms.
             </p>
             <div className="hero-actions">
               <a className="button button-ruby" href="#quote">
@@ -809,7 +809,7 @@ function PageHero({
           </figure>
         ) : (
           <div className="inner-monogram">
-            <img src={business.logo} alt="" width={business.logoWidth} height={business.logoHeight} loading="lazy" decoding="async" />
+            <img src={business.logo} alt="HF Removals Adelaide logo" width={business.logoWidth} height={business.logoHeight} loading="lazy" decoding="async" />
           </div>
         )}
       </div>
@@ -1048,7 +1048,7 @@ export function StaticPage({ type }: { type: "about" | "contact" | "pricing" | "
   if (type === "adelaide")
     return (
       <SiteFrame>
-        <PageHero eyebrow="Adelaide removalists" title="A practical Adelaide moving hub" description="Compare services, pricing, packing options and planning considerations in one place." />
+        <PageHero eyebrow="Adelaide moving hub" title="Services, pricing and move-planning resources" description="Compare Adelaide service options, published reference rates, packing support and practical planning considerations in one place." />
         <ServicesGrid />
         <ApartmentAccessSection />
         <PricingSection />

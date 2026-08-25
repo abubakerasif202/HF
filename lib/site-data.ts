@@ -192,11 +192,11 @@ export const services: ContentPage[] = [
   {
     slug: "residential-removals",
     kind: "service",
-    eyebrow: "Residential removals",
+    eyebrow: "House removals",
     title: "A clear plan for moving home",
-    description: "Residential removals in Adelaide planned around your inventory, access and preferred level of packing support.",
+    description: "House removals in Adelaide planned around your inventory, property access and preferred level of packing support.",
     intro:
-      "From apartments to family homes, HF scopes the practical details before moving day so loading, protection and final placement can be planned around your property.",
+      "For customers comparing house movers in Adelaide, HF scopes the practical details before moving day so loading, protection and final placement can be planned around the property.",
     highlights: ["Homes, apartments and townhouses", "Inventory-led scoping", "Packing and protective wraps", "Placement at your destination"],
     sections: [
       { title: "Before moving day", body: "Build a room-by-room inventory, identify fragile or bulky pieces and note stairs, lifts, gates and parking at both addresses." },

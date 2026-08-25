@@ -126,6 +126,56 @@ test('form radio keyboard behavior and FAQ', async ({ browser }) => {
   await context.close();
 });
 
+test('quote form validation, package selection, success, failure and double-submit guard', async ({ browser }) => {
+  const context = await browser.newContext({ viewport: { width: 390, height: 844 }, reducedMotion: 'reduce' });
+  const page = await context.newPage();
+  await goto(page, '/', 'quote-form-states');
+  const form = page.locator('#quote');
+  const submit = form.getByRole('button', { name: 'Get My Free Quote' });
+
+  await submit.click();
+  await expect(form.locator('.form-status')).toContainText('Please complete the required fields');
+
+  const packageThree = form.getByRole('radio', { name: /3 Men \+ Truck/ });
+  await packageThree.check({ force: true });
+  await expect(packageThree).toBeChecked();
+  await form.getByText('More Details', { exact: false }).click();
+  const email = form.getByLabel('Email Address');
+  await email.fill('invalid-email');
+  expect(await email.evaluate((input) => input.validity.typeMismatch)).toBe(true);
+  await email.fill('qa@example.com');
+
+  await form.getByLabel('Your Name').fill('QA Test');
+  await form.getByLabel('Phone Number').fill('0400 000 000');
+  await form.getByLabel('Moving From (Suburb)').fill('Elizabeth Vale SA');
+  await form.getByLabel('Moving To (Suburb/City)').fill('Marion SA');
+
+  let requests = 0;
+  await page.route('https://api.web3forms.com/submit', async (route) => {
+    requests += 1;
+    await new Promise((resolve) => setTimeout(resolve, 150));
+    await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ success: true }) });
+  });
+  await form.evaluate((element) => {
+    element.requestSubmit();
+    element.requestSubmit();
+  });
+  await expect(form.locator('.form-status')).toContainText('Your move details have been sent');
+  expect(requests).toBe(1);
+
+  await form.getByLabel('Your Name').fill('QA Test');
+  await form.getByLabel('Phone Number').fill('0400 000 000');
+  await form.getByLabel('Moving From (Suburb)').fill('Elizabeth Vale SA');
+  await form.getByLabel('Moving To (Suburb/City)').fill('Marion SA');
+  await page.unroute('https://api.web3forms.com/submit');
+  await page.route('https://api.web3forms.com/submit', (route) =>
+    route.fulfill({ status: 500, contentType: 'application/json', body: JSON.stringify({ success: false, message: 'Controlled QA failure' }) })
+  );
+  await submit.click();
+  await expect(form.locator('.form-status')).toContainText('We couldn’t send your request');
+  await context.close();
+});
+
 test('internal links and unknown route', async ({ browser, request }) => {
   const context = await browser.newContext({ viewport: { width: 1440, height: 900 }, reducedMotion: 'reduce' });
   const page = await context.newPage();
