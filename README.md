@@ -23,7 +23,7 @@ npm run test:browser
 
 ## Production domain
 
-The canonical production origin is `https://www.hfremovalsadelaide.com`. Metadata, Open Graph URLs, structured data, robots.txt and the sitemap all read from the central site configuration in `lib/site-data.ts`.
+The canonical production origin is `https://www.hfremovalsadelaide.com.au`. Metadata, Open Graph URLs, structured data, robots.txt and the sitemap all read from the central site configuration in `lib/site-data.ts`. The `.com` hostname permanently redirects to the canonical Australian domain.
 
 ## Quote delivery
 

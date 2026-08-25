@@ -114,12 +114,12 @@ test("serves crawl discovery endpoints and unique guide metadata", async () => {
   const robots = await render("/robots.txt");
   assert.equal(robots.status, 200);
   assert.match(robots.headers.get("content-type") ?? "", /text\/plain/);
-  assert.match(await robots.text(), /Sitemap: https:\/\/www\.hfremovalsadelaide\.com\/sitemap\.xml/);
+  assert.match(await robots.text(), /Sitemap: https:\/\/www\.hfremovalsadelaide\.com\.au\/sitemap\.xml/);
 
   const sitemap = await render("/sitemap.xml");
   assert.equal(sitemap.status, 200);
   assert.match(sitemap.headers.get("content-type") ?? "", /xml/);
-  assert.match(await sitemap.text(), /https:\/\/www\.hfremovalsadelaide\.com\/services\/residential-removals/);
+  assert.match(await sitemap.text(), /https:\/\/www\.hfremovalsadelaide\.com\.au\/services\/residential-removals/);
 
   const guide = await render("/guides/office-relocation-checklist");
   const html = await guide.text();
@@ -252,14 +252,33 @@ test("the 404 page is not indexable", async () => {
 
 test("the production origin is declared once and drives canonical output", async () => {
   const data = await readFile(new URL("../lib/site-data.ts", import.meta.url), "utf8");
-  assert.match(data, /export const siteOrigin = "https:\/\/www\.hfremovalsadelaide\.com"/);
+  assert.match(data, /export const siteOrigin = "https:\/\/www\.hfremovalsadelaide\.com\.au"/);
   assert.match(data, /export const quoteFormEndpoint = "https:\/\/api\.web3forms\.com\/submit"/);
   assert.match(data, /export const web3FormsAccessKey = "a6214fc2-9669-49a0-abf4-4f8bd77c3f88"/);
   const html = await (await render()).text();
-  assert.match(html, /rel="canonical" href="https:\/\/www\.hfremovalsadelaide\.com"/);
-  assert.match(html, /property="og:url" content="https:\/\/www\.hfremovalsadelaide\.com"/);
+  assert.match(html, /rel="canonical" href="https:\/\/www\.hfremovalsadelaide\.com\.au"/);
+  assert.match(html, /property="og:url" content="https:\/\/www\.hfremovalsadelaide\.com\.au"/);
   const client = await readFile(new URL("../app/components/SiteClient.tsx", import.meta.url), "utf8");
-  assert.doesNotMatch(client, /hf-removals-adelaide\.vercel\.app|hfremovalsadelaide\.com\.au/);
+  assert.doesNotMatch(client, /hf-removals-adelaide\.vercel\.app|hfremovalsadelaide\.com(?!\.au)/);
+});
+
+test("the duplicate .com hostname is configured to redirect to the canonical .com.au URL", async () => {
+  const config = await readFile(new URL("../next.config.ts", import.meta.url), "utf8");
+  assert.match(config, /type: "host", value: "www\.hfremovalsadelaide\.com"/);
+  assert.match(config, /destination: "https:\/\/www\.hfremovalsadelaide\.com\.au\/:path\*"/);
+  assert.match(config, /permanent: true/);
+});
+
+test("high-intent pricing surfaces expose the ruby package hierarchy", async () => {
+  const html = await (await render()).text();
+  assert.match(html, /price-card price-card--popular/);
+  assert.match(html, /price-popular-badge[^>]*>Most Popular/);
+  assert.match(html, /package-option package-option--popular/);
+  assert.match(html, /package-popular[^>]*>Popular/);
+  const css = await builtCss();
+  assert.match(css, /\.price-card--popular\{/);
+  assert.match(css, /\.package-option:has\(input:checked\)\{/);
+  assert.match(css, /\.route-cost strong\{color:var\(--ruby-light\)/);
 });
 
 test("layout grids declare a track for every child they render", async () => {

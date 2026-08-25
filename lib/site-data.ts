@@ -13,7 +13,7 @@ export type ContentPage = {
   unit?: string;
 };
 
-export const siteOrigin = "https://www.hfremovalsadelaide.com";
+export const siteOrigin = "https://www.hfremovalsadelaide.com.au";
 export const quoteFormEndpoint = "https://api.web3forms.com/submit";
 export const web3FormsAccessKey = "a6214fc2-9669-49a0-abf4-4f8bd77c3f88";
 

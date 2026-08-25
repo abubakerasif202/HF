@@ -447,7 +447,7 @@ export function QuoteForm({ compact = false }: { compact?: boolean }) {
       <input type="hidden" name="source_page" value={`${business.domain}${pathname}`} />
       <input type="hidden" name="move_category" value={form.tab === "interstate" ? "Interstate Move" : "Local Adelaide Move"} />
       <div className="form-header-badge">
-        <span className="badge-dot" />
+        <span className="badge-dot" aria-hidden="true" />
         <span>Published reference rates · Final quote based on your move scope</span>
       </div>
 
@@ -470,7 +470,7 @@ export function QuoteForm({ compact = false }: { compact?: boolean }) {
           onClick={() => update("tab", "local")}
           onKeyDown={handleTabKey}
         >
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2"><path d="m3 11 9-7 9 7v9h-6v-6H9v6H3Z"/></svg>
+          <svg aria-hidden="true" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2"><path d="m3 11 9-7 9 7v9h-6v-6H9v6H3Z"/></svg>
           <span>Local Adelaide Move</span>
         </button>
         <button
@@ -482,7 +482,7 @@ export function QuoteForm({ compact = false }: { compact?: boolean }) {
           onClick={() => update("tab", "interstate")}
           onKeyDown={handleTabKey}
         >
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2"><path d="M3 6h11v11H3Zm11 4h4l3 3v4h-7M7 20a2 2 0 1 0 0-4 2 2 0 0 0 0 4Zm11 0a2 2 0 1 0 0-4 2 2 0 0 0 0 4Z"/></svg>
+          <svg aria-hidden="true" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2"><path d="M3 6h11v11H3Zm11 4h4l3 3v4h-7M7 20a2 2 0 1 0 0-4 2 2 0 0 0 0 4Zm11 0a2 2 0 1 0 0-4 2 2 0 0 0 0 4Z"/></svg>
           <span>Interstate Move</span>
         </button>
       </div>
@@ -501,7 +501,7 @@ export function QuoteForm({ compact = false }: { compact?: boolean }) {
           {localPricing.map((pricing, index) => {
             const packageName = `${index + 2} Men + Truck`;
             return (
-              <label className="package-option" key={pricing.name}>
+              <label className={`package-option ${index === 0 ? "package-option--popular" : ""}`} key={pricing.name}>
                 <input
                   type="radio"
                   name="moving_package"
@@ -511,8 +511,11 @@ export function QuoteForm({ compact = false }: { compact?: boolean }) {
                   required
                 />
                 <span className="package-option-copy">
-                  <strong>{packageName}</strong>
-                  <small>{pricing.halfHour} / 30 min · {pricing.hourly}/hr</small>
+                  <span className="package-option-heading">
+                    <strong>{packageName}</strong>
+                    {index === 0 && <b className="package-popular">Popular</b>}
+                  </span>
+                  <small><mark>{pricing.halfHour}</mark> / 30 min · {pricing.hourly}/hr</small>
                 </span>
                 <span className="package-radio" aria-hidden="true" />
               </label>

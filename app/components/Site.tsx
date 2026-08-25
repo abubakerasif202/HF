@@ -293,8 +293,9 @@ function PricingSection() {
         />
         <div className="local-pricing">
           {localPricing.map((item, index) => (
-            <article className="price-card" key={item.name}>
-              <span className="ruby-dot" />
+            <article className={`price-card ${index === 0 ? "price-card--popular" : ""}`} key={item.name}>
+              {index === 0 && <span className="price-popular-badge">Most Popular</span>}
+              <span className="ruby-dot" aria-hidden="true" />
               <p className="price-kicker">{index === 0 ? "Most Popular for 1-3 Bedrooms" : "Ideal for 3-5 Bedrooms & Large Homes"}</p>
               <h3>{item.name}</h3>
               <div className="price-value">
