@@ -2,12 +2,15 @@ import type { Metadata } from "next";
 import { HomePage } from "./components/Site";
 import { business, canonical, entryLocalRate, standardMoveFaqs } from "../lib/site-data";
 
+const homeTitle = "Adelaide Removalists | Local & Interstate Movers | HF";
+const homeDescription = `Adelaide removalists for house, furniture, office and interstate moves. Local movers from ${entryLocalRate.halfHour} per 30 minutes. Request a tailored quote.`;
+
 export const metadata: Metadata = {
-  title: { absolute: `Adelaide Removalists | ${business.googleBusiness.rating}★ Rated Local & Interstate | HF Removals` },
-  description: `Adelaide removalists from ${entryLocalRate.halfHour} per 30 minutes for local moves, with residential, office and listed interstate moving support. Request a scoped quote.`,
+  title: { absolute: homeTitle },
+  description: homeDescription,
   alternates: { canonical: canonical("/") },
-  openGraph: { type: "website", locale: "en_AU", siteName: business.name, title: `Adelaide Removalists | ${business.googleBusiness.rating}★ Rated Local & Interstate | HF Removals`, description: `Adelaide removalists from ${entryLocalRate.halfHour} per 30 minutes for local moves, with residential, office and listed interstate moving support. Request a scoped quote.`, url: canonical("/"), images: [{ url: "/og.webp", width: 1200, height: 630, alt: "HF Removals Adelaide — Moving Made Easy With Us" }] },
-  twitter: { card: "summary_large_image", title: `Adelaide Removalists | ${business.googleBusiness.rating}★ Rated Local & Interstate | HF Removals`, description: `Adelaide removalists from ${entryLocalRate.halfHour} per 30 minutes for local moves, with residential, office and listed interstate moving support. Request a scoped quote.`, images: ["/og.webp"] },
+  openGraph: { type: "website", locale: "en_AU", siteName: business.name, title: homeTitle, description: homeDescription, url: canonical("/"), images: [{ url: "/og.webp", width: 1200, height: 630, alt: "HF Removals Adelaide — Moving Made Easy With Us" }] },
+  twitter: { card: "summary_large_image", title: homeTitle, description: homeDescription, images: ["/og.webp"] },
 };
 
 const schema = {
@@ -22,7 +25,6 @@ const schema = {
       telephone: business.phones[0].display,
       email: business.emails[0],
       image: `${business.domain}${business.heroImage}`,
-      priceRange: "$$",
       hasMap: business.googleBusiness.mapEmbedUrl,
       address: {
         "@type": "PostalAddress",

@@ -2,6 +2,9 @@ import type { NextConfig } from "next";
 import path from "node:path";
 
 const nextConfig: NextConfig = {
+  // Handle legacy trailing-slash variants in the redirect table so they reach
+  // their canonical replacement directly instead of first normalising the URL.
+  skipTrailingSlashRedirect: true,
   turbopack: {
     root: path.resolve(process.cwd()),
   },
@@ -29,6 +32,46 @@ const nextConfig: NextConfig = {
     return [
       // the duplicate .com domain
       {
+        source: "/about-us",
+        destination: "https://www.hfremovalsadelaide.com.au/about",
+        permanent: true,
+      },
+      {
+        source: "/about-us/",
+        destination: "https://www.hfremovalsadelaide.com.au/about",
+        permanent: true,
+      },
+      {
+        source: "/contact-us",
+        destination: "https://www.hfremovalsadelaide.com.au/contact",
+        permanent: true,
+      },
+      {
+        source: "/contact-us/",
+        destination: "https://www.hfremovalsadelaide.com.au/contact",
+        permanent: true,
+      },
+      {
+        source: "/interstate-removal-services",
+        destination: "https://www.hfremovalsadelaide.com.au/services/interstate-removals",
+        permanent: true,
+      },
+      {
+        source: "/interstate-removal-services/",
+        destination: "https://www.hfremovalsadelaide.com.au/services/interstate-removals",
+        permanent: true,
+      },
+      {
+        source: "/blog",
+        destination: "https://www.hfremovalsadelaide.com.au/guides",
+        permanent: true,
+      },
+      {
+        source: "/blog/",
+        destination: "https://www.hfremovalsadelaide.com.au/guides",
+        permanent: true,
+      },
+      {
         source: "/:path*",
         has: [{ type: "host", value: "www.hfremovalsadelaide.com" }],
         destination: "https://www.hfremovalsadelaide.com.au/:path*",
@@ -52,6 +95,13 @@ const nextConfig: NextConfig = {
         source: "/:path*",
         has: [{ type: "host", value: "hf-removals-adelaide.vercel.app" }],
         destination: "https://www.hfremovalsadelaide.com.au/:path*",
+        permanent: true,
+      },
+      // Trailing-slash normalisation runs last, so a non-canonical host is sent
+      // to the canonical one before the slash is stripped.
+      {
+        source: "/:path+/",
+        destination: "/:path+",
         permanent: true,
       },
     ];

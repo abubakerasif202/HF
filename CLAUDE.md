@@ -137,16 +137,32 @@ duplicate, and both it and the superseded `hf-removals-adelaide.vercel.app`
 alias must not appear in rendered output — a test asserts
 `hfremovalsadelaide.com` never appears without the `.au`.
 
-`next.config.ts` permanently redirects (308) every other hostname that can reach
-the deployment — `www.hfremovalsadelaide.com`, the `.com` apex, the `.com.au`
-apex and the Vercel alias — to the canonical www host, path preserved, so only
-one host is indexable. A test asserts the `.com` rule specifically, matching the
-config file as text, so keep `destination` values as inline string literals
-rather than refactoring them into a shared constant. Matching is on exact host,
-so per-branch preview URLs and `localhost` are untouched and local development
-still works. **DNS is not part of the repo:** each host must have a record
-pointing at Vercel and be added to the Vercel project for its redirect to be
-reachable.
+`next.config.ts` holds one `redirects()` table with three groups, in this order:
+
+1. **Legacy paths** — `/about-us`, `/contact-us`, `/interstate-removal-services`,
+   `/blog`, each with its trailing-slash twin, pointing at the current route.
+2. **Non-canonical hosts** — `www.hfremovalsadelaide.com`, the `.com` apex, the
+   `.com.au` apex and the Vercel alias, all to the canonical www host with the
+   path preserved.
+3. **Trailing-slash normalisation** (`/:path+/` → `/:path+`), last so a request
+   on a non-canonical host reaches the canonical host before the slash is
+   stripped.
+
+`skipTrailingSlashRedirect: true` is set so the legacy trailing-slash entries
+reach their replacement directly instead of normalising first.
+
+Host matching is on exact host, so per-branch preview URLs and `localhost` are
+untouched and local development still works. Tests assert specific rules by
+grepping the config file **as text**, so keep `destination` values as inline
+string literals rather than refactoring them into a shared constant — that
+refactor passes typecheck and fails the tests.
+
+Beware when merging: this file has produced a clean merge with two `redirects()`
+keys in one object literal, where the second silently overrides the first while
+typecheck and lint still pass. After any merge, confirm there is exactly one.
+
+**DNS is not part of the repo:** each host must have a record pointing at Vercel
+and be added to the Vercel project for its redirect to be reachable.
 
 Use `canonical(path)` rather than string-concatenating the origin.
 
@@ -184,7 +200,8 @@ with explicit `width`/`height`, `srcSet` and `sizes`, and the ESLint rules
 
 JSON-LD is emitted inline per route via `dangerouslySetInnerHTML`. Homepage emits
 `MovingCompany` + `WebPage` + `FAQPage`; detail pages emit `Service`/`Article` +
-`BreadcrumbList`; static pages emit their mapped type.
+`BreadcrumbList`; listing pages emit `CollectionPage` + `ItemList` built from the
+matching `lib/site-data.ts` collection; static pages emit their mapped type.
 
 **Do not add `aggregateRating` or `Review` markup.** The 4.9/417 figures come from
 the business's Google profile, and marking third-party ratings as first-party
