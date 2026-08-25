@@ -68,7 +68,7 @@ test("renders the premium HF homepage without placeholder claims", async () => {
   assert.match(html, /Read all reviews on Google/i);
   assert.match(html, /maps\.google\.com/);
   assert.match(html, /application\/ld\+json/);
-  assert.match(html, /<title>Adelaide Removalists \| 4\.9★ Rated Local &amp; Interstate \| HF Removals<\/title>/i);
+  assert.match(html, /<title>Adelaide Removalists \| Local &amp; Interstate Movers \| HF<\/title>/i);
   assert.doesNotMatch(html, /HF Removals Adelaide \| HF Removals Adelaide<\/title>/i);
   assert.doesNotMatch(html, /codex-preview|react-loading-skeleton|5\.0 from|200\+ happy|#1 Adelaide|award.winning/i);
   assert.doesNotMatch(html, /Hamza Khan|Jessica Taylor|David Miller|Sarah Jenkins/i);
@@ -267,6 +267,19 @@ test("the duplicate .com hostname is configured to redirect to the canonical .co
   assert.match(config, /type: "host", value: "www\.hfremovalsadelaide\.com"/);
   assert.match(config, /destination: "https:\/\/www\.hfremovalsadelaide\.com\.au\/:path\*"/);
   assert.match(config, /permanent: true/);
+});
+
+test("legacy WordPress URLs permanently redirect to the closest current page", async () => {
+  for (const [source, destination] of [
+    ["/about-us", "https://www.hfremovalsadelaide.com.au/about"],
+    ["/contact-us", "https://www.hfremovalsadelaide.com.au/contact"],
+    ["/interstate-removal-services", "https://www.hfremovalsadelaide.com.au/services/interstate-removals"],
+    ["/blog", "https://www.hfremovalsadelaide.com.au/guides"],
+  ]) {
+    const response = await render(source, { redirect: "manual", headers: { host: "www.hfremovalsadelaide.com" } });
+    assert.equal(response.status, 308, source);
+    assert.equal(response.headers.get("location"), destination, source);
+  }
 });
 
 test("high-intent pricing surfaces expose the ruby package hierarchy", async () => {

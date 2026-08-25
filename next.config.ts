@@ -21,6 +21,26 @@ const nextConfig: NextConfig = {
   async redirects() {
     return [
       {
+        source: "/about-us",
+        destination: "https://www.hfremovalsadelaide.com.au/about",
+        permanent: true,
+      },
+      {
+        source: "/contact-us",
+        destination: "https://www.hfremovalsadelaide.com.au/contact",
+        permanent: true,
+      },
+      {
+        source: "/interstate-removal-services",
+        destination: "https://www.hfremovalsadelaide.com.au/services/interstate-removals",
+        permanent: true,
+      },
+      {
+        source: "/blog",
+        destination: "https://www.hfremovalsadelaide.com.au/guides",
+        permanent: true,
+      },
+      {
         source: "/:path*",
         has: [{ type: "host", value: "www.hfremovalsadelaide.com" }],
         destination: "https://www.hfremovalsadelaide.com.au/:path*",
