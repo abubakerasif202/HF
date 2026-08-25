@@ -127,18 +127,26 @@ component.
 
 ### Origin constants
 
-`siteOrigin` (`https://www.hfremovalsadelaide.com`) is the **single canonical
+`siteOrigin` (`https://www.hfremovalsadelaide.com.au`) is the **single canonical
 production origin**. It drives canonicals, sitemap, robots, Open Graph/Twitter
 URLs and JSON-LD `@id`s. It is declared once in `lib/site-data.ts` and a test
-asserts that exact literal; `business.domain` derives from it. The superseded
-`hf-removals-adelaide.vercel.app` alias must not appear anywhere outside dated
-history.
+asserts that exact literal; `business.domain` derives from it.
 
-`next.config.ts` permanently redirects (308) the apex `hfremovalsadelaide.com`
-and the old Vercel alias to the www host, so only one host is indexable. The
-match is on exact host, so per-branch preview URLs and `localhost` are not
-caught and local development still works. **DNS is not part of the repo:** both
-hosts must be added to the Vercel project for the redirects to be reachable.
+Note the TLD: the canonical domain is **`.com.au`**. The `.com` domain is a
+duplicate, and both it and the superseded `hf-removals-adelaide.vercel.app`
+alias must not appear in rendered output — a test asserts
+`hfremovalsadelaide.com` never appears without the `.au`.
+
+`next.config.ts` permanently redirects (308) every other hostname that can reach
+the deployment — `www.hfremovalsadelaide.com`, the `.com` apex, the `.com.au`
+apex and the Vercel alias — to the canonical www host, path preserved, so only
+one host is indexable. A test asserts the `.com` rule specifically, matching the
+config file as text, so keep `destination` values as inline string literals
+rather than refactoring them into a shared constant. Matching is on exact host,
+so per-branch preview URLs and `localhost` are untouched and local development
+still works. **DNS is not part of the repo:** each host must have a record
+pointing at Vercel and be added to the Vercel project for its redirect to be
+reachable.
 
 Use `canonical(path)` rather than string-concatenating the origin.
 

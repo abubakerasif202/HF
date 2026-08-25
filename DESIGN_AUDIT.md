@@ -4,11 +4,12 @@ Audit date: 21 August 2026
 
 ## Production domain, form and brand refresh — 25 August 2026
 
-- Switched canonical, Open Graph, schema, robots and sitemap output to `https://www.hfremovalsadelaide.com` through the central site origin.
+- Switched canonical, Open Graph, schema, robots and sitemap output to `https://www.hfremovalsadelaide.com.au` through the central site origin. The duplicate `.com` host now permanently redirects to the Australian domain.
+- Expanded the ruby conversion layer across the most important pricing surfaces: the popular local-rate card, package selector prices and selected state, route prices and primary quote actions. Green and gold remain the foundation so the supplied logo retains its intended balance.
 - Configured Web3Forms as the sole quote-delivery provider, with accessible in-page success/error feedback, duplicate-submit protection and a honeypot.
 - Updated the privacy disclosure and regression tests to match the actual form processor.
 - Regenerated the optimized header/footer logo, browser icons and 1200×630 social image directly from the latest supplied transparent PNG; the repository's existing high-resolution reference master remains archived separately.
-- Removed the inaccessible `.com.au` mailbox from visible contact details; the confirmed Gmail address remains published.
+- Kept the confirmed Gmail address as the published contact mailbox; no unverified domain mailbox was introduced.
 - Added the missing Playwright dependency and a portable Chromium test command. The current execution environment blocked the browser-binary download, so the new run is limited to the fully passing rendered-route suite; the stored multi-viewport browser audit remains the visual baseline because the layout system was not changed.
 
 ## Rate update and 3D viewer removal — 24 August 2026

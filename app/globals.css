@@ -1028,10 +1028,36 @@ p {
   color: white;
   font-size: 0.82rem;
 }
+.package-option-heading {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  min-width: 0;
+}
+.package-popular {
+  display: inline-flex;
+  padding: 3px 6px;
+  border: 1px solid rgba(255, 106, 128, 0.4);
+  border-radius: 999px;
+  background: var(--ruby-surface);
+  color: #ffd6dd;
+  font-size: 0.54rem;
+  font-weight: 900;
+  letter-spacing: 0.06em;
+  line-height: 1;
+  text-transform: uppercase;
+}
 .package-option-copy small {
   color: var(--hf-gold-300);
   font-size: 0.7rem;
   font-weight: 800;
+}
+.package-option-copy mark {
+  padding: 0;
+  background: transparent;
+  color: var(--ruby-light);
+  font-size: 0.86rem;
+  font-weight: 950;
 }
 .package-radio {
   width: 18px;
@@ -1588,6 +1614,29 @@ p {
   box-shadow: 0 16px 50px rgba(0, 0, 0, 0.35);
   transition: all var(--duration-normal) var(--ease-premium);
 }
+.price-card--popular {
+  border-color: var(--ruby-light);
+  background:
+    radial-gradient(circle at 92% 6%, rgba(227, 49, 80, 0.2), transparent 34%),
+    rgba(3, 26, 18, 0.92);
+  box-shadow: 0 18px 54px rgba(0, 0, 0, 0.42), 0 0 0 1px rgba(227, 49, 80, 0.22), 0 0 28px rgba(201, 29, 59, 0.16);
+}
+.price-popular-badge {
+  position: absolute;
+  top: 0;
+  right: 28px;
+  padding: 8px 13px;
+  border: 1px solid rgba(255, 151, 166, 0.42);
+  border-top: 0;
+  border-radius: 0 0 9px 9px;
+  background: linear-gradient(135deg, var(--ruby-dark), var(--ruby));
+  color: white;
+  box-shadow: 0 8px 20px rgba(87, 9, 22, 0.34);
+  font-size: 0.64rem;
+  font-weight: 950;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
 .price-card:hover {
   transform: translateY(-6px);
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5), 0 0 25px rgba(223, 183, 92, 0.2);
@@ -1623,6 +1672,11 @@ p {
   color: var(--hf-gold-300);
   letter-spacing: -0.05em;
   line-height: 1;
+}
+.price-card--popular .price-value strong,
+.price-card--popular .price-hourly {
+  color: var(--ruby-light);
+  text-shadow: 0 0 22px rgba(227, 49, 80, 0.22);
 }
 .price-value span {
   color: rgba(255, 255, 255, 0.7);
@@ -3062,6 +3116,26 @@ p {
 .field-label b,
 .form-note a,
 .form-status { color: var(--ruby-light); }
+.package-selection .field-label { color: #ffd6dd; }
+.package-option {
+  border-color: rgba(255, 106, 128, 0.22);
+}
+.package-option:hover {
+  border-color: var(--ruby-border);
+  background: var(--ruby-surface);
+}
+.package-option:has(input:checked) {
+  border-color: var(--ruby-light);
+  background: linear-gradient(135deg, rgba(87, 9, 22, 0.46), rgba(125, 16, 33, 0.22));
+  box-shadow: 0 0 0 2px rgba(227, 49, 80, 0.16), 0 10px 26px rgba(87, 9, 22, 0.22);
+}
+.package-option:has(input:checked) .package-radio {
+  border-color: var(--ruby-light);
+  background: var(--ruby);
+}
+.package-option:focus-within {
+  outline-color: rgba(255, 106, 128, 0.42);
+}
 .form-grid input,
 .form-grid select,
 .form-grid textarea { border-color: rgba(255, 255, 255, 0.24); }
@@ -3108,6 +3182,7 @@ p {
   border-color: var(--ruby-border);
   box-shadow: 0 18px 42px rgba(0, 0, 0, 0.42), 0 0 24px rgba(201, 29, 59, 0.12);
 }
+.route-cost strong { color: var(--ruby-light); }
 .process-line li > span {
   border-color: var(--ruby-border);
   background: linear-gradient(145deg, var(--ruby-deep), var(--ruby-dark));
