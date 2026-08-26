@@ -1,0 +1,74 @@
+name: Apply HF Hardening
+
+on:
+  push:
+    branches:
+      - audit/production-hardening-20260827
+
+permissions:
+  contents: write
+
+jobs:
+  harden-and-verify:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout audit branch
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Use Node 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Apply audited patch
+        run: python scripts/apply_hardening.py
+
+      - name: Check patch hygiene
+        run: |
+          git diff --check
+          git diff --stat
+          if git grep -nE 'Open 24 Hours|24/7|24h Enquiries' -- ':!DESIGN_AUDIT.md' ':!scripts/apply_hardening.py'; then
+            echo 'Stale 24-hour claim remains in production source.' >&2
+            exit 1
+          fi
+          if git grep -nE 'adelaide-(western-sydney|smithfield|brisbane|canberra)' -- lib app tests; then
+            echo 'Inferred interstate pricing route remains in production source.' >&2
+            exit 1
+          fi
+          if git grep -nE 'Piano / Pool Table Moving|Short/Long-Term Storage|Cleaning \(End of Lease\)|Rubbish/Junk Removal|Most Popular for 1–3 Bedrooms|Ideal for 3–5 Bedrooms|no hidden charges' -- app lib tests; then
+            echo 'Unsupported service or marketing claim remains in production source.' >&2
+            exit 1
+          fi
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Production build and rendered-route tests
+        run: npm test
+
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+
+      - name: Browser QA
+        run: npm run test:browser
+
+      - name: Commit verified fixes
+        run: |
+          git rm scripts/apply_hardening.py .github/workflows/apply-hardening.yml
+          git add -A
+          git diff --cached --check
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git commit -m 'fix: harden verified business content and pricing'
+          git push origin HEAD:audit/production-hardening-20260827
