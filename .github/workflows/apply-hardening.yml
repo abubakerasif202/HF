@@ -2,24 +2,29 @@ name: Apply HF Hardening
 
 on:
   push:
-    branches:
-      - audit/production-hardening-20260827
+    branches: [main]
 
 permissions:
   contents: write
 
 jobs:
-  apply-and-commit:
+  harden-verify-and-commit:
     if: github.actor != 'github-actions[bot]'
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 30
     steps:
-      - name: Checkout audit branch
+      - name: Checkout current main
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
-      - name: Apply audited patch
+      - name: Use Node 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Apply audited hardening patch
         run: python scripts/apply_hardening.py
 
       - name: Content-integrity guard
@@ -39,12 +44,30 @@ jobs:
             exit 1
           fi
 
-      - name: Commit audited source changes
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Production build and rendered-route tests
+        run: npm test
+
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+
+      - name: Browser QA
+        run: npm run test:browser
+
+      - name: Commit verified source changes to main
         run: |
-          git rm scripts/apply_hardening.py .github/workflows/apply-hardening.yml .hardening-trigger
+          git rm scripts/apply_hardening.py .github/workflows/apply-hardening.yml
           git add -A
           git diff --cached --check
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git commit -m 'fix: harden verified business content and pricing'
-          git push origin HEAD:audit/production-hardening-20260827
+          git push origin HEAD:main
