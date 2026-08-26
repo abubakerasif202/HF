@@ -15,6 +15,7 @@ type ServiceAreaSeed = readonly [name: string, region: ServiceAreaRegion];
 
 const serviceAreaSeed: ServiceAreaSeed[] = [
   ["Adelaide CBD", "Central Adelaide"],
+  ["Adelaide Hills", "Adelaide Hills"],
   ["Adelaide Parklands", "Central Adelaide"],
   ["Albert Park", "Western Adelaide"],
   ["Allenby Gardens", "Western Adelaide"],
@@ -90,6 +91,7 @@ const serviceAreaSeed: ServiceAreaSeed[] = [
   ["North Adelaide", "Central Adelaide"],
   ["North Park", "Northern Adelaide"],
   ["Northfield", "Northern Adelaide"],
+  ["Northern Adelaide", "Northern Adelaide"],
   ["Norwood", "Eastern Adelaide"],
   ["Oaklands Park", "Southern Adelaide"],
   ["Paradise", "North-Eastern Adelaide"],
@@ -114,6 +116,7 @@ const serviceAreaSeed: ServiceAreaSeed[] = [
   ["Somerton Park", "Coastal Adelaide"],
   ["Somerton Park West", "Coastal Adelaide"],
   ["South Plympton", "Southern Adelaide"],
+  ["Southern Adelaide", "Southern Adelaide"],
   ["St Marys", "Southern Adelaide"],
   ["St Peters", "Eastern Adelaide"],
   ["Stepney", "Eastern Adelaide"],
@@ -225,6 +228,57 @@ const localAccessOverrides: Record<string, string> = {
   malvern: "villa and townhouse moves with parking, stairs and furniture-access planning",
 };
 
+/**
+ * Named streets, corridors and neighbouring suburbs that anchor each area page to
+ * real local geography. Keyed by area slug.
+ */
+const supportingLocalities: Record<string, string[]> = {
+  "adelaide-cbd": ["North Terrace", "King William Street", "Rundle Mall", "Grenfell Street", "Waymouth Street"],
+  glenelg: ["Jetty Road", "Brighton Road", "Colley Terrace", "Anzac Highway", "Moseley Square"],
+  norwood: ["The Parade", "Magill Road", "Portrush Road", "Fullarton Road", "Osmond Terrace"],
+  salisbury: ["Salisbury Highway", "Commercial Road", "Park Terrace", "John Street", "Saints Road"],
+  gawler: ["Murray Street", "Adelaide Road", "Main North Road", "the surrounding northern townships"],
+  "elizabeth-vale": ["Main North Road", "the wider Elizabeth and Salisbury region"],
+  "elizabeth-downs": ["Elizabeth", "Main North Road", "the neighbouring northern suburbs"],
+  blakeview: ["the Blakeview estates", "the northside suburbs", "the Gawler corridor"],
+  "northern-adelaide": ["Salisbury", "Elizabeth", "Andrews Farm", "Mawson Lakes", "Blakeview", "Gawler"],
+  marion: ["Sturt Road", "Marion Road", "Morphett Road", "Diagonal Road", "Oaklands Road"],
+  "mawson-lakes": ["Main North Road", "Mawson Lakes Boulevard"],
+  elizabeth: ["Main North Road", "Elizabeth Way"],
+  "morphett-vale": ["South Road", "Main South Road", "Beach Road", "States Road", "Reynella", "Noarlunga"],
+  noarlunga: ["Beach Road", "Main South Road", "Dyson Road", "Seaford", "Port Noarlunga"],
+  reynella: ["Main South Road", "Old South Road", "Reynella East", "Woodcroft", "Happy Valley", "Morphett Vale"],
+};
+
+function formatList(items: string[]) {
+  if (items.length === 1) return items[0];
+  return `${items.slice(0, -1).join(", ")} and ${items[items.length - 1]}`;
+}
+
+/**
+ * Appends a locality section to an area page when anchors exist for it. Anchors already
+ * named in the page's access copy are dropped so the two sections do not repeat each other.
+ */
+function withSupportingLocalities(page: ContentPage, name: string): ContentPage {
+  const anchors = supportingLocalities[page.slug];
+  if (!anchors) return page;
+
+  const existingCopy = page.sections.map((section) => section.body).join(" ");
+  const fresh = anchors.filter((anchor) => !existingCopy.includes(anchor));
+  if (fresh.length === 0) return page;
+
+  return {
+    ...page,
+    sections: [
+      ...page.sections,
+      {
+        title: `Where we work around ${name}`,
+        body: `Jobs in this area regularly take us along ${formatList(fresh)}. Naming the closest of these in your enquiry helps the team judge truck positioning and carry distance before the day.`,
+      },
+    ],
+  };
+}
+
 function slugifyArea(name: string) {
   return name
     .toLowerCase()
@@ -286,7 +340,7 @@ function buildGeneratedAreaPage(name: string, region: ServiceAreaRegion, slug: s
 const featuredBySlug = new Map(featuredAreas.map((area) => [area.slug, area]));
 
 export const hfServiceAreas: ContentPage[] = hfServiceAreaRecords.map(({ name, region, slug }) =>
-  featuredBySlug.get(slug) ?? buildGeneratedAreaPage(name, region, slug),
+  withSupportingLocalities(featuredBySlug.get(slug) ?? buildGeneratedAreaPage(name, region, slug), name),
 );
 
 export const hfServiceAreaCount = hfServiceAreas.length;

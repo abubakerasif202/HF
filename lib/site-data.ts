@@ -38,6 +38,11 @@ export const business = {
   areaServed: [
     "Adelaide Metro",
     "Adelaide CBD",
+    "Northern suburbs",
+    "Southern suburbs",
+    "Eastern suburbs",
+    "Western suburbs",
+    "Coastal suburbs",
     "Elizabeth Vale",
     "Elizabeth",
     "Salisbury",
@@ -47,6 +52,7 @@ export const business = {
     "Norwood",
     "Glenelg",
     "South Australia",
+    "Interstate Australia",
   ],
   ceo: { name: "Muhammad Rasheed", title: "CEO, HF Removals Adelaide" },
   insuranceAmount: "$1,000,000",
@@ -143,6 +149,10 @@ export const interstatePricing = [
   { slug: "adelaide-sydney", label: "Adelaide ↔ Sydney", price: "$130.19", unit: "per m³" },
   { slug: "adelaide-queensland", label: "Adelaide ↔ Queensland", price: "$164.04", unit: "per m³" },
   { slug: "adelaide-perth", label: "Adelaide ↔ Perth", price: "$186.06", unit: "per m³" },
+  { slug: "adelaide-western-sydney", label: "Adelaide ↔ Western Sydney", price: "$130.19", unit: "per m³" },
+  { slug: "adelaide-smithfield", label: "Adelaide ↔ Smithfield NSW", price: "$130.19", unit: "per m³" },
+  { slug: "adelaide-brisbane", label: "Adelaide ↔ Brisbane", price: "$164.04", unit: "per m³" },
+  { slug: "adelaide-canberra", label: "Adelaide ↔ Canberra", price: "$130.19", unit: "per m³" },
 ] as const;
 
 export const standardMoveFaqs: Faq[] = [
@@ -349,6 +359,10 @@ const routeDetails = [
   ["adelaide-sydney", "Sydney", "$130.19", "Include destination access windows, lift or loading details and an accurate volume estimate."],
   ["adelaide-queensland", "Queensland", "$164.04", "Queensland is a broad destination; include the city, suburb and postcode in your enquiry."],
   ["adelaide-perth", "Perth", "$186.06", "Identify bulky items and prepare belongings for a longer-distance move before final scoping."],
+  ["adelaide-western-sydney", "Western Sydney", "$130.19", "Western Sydney covers a wide spread of suburbs, so name the destination suburb and postcode alongside driveway or unit access."],
+  ["adelaide-smithfield", "Smithfield NSW", "$130.19", "Note whether the delivery address is residential or industrial, since dock height and truck turning space change the unload plan."],
+  ["adelaide-brisbane", "Brisbane", "$164.04", "Long-haul loads travel further, so flag fragile pieces and anything that needs dismantling before the volume is locked in."],
+  ["adelaide-canberra", "Canberra", "$130.19", "Confirm the destination suburb and any building or estate access rules, then build the inventory around them."],
 ] as const;
 
 export const interstateRoutes: ContentPage[] = routeDetails.map(([slug, destination, price, angle]) => ({
