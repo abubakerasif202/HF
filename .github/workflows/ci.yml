@@ -1,0 +1,63 @@
+name: HF Production Verification
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Use Node 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Content-integrity guard
+        run: |
+          git diff --check
+          if git grep -nE 'Open 24 Hours|24/7|24h Enquiries' -- app lib; then
+            echo 'Stale 24-hour claim remains in production source.' >&2
+            exit 1
+          fi
+          if git grep -nE 'adelaide-(western-sydney|smithfield|brisbane|canberra)' -- app lib; then
+            echo 'Inferred interstate pricing route remains in production source.' >&2
+            exit 1
+          fi
+          if git grep -niE 'Piano / Pool Table|Short/Long-Term Storage|Cleaning \(End of Lease\)|Rubbish/Junk Removal|Most Popular|Ideal for [1-9]|No extra charges for stairs|no hidden charges|only pay for the exact volume' -- app lib; then
+            echo 'Unsupported service or marketing claim remains in production source.' >&2
+            exit 1
+          fi
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Production build and rendered-route tests
+        run: npm test
+
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+
+      - name: Browser QA
+        run: npm run test:browser
+
+      - name: Diff hygiene
+        run: git diff --check

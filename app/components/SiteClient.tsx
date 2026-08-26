@@ -350,12 +350,6 @@ const ADDITIONAL_SERVICES = [
   "Full Packing Service",
   "Unpacking Service",
   "Furniture Disassembly / Reassembly",
-  "Piano / Pool Table Moving",
-  "Short/Long-Term Storage",
-  "Extra Transit Insurance / Cover",
-  "Packing Boxes & Materials Supply",
-  "Cleaning (End of Lease)",
-  "Rubbish/Junk Removal",
 ] as const;
 
 const createEmptyForm = (): FormDataShape => ({
@@ -508,7 +502,7 @@ export function QuoteForm({ compact = false }: { compact?: boolean }) {
 
       <div className="form-rate-preview" aria-live="polite">
         {form.tab === "local" ? (
-          <p>⚡ <strong>Local Rate:</strong> {entryLocalRate.name} from <em>{entryLocalRate.halfHour} / 30 min</em> ({entryLocalRate.hourly}/hr) · All protective gear included</p>
+          <p>⚡ <strong>Local Rate:</strong> {entryLocalRate.name} from <em>{entryLocalRate.halfHour} / 30 min</em> ({entryLocalRate.hourly}/hr) · Final quote confirms the move scope</p>
         ) : (
           <p>⚡ <strong>Interstate Reference:</strong> Melbourne from <em>{melbourneRate.price}/{melbourneRate.unit.replace("per ", "")}</em> · Sydney from <em>{sydneyRate.price}/{sydneyRate.unit.replace("per ", "")}</em> · Queensland from <em>{queenslandRate.price}/{queenslandRate.unit.replace("per ", "")}</em></p>
         )}
@@ -520,7 +514,7 @@ export function QuoteForm({ compact = false }: { compact?: boolean }) {
           {localPricing.map((pricing, index) => {
             const packageName = `${index + 2} Men + Truck`;
             return (
-              <label className={`package-option ${index === 0 ? "package-option--popular" : ""}`} key={pricing.name}>
+              <label className="package-option" key={pricing.name}>
                 <input
                   type="radio"
                   name="moving_package"
@@ -532,7 +526,7 @@ export function QuoteForm({ compact = false }: { compact?: boolean }) {
                 <span className="package-option-copy">
                   <span className="package-option-heading">
                     <strong>{packageName}</strong>
-                    {index === 0 && <b className="package-popular">Popular</b>}
+
                   </span>
                   <small><mark>{pricing.halfHour}</mark> / 30 min · {pricing.hourly}/hr</small>
                 </span>
@@ -566,18 +560,10 @@ export function QuoteForm({ compact = false }: { compact?: boolean }) {
           <select name="move_type" required value={form.moveType} onChange={(e) => update("moveType", e.target.value)} aria-describedby={statusKind === "error" ? "quote-form-status" : undefined}>
             <option>Residential (House / Unit)</option>
             <option>Apartment / High-Rise (Lift Access)</option>
-            <option>Studio / Granny Flat</option>
             <option>Office / Commercial Relocation</option>
-            <option>Retail / Warehouse Relocation</option>
             <option>Interstate Long Distance</option>
             <option>Backloading Route</option>
             <option>Packing & Protection Only</option>
-            <option>Single Item / Heavy Furniture</option>
-            <option>Piano / Pool Table Move</option>
-            <option>Storage Drop-Off / Pick-Up</option>
-            <option>End-of-Lease Move + Clean</option>
-            <option>Senior / Downsizing Move</option>
-            <option>Student Move (Share House)</option>
           </select>
         </label>
         <input className="honeypot" type="text" name="_gotcha" tabIndex={-1} autoComplete="off" aria-hidden="true" value={form.company} onChange={(e) => update("company", e.target.value)} />

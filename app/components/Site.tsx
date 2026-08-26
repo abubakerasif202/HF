@@ -31,7 +31,7 @@ function TrustBar() {
         </svg>
       ),
       title: `${business.googleBusiness.rating} Google Rating`,
-      desc: `${business.googleBusiness.reviewCount}+ Verified Adelaide Reviews`,
+      desc: `${business.googleBusiness.reviewCount} Google Reviews`,
     },
     {
       icon: (
@@ -290,14 +290,12 @@ function PricingSection() {
         <SectionHeading
           eyebrow="Transparent Billing Rates"
           title={<>Published Reference Rates, <em>Clearly Explained</em></>}
-          copy="Local Adelaide moves use fair 30-minute billing increments. Interstate moves are charged on clear per-cubic-metre rates."
+          copy="Local Adelaide moves use published 30-minute billing increments. Interstate routes below show supplied per-cubic-metre reference rates."
         />
         <div className="local-pricing">
-          {localPricing.map((item, index) => (
-            <article className={`price-card ${index === 0 ? "price-card--popular" : ""}`} key={item.name}>
-              {index === 0 && <span className="price-popular-badge">Most Popular</span>}
+          {localPricing.map((item) => (
+            <article className="price-card" key={item.name}>
               <span className="ruby-dot" aria-hidden="true" />
-              <p className="price-kicker">{index === 0 ? "Most Popular for 1-3 Bedrooms" : "Ideal for 3-5 Bedrooms & Large Homes"}</p>
               <h3>{item.name}</h3>
               <div className="price-value">
                 <strong>{item.halfHour}</strong>
@@ -307,10 +305,10 @@ function PricingSection() {
               <ul className="price-features">
                 <li>✓ Full truck equipped with blankets & straps</li>
                 <li>✓ Complimentary mattress protection wrap</li>
-                <li>✓ No extra charges for stairs (disclosed in brief)</li>
+                <li>✓ Final quote confirms access, inventory and move scope</li>
                 <li>✓ {business.insurance}; terms apply</li>
               </ul>
-              <a className="button button-ruby" href="/#quote">Book This Option</a>
+              <a className="button button-ruby" href="/#quote">Request Quote for This Option</a>
             </article>
           ))}
         </div>
@@ -319,7 +317,7 @@ function PricingSection() {
           <div className="table-intro">
             <p className="eyebrow">Interstate Volume Pricing</p>
             <h3>Route Reference Rates</h3>
-            <p>Calculated per cubic metre (m³) so you only pay for the exact volume you transport.</p>
+            <p>Calculated per cubic metre (m³); final pricing depends on the confirmed route, volume and move scope.</p>
             <a className="button button-ruby" href="/interstate">View All Routes</a>
           </div>
           <div className="table-routes">
@@ -438,8 +436,8 @@ function LeadershipSection() {
           </p>
           <div className="leader-stats">
             <div>
-              <strong>{business.googleBusiness.reviewCount}+</strong>
-              <span>5-Star Reviews</span>
+              <strong>{business.googleBusiness.reviewCount}</strong>
+              <span>Google Reviews</span>
             </div>
             <div>
               <strong>Up to $1M</strong>
@@ -586,7 +584,7 @@ export function FaqSection({ faqs = standardMoveFaqs, title = "Frequently Asked 
   return (
     <section className="section faq-section" id="faq">
       <div className="container faq-grid">
-        <SectionHeading eyebrow="Answers & Guidance" title={title} copy="Have a specific question about your upcoming move? Call our team anytime." />
+        <SectionHeading eyebrow="Answers & Guidance" title={title} copy="Have a specific question about your upcoming move? Contact our team during the published business hours." />
         <div className="faq-list">
           {faqs.map((faq, index) => (
             <details key={index} className="faq-item">
@@ -709,8 +707,8 @@ export function HomePage() {
         <div className="container hero-grid">
           <div className="hero-copy">
             <div className="hero-badge">
-              <span className="hero-badge-star">★</span>
-              <span>{business.googleBusiness.rating} RATED ADELAIDE REMOVALISTS ({business.googleBusiness.reviewCount}+ REVIEWS)</span>
+              <span className="hero-badge-star" aria-hidden="true">★</span>
+              <span>{business.googleBusiness.rating} RATED ADELAIDE REMOVALISTS ({business.googleBusiness.reviewCount} REVIEWS)</span>
             </div>
             <h1>
               Adelaide <em>Removalists</em>
@@ -790,7 +788,7 @@ function PageHero({
             <span><b>{business.googleBusiness.rating}★</b> Rating</span>
             <span><b>{business.googleBusiness.reviewCount}</b> Reviews</span>
             <span><b>Up to $1M</b> Insurance</span>
-            <span><b>24h</b> Enquiries</span>
+            <span><b>{business.googleBusiness.hoursShort}</b> Daily hours</span>
           </div>
         </div>
         {price ? (
@@ -1099,7 +1097,7 @@ export function StaticPage({ type }: { type: "about" | "contact" | "pricing" | "
               <p className="eyebrow">Contact details</p>
               <h2>Talk to HF Removals Adelaide</h2>
               <a href={business.phones[0].href}>
-                <span>Primary phone (24/7)</span>
+                <span>Primary phone</span>
                 {business.phones[0].display}
               </a>
               <a href={business.phones[1].href}>
