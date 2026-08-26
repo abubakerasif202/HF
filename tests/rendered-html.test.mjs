@@ -69,7 +69,8 @@ test("renders the premium HF homepage without placeholder claims", async () => {
   assert.match(html, /\$119\.43/);
   assert.match(html, /4\.9 Google rating/i);
   assert.match(html, /417(?:<!-- -->)? reviews/i);
-  assert.match(html, /Open 24 Hours/i);
+  assert.match(html, /7:00 am–8:00 pm daily/i);
+  assert.doesNotMatch(html, /24\/7|24h Enquiries/i);
   assert.match(html, /25–45 m³/i);
   assert.match(html, /40–60 m³/i);
   // The 4.9/417 figures are Google's, not reviews this site collects, so they must
@@ -176,6 +177,8 @@ test("keeps verified rates, coverage wording and canonical route inventory centr
   assert.match(data, /rating: 4\.9/);
   assert.match(data, /reviewCount: 417/);
   assert.match(data, /verifiedAt: "2026-08-21"/);
+  assert.match(data, /hoursVerifiedAt: "2026-08-27"/);
+  assert.doesNotMatch(data, /adelaide-(?:western-sydney|smithfield|brisbane|canberra)/);
   assert.match(data, /Complimentary mattress protection/);
   assert.doesNotMatch(data, /five-star|fully insured|no hidden fees|on-time every time/i);
   // Review excerpts belong with the other supplied business facts, not inside a component.
@@ -363,10 +366,10 @@ test("area pages provide contextual crawl paths and the directory keeps a nested
 
 test("high-intent pricing surfaces expose the ruby package hierarchy", async () => {
   const html = await (await render()).text();
-  assert.match(html, /price-card price-card--popular/);
-  assert.match(html, /price-popular-badge[^>]*>Most Popular/);
-  assert.match(html, /package-option package-option--popular/);
-  assert.match(html, /package-popular[^>]*>Popular/);
+  assert.doesNotMatch(html, /price-card price-card--popular/);
+  assert.doesNotMatch(html, /price-popular-badge[^>]*>Most Popular/);
+  assert.doesNotMatch(html, /package-option package-option--popular/);
+  assert.doesNotMatch(html, /package-popular[^>]*>Popular/);
   const css = await builtCss();
   assert.match(css, /\.price-card--popular\{/);
   assert.match(css, /\.package-option:has\(input:checked\)\{/);

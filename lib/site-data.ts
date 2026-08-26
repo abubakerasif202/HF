@@ -62,7 +62,9 @@ export const business = {
   googleBusiness: {
     rating: 4.9,
     reviewCount: 417,
-    hoursLabel: "Open 24 Hours",
+    hoursLabel: "7:00 am–8:00 pm daily",
+    hoursShort: "7am–8pm",
+    hoursVerifiedAt: "2026-08-27",
     category: "Moving and storage service",
     plusCode: "6MW7+J5 Elizabeth Vale, South Australia",
     coordinates: { latitude: -34.7578, longitude: 138.6834 },
@@ -149,10 +151,6 @@ export const interstatePricing = [
   { slug: "adelaide-sydney", label: "Adelaide ↔ Sydney", price: "$130.19", unit: "per m³" },
   { slug: "adelaide-queensland", label: "Adelaide ↔ Queensland", price: "$164.04", unit: "per m³" },
   { slug: "adelaide-perth", label: "Adelaide ↔ Perth", price: "$186.06", unit: "per m³" },
-  { slug: "adelaide-western-sydney", label: "Adelaide ↔ Western Sydney", price: "$130.19", unit: "per m³" },
-  { slug: "adelaide-smithfield", label: "Adelaide ↔ Smithfield NSW", price: "$130.19", unit: "per m³" },
-  { slug: "adelaide-brisbane", label: "Adelaide ↔ Brisbane", price: "$164.04", unit: "per m³" },
-  { slug: "adelaide-canberra", label: "Adelaide ↔ Canberra", price: "$130.19", unit: "per m³" },
 ] as const;
 
 export const standardMoveFaqs: Faq[] = [
@@ -189,7 +187,7 @@ export const standardMoveFaqs: Faq[] = [
   {
     question: "How early should I book my move?",
     answer:
-      "We recommend booking 1–2 weeks in advance once your moving date is confirmed. However, we operate 24/7 and also accommodate same-day or urgent move requests whenever truck capacity allows.",
+      "We recommend booking 1–2 weeks in advance once your moving date is confirmed. Our published business hours are 7:00 am–8:00 pm daily, and same-day or urgent move requests may be accommodated when truck capacity allows.",
   },
   {
     question: "What details do you need to give a firm quote?",
@@ -359,10 +357,6 @@ const routeDetails = [
   ["adelaide-sydney", "Sydney", "$130.19", "Include destination access windows, lift or loading details and an accurate volume estimate."],
   ["adelaide-queensland", "Queensland", "$164.04", "Queensland is a broad destination; include the city, suburb and postcode in your enquiry."],
   ["adelaide-perth", "Perth", "$186.06", "Identify bulky items and prepare belongings for a longer-distance move before final scoping."],
-  ["adelaide-western-sydney", "Western Sydney", "$130.19", "Western Sydney covers a wide spread of suburbs, so name the destination suburb and postcode alongside driveway or unit access."],
-  ["adelaide-smithfield", "Smithfield NSW", "$130.19", "Note whether the delivery address is residential or industrial, since dock height and truck turning space change the unload plan."],
-  ["adelaide-brisbane", "Brisbane", "$164.04", "Long-haul loads travel further, so flag fragile pieces and anything that needs dismantling before the volume is locked in."],
-  ["adelaide-canberra", "Canberra", "$130.19", "Confirm the destination suburb and any building or estate access rules, then build the inventory around them."],
 ] as const;
 
 export const interstateRoutes: ContentPage[] = routeDetails.map(([slug, destination, price, angle]) => ({

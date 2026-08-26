@@ -35,10 +35,10 @@ export interface PricingBreakdownPatternProps extends Omit<React.ComponentProps<
 }
 
 const DEFAULT_LOCAL_FEATURES: string[] = [
-  "Fully equipped truck with moving blankets & heavy straps",
-  "Complimentary mattress & furniture protection wrap",
-  "Transparent 30-minute billing increments with no hidden charges",
-  "Up to $1,000,000 Public Liability & Transit Insurance included*",
+  "Moving blankets and heavy-duty straps available on the truck",
+  "Complimentary mattress and side-table protective wraps",
+  "Published 30-minute billing; final quote confirms the move scope",
+  "Up to $1,000,000 Public Liability & Transit Insurance; policy terms and move scope apply",
 ];
 
 /**
@@ -48,26 +48,24 @@ const DEFAULT_LOCAL_FEATURES: string[] = [
 export function PricingBreakdownPattern({
   eyebrow = "Transparent Billing Rates",
   title = <>Published Reference Rates, <em>Clearly Explained</em></>,
-  subtitle = "Local Adelaide moves use fair 30-minute billing increments. Interstate moves are charged on clear per-cubic-metre rates.",
+  subtitle = "Local Adelaide moves use published 30-minute billing increments. Interstate routes below show the supplied per-cubic-metre reference rates.",
   localTiers,
   interstateRoutes,
   interstateHeading = "Interstate Volume Pricing",
-  interstateSubtitle = "Calculated per cubic metre (m³) so you only pay for the exact volume you transport.",
+  interstateSubtitle = "Calculated per cubic metre (m³); final pricing depends on the confirmed route, volume and move scope.",
   allRoutesHref = "/interstate",
   onSelectTier,
   className = "",
   ...restProps
 }: PricingBreakdownPatternProps) {
   // Map site data defaults if custom tiers are not provided
-  const tiers: PricingTierItem[] = localTiers ?? localPricing.map((item: (typeof localPricing)[number], idx: number) => ({
+  const tiers: PricingTierItem[] = localTiers ?? localPricing.map((item: (typeof localPricing)[number]) => ({
     name: item.name,
     halfHour: item.halfHour,
     hourly: item.hourly,
     note: item.note,
-    badge: idx === 0 ? "Most Popular for 1–3 Bedrooms" : "Ideal for 3–5 Bedrooms & Large Homes",
-    isPopular: idx === 0,
     features: DEFAULT_LOCAL_FEATURES,
-    ctaText: "Book This Option",
+    ctaText: "Request Quote for This Option",
     ctaHref: "/#quote",
   }));
 
@@ -146,7 +144,7 @@ export function PricingBreakdownPattern({
                     href={tier.ctaHref || "/#quote"}
                     className="button button-ruby w-full min-h-[44px] flex items-center justify-center font-semibold"
                   >
-                    {tier.ctaText || "Book This Option"}
+                    {tier.ctaText || "Request a Quote"}
                   </a>
                 )}
               </div>
