@@ -122,7 +122,7 @@ export default function AreasPage() {
                 return (
                   <a key={area.slug} href={`/areas/${area.slug}`}>
                     <span>{String(index + 1).padStart(2, "0")}</span>
-                    <h2>{area.name} removals</h2>
+                    <h3>{area.name} removals</h3>
                     <p>{page?.description ?? `Moving support for ${area.name}, South Australia.`}</p>
                     <b>Explore <i>→</i></b>
                   </a>

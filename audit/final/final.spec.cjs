@@ -57,6 +57,9 @@ test('mobile visuals and menu interaction', async ({ browser }) => {
   const toggle = page.getByRole('button', { name: 'Open menu' });
   await toggle.click();
   await expect(page.getByRole('dialog', { name: 'Mobile navigation' })).toBeVisible();
+  await expect(page.locator('main')).toHaveAttribute('inert', '');
+  await expect(page.locator('footer')).toHaveAttribute('inert', '');
+  await expect(page.locator('.utility-bar')).toHaveAttribute('inert', '');
   const entryFocus = await page.evaluate(() => ({ tag: document.activeElement?.tagName, text: document.activeElement?.textContent?.trim(), inert: document.querySelector('#mobile-menu')?.hasAttribute('inert') }));
   findings.push({ label: 'mobile-menu-entry-focus', type: 'interaction', ...entryFocus });
   await expect(page.locator('body')).toHaveCSS('overflow', 'hidden');
@@ -64,6 +67,7 @@ test('mobile visuals and menu interaction', async ({ browser }) => {
   await page.screenshot({ path: path.join(out, 'mobile-menu-390.png') });
   await page.keyboard.press('Escape');
   await expect(page.getByRole('button', { name: 'Open menu' })).toBeFocused();
+  await expect(page.locator('main')).not.toHaveAttribute('inert', '');
 
   await toggle.click();
   const backdropTarget = await page.evaluate(() => ({ tag: document.elementFromPoint(4, 400)?.tagName, id: document.elementFromPoint(4, 400)?.id, className: document.elementFromPoint(4, 400)?.className }));
@@ -105,6 +109,23 @@ for (const width of [320,360,375,390,412,430,768,820,1024,1280,1366,1440,1536,19
     expect(over).toBeLessThanOrEqual(0);
     await context.close();
   });
+}
+
+for (const route of ['/pricing', '/areas', '/areas/medindie', '/services/residential-removals', '/guides/adelaide-moving-checklist']) {
+  for (const width of [320, 768, 1440]) {
+    test(`template overflow ${route} ${width}`, async ({ browser }) => {
+      const context = await browser.newContext({ viewport: { width, height: width === 320 ? 844 : 900 }, reducedMotion: 'reduce' });
+      const page = await context.newPage();
+      await goto(page, route, `template-${route}-${width}`);
+      const result = await page.evaluate(() => ({
+        overflow: Math.max(document.documentElement.scrollWidth, document.body.scrollWidth) - document.documentElement.clientWidth,
+        h1s: document.querySelectorAll('h1').length,
+      }));
+      expect(result.overflow).toBeLessThanOrEqual(0);
+      expect(result.h1s).toBe(1);
+      await context.close();
+    });
+  }
 }
 
 test('form radio keyboard behavior and FAQ', async ({ browser }) => {

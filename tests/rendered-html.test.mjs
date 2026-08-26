@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { spawn } from "node:child_process";
 import { readFile } from "node:fs/promises";
+import { request } from "node:http";
 import test, { after, before } from "node:test";
 
 const port = 31_487;
@@ -32,6 +33,17 @@ after(() => {
 
 async function render(path = "/", init = {}) {
   return fetch(`${baseUrl}${path}`, { headers: { accept: "text/html", ...(init.headers ?? {}) }, ...init });
+}
+
+function requestWithHost(path, host) {
+  return new Promise((resolve, reject) => {
+    const req = request({ hostname: "127.0.0.1", port, path, headers: { host } }, (response) => {
+      response.resume();
+      response.once("end", () => resolve(response));
+    });
+    req.once("error", reject);
+    req.end();
+  });
 }
 
 test("renders the premium HF homepage without placeholder claims", async () => {
@@ -147,7 +159,8 @@ test("renders one coherent, accessible Web3Forms quote flow", async () => {
 
   const client = await readFile(new URL("../app/components/SiteClient.tsx", import.meta.url), "utf8");
   assert.doesNotMatch(client, /fetch\(["']\/api\/quote/i);
-  assert.match(client, /formData\.append\("access_key", web3FormsAccessKey\)/i);
+  assert.match(client, /name="access_key" value=\{web3FormsAccessKey\}/i);
+  assert.doesNotMatch(client, /formData\.append\("access_key"/i);
   assert.match(client, /data\.success/i);
   assert.doesNotMatch(client, /formspree\.io|formsubmit\.co/i);
 });
@@ -262,11 +275,20 @@ test("the production origin is declared once and drives canonical output", async
   assert.doesNotMatch(client, /hf-removals-adelaide\.vercel\.app|hfremovalsadelaide\.com(?!\.au)/);
 });
 
-test("the duplicate .com hostname is configured to redirect to the canonical .com.au URL", async () => {
-  const config = await readFile(new URL("../next.config.ts", import.meta.url), "utf8");
-  assert.match(config, /type: "host", value: "www\.hfremovalsadelaide\.com"/);
-  assert.match(config, /destination: "https:\/\/www\.hfremovalsadelaide\.com\.au\/:path\*"/);
-  assert.match(config, /permanent: true/);
+test("all duplicate hostnames permanently redirect to the canonical www .com.au URL", async () => {
+  for (const host of [
+    "hfremovalsadelaide.com.au",
+    "hfremovalsadelaide.com",
+    "www.hfremovalsadelaide.com",
+  ]) {
+    const response = await requestWithHost("/services/residential-removals", host);
+    assert.equal(response.statusCode, 308, host);
+    assert.equal(
+      response.headers.location,
+      "https://www.hfremovalsadelaide.com.au/services/residential-removals",
+      host,
+    );
+  }
 });
 
 test("legacy WordPress URLs permanently redirect to the closest current page", async () => {
@@ -305,8 +327,13 @@ test("priority pages keep distinct metadata and useful page-level schema", async
   assert.match(servicesHtml, /alt="HF Removals Adelaide logo"/);
 
   const houseHtml = await (await render("/services/residential-removals")).text();
-  assert.match(houseHtml, /<title>House removals Adelaide \| HF Removals Adelaide<\/title>/i);
+  assert.match(houseHtml, /<title>House &amp; Residential Removalists Adelaide \| HF Removals Adelaide<\/title>/i);
   assert.match(houseHtml, /<h1>House removals: A clear plan for moving home<\/h1>/i);
+  assert.match(houseHtml, /Useful next steps for your move/i);
+  assert.match(houseHtml, /href="\/pricing"/i);
+
+  const pricingHtml = await (await render("/pricing")).text();
+  assert.match(pricingHtml, /<title>Removalist Pricing Adelaide \| HF Removals Adelaide<\/title>/i);
 
   const hubHtml = await (await render("/adelaide-removalists")).text();
   assert.match(hubHtml, /<title>Adelaide Moving Guide &amp; Service Hub \| HF Removals Adelaide<\/title>/i);
@@ -314,9 +341,24 @@ test("priority pages keep distinct metadata and useful page-level schema", async
 
 test("sitemap contains only canonical indexable routes", async () => {
   const xml = await (await render("/sitemap.xml")).text();
+  const locations = [...xml.matchAll(/<loc>([^<]+)<\/loc>/g)].map((match) => match[1]);
   assert.doesNotMatch(xml, /hfremovalsadelaide\.com<|https:\/\/hfremovalsadelaide\.com\.au/i);
   assert.doesNotMatch(xml, /about-us|contact-us|interstate-removal-services|<loc>[^<]*\/blog\/?<\/loc>/i);
-  assert.equal((xml.match(/<loc>/g) ?? []).length, 33);
+  assert.ok(locations.length > 33, "expanded service-area inventory should be discoverable");
+  assert.equal(new Set(locations).size, locations.length, "sitemap URLs must be unique");
+  assert.ok(locations.includes("https://www.hfremovalsadelaide.com.au/areas/medindie"));
+});
+
+test("area pages provide contextual crawl paths and the directory keeps a nested heading hierarchy", async () => {
+  const detail = await (await render("/areas/medindie")).text();
+  assert.match(detail, /href="\/services\/residential-removals"/i);
+  assert.match(detail, /href="\/services\/packing-unpacking"/i);
+  assert.match(detail, /href="\/areas\/[^"]+"/i);
+
+  const directory = await (await render("/areas")).text();
+  assert.match(directory, /<h2[^>]*id="region-central-adelaide"/i);
+  assert.match(directory, /Central Adelaide(?:<!-- -->)? removalist coverage/i);
+  assert.match(directory, /<h3>Adelaide CBD(?:<!-- -->)? removals<\/h3>/i);
 });
 
 test("high-intent pricing surfaces expose the ruby package hierarchy", async () => {

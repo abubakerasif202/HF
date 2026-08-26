@@ -2491,6 +2491,11 @@ p {
   color: rgba(255, 255, 255, 0.5);
   font-size: 0.75rem;
 }
+.breadcrumbs a {
+  display: inline-flex;
+  min-height: 24px;
+  align-items: center;
+}
 .detail-section {
   background: #031811;
 }
@@ -2511,6 +2516,8 @@ p {
 }
 .aside-call {
   display: block;
+  min-height: 44px;
+  padding: 13px 4px;
   margin-top: 14px;
   color: var(--hf-gold-300);
   font-size: 0.76rem;
@@ -2596,10 +2603,87 @@ p {
   color: var(--hf-gold-500);
   font: italic 700 0.95rem var(--font-display);
 }
-.listing-grid h2 {
+.listing-grid h2,
+.listing-grid h3 {
   margin: 30px 0 10px;
   font-size: 1.55rem;
   color: white;
+}
+
+.related-links {
+  margin-top: clamp(2.5rem, 6vw, 5rem);
+  padding-top: clamp(2rem, 4vw, 3.5rem);
+  border-top: 1px solid var(--hf-border);
+}
+
+.related-links > h2 {
+  max-width: 700px;
+  margin: 0.5rem 0 1.5rem;
+}
+
+.related-links-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+.related-links-grid a {
+  position: relative;
+  display: grid;
+  min-height: 150px;
+  padding: 1.25rem 3rem 1.25rem 1.25rem;
+  border: 1px solid var(--hf-border);
+  border-radius: 16px;
+  color: inherit;
+  background: rgba(3, 26, 18, 0.7);
+  text-decoration: none;
+  transition: border-color 180ms ease, transform 180ms ease;
+}
+
+.related-links-grid a:hover {
+  border-color: var(--hf-ruby-500);
+  transform: translateY(-2px);
+}
+
+.related-links-grid strong {
+  align-self: end;
+  font-size: 1.05rem;
+}
+
+.related-links-grid span {
+  margin-top: 0.45rem;
+  color: var(--hf-text-muted);
+  line-height: 1.55;
+}
+
+.related-links-grid b {
+  position: absolute;
+  top: 1.25rem;
+  right: 1.25rem;
+  color: var(--hf-ruby-500);
+}
+
+@media (max-width: 900px) {
+  .listing-grid,
+  .related-links-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 560px) {
+  .listing-grid,
+  .related-links-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .listing-grid a {
+    min-height: 240px;
+    padding: 24px;
+  }
+
+  .related-links-grid a {
+    min-height: 132px;
+  }
 }
 .listing-grid p {
   color: rgba(255, 255, 255, 0.68);

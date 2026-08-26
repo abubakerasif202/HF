@@ -123,6 +123,18 @@ export function Header() {
 
   useEffect(() => {
     document.body.classList.toggle("menu-locked", open);
+    const inertRegions: Array<{ element: HTMLElement; wasInert: boolean }> = [];
+    if (open && menu.current && toggle.current) {
+      const backgroundRegions = [
+        ...Array.from(document.querySelectorAll<HTMLElement>("main, footer, .utility-bar, .mobile-sticky")),
+        ...Array.from(document.querySelectorAll<HTMLElement>(".site-header .brand, .site-header .desktop-nav, .site-header .phone-chip, .site-header .header-quote")),
+      ];
+
+      backgroundRegions.forEach((element) => {
+        inertRegions.push({ element, wasInert: element.inert });
+        element.inert = true;
+      });
+    }
     // Let the click that opened the drawer finish before moving focus into it;
     // otherwise the trigger can reclaim focus in Chromium after a zero-delay timer.
     const focusTimer = open ? window.setTimeout(() => firstLink.current?.focus(), 80) : undefined;
@@ -147,6 +159,9 @@ export function Header() {
     document.addEventListener("keydown", onKey);
     return () => {
       if (focusTimer !== undefined) window.clearTimeout(focusTimer);
+      inertRegions.forEach(({ element, wasInert }) => {
+        element.inert = wasInert;
+      });
       document.body.classList.remove("menu-locked");
       document.removeEventListener("keydown", onKey);
     };
@@ -405,7 +420,6 @@ export function QuoteForm({ compact = false }: { compact?: boolean }) {
 
     try {
       const formData = new FormData(event.currentTarget);
-      formData.append("access_key", web3FormsAccessKey);
 
       const response = await fetch(quoteFormEndpoint, {
         method: "POST",
@@ -442,6 +456,7 @@ export function QuoteForm({ compact = false }: { compact?: boolean }) {
         setStatus("Please complete the required fields and correct any highlighted values.");
       }}
     >
+      <input type="hidden" name="access_key" value={web3FormsAccessKey} />
       <input type="hidden" name="subject" value="New HF Removals Adelaide Quote Request" />
       <input type="hidden" name="from_name" value="HF Removals Adelaide Website" />
       <input type="hidden" name="source_page" value={`${business.domain}${pathname}`} />

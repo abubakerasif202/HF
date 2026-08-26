@@ -70,6 +70,18 @@ const nextConfig: NextConfig = {
         permanent: true,
       },
       {
+        source: "/:path*",
+        has: [{ type: "host", value: "hfremovalsadelaide.com.au" }],
+        destination: "https://www.hfremovalsadelaide.com.au/:path*",
+        permanent: true,
+      },
+      {
+        source: "/:path*",
+        has: [{ type: "host", value: "hfremovalsadelaide.com" }],
+        destination: "https://www.hfremovalsadelaide.com.au/:path*",
+        permanent: true,
+      },
+      {
         source: "/:path+/",
         destination: "/:path+",
         permanent: true,

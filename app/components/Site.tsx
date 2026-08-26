@@ -1,4 +1,5 @@
 import { areas, business, ContentPage, entryLocalRate, googleReviews, guides, interstatePricing, interstateRoutes, localPricing, services, standardMoveFaqs } from "../../lib/site-data";
+import { hfServiceAreaRecords } from "../../lib/hf-service-areas";
 import { Header, MobileStickyCta, MotionExperience, QuoteForm, UtilityBar } from "./SiteClient";
 
 export function ServiceTicker({ locations = false }: { locations?: boolean }) {
@@ -888,6 +889,83 @@ function Breadcrumbs({ page }: { page: ContentPage }) {
   );
 }
 
+type RelatedLink = { href: string; label: string; description: string };
+
+function relatedLinksFor(page: ContentPage): RelatedLink[] {
+  const shared: RelatedLink[] = [
+    { href: "/pricing", label: "Removalist pricing", description: "Compare the supplied Adelaide and interstate pricing units." },
+    { href: "/#quote", label: "Get a quote", description: "Send both addresses, inventory, access notes and your preferred date." },
+  ];
+
+  if (page.kind === "area") {
+    const record = hfServiceAreaRecords.find((area) => area.slug === page.slug);
+    const nearby = record
+      ? hfServiceAreaRecords
+          .filter((area) => area.region === record.region && area.slug !== page.slug)
+          .slice(0, 4)
+          .map((area) => ({
+            href: `/areas/${area.slug}`,
+            label: `${area.name} removals`,
+            description: `Review moving and access planning for ${area.name}.`,
+          }))
+      : [];
+    return [
+      { href: "/services/residential-removals", label: "House removals", description: "Plan inventory, access, protection and destination placement." },
+      { href: "/services/packing-unpacking", label: "Packing support", description: "Prepare cartons, furniture and high-care items before moving day." },
+      ...nearby,
+      ...shared,
+    ];
+  }
+
+  if (page.kind === "route") {
+    return [
+      { href: "/services/interstate-removals", label: "Interstate removals", description: "Understand the inventory and access details needed for an interstate enquiry." },
+      { href: "/guides/preparing-interstate-move", label: "Interstate moving guide", description: "Prepare the route, volume and packing information before requesting a quote." },
+      ...shared,
+    ];
+  }
+
+  if (page.kind === "guide") {
+    return [
+      { href: "/services", label: "Adelaide moving services", description: "Choose residential, office, interstate, backloading or packing support." },
+      { href: "/areas", label: "Service areas", description: "Find moving-planning pages across Adelaide and selected regional corridors." },
+      ...shared,
+    ];
+  }
+
+  const serviceLinks = services
+    .filter((service) => service.slug !== page.slug)
+    .slice(0, 3)
+    .map((service) => ({
+      href: `/services/${service.slug}`,
+      label: service.eyebrow,
+      description: service.description,
+    }));
+  return [
+    ...serviceLinks,
+    { href: "/guides/adelaide-moving-checklist", label: "Adelaide moving checklist", description: "Prepare the practical details before moving day." },
+    ...shared,
+  ];
+}
+
+function RelatedLinks({ page }: { page: ContentPage }) {
+  return (
+    <section className="related-links" aria-labelledby="related-links-title">
+      <p className="eyebrow">Continue planning</p>
+      <h2 id="related-links-title">Useful next steps for your move</h2>
+      <div className="related-links-grid">
+        {relatedLinksFor(page).map((link) => (
+          <a href={link.href} key={link.href}>
+            <strong>{link.label}</strong>
+            <span>{link.description}</span>
+            <b aria-hidden="true">→</b>
+          </a>
+        ))}
+      </div>
+    </section>
+  );
+}
+
 export function DetailPage({ page }: { page: ContentPage }) {
   const heading = page.kind === "service" || page.kind === "area" ? `${page.eyebrow}: ${page.title}` : page.title;
   return (
@@ -934,6 +1012,7 @@ export function DetailPage({ page }: { page: ContentPage }) {
               </article>
             ))}
           </div>
+          <RelatedLinks page={page} />
         </div>
       </section>
       <FaqSection faqs={page.faqs} title={`Questions about ${page.eyebrow.toLowerCase()}`} />

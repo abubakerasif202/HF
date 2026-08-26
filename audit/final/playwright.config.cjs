@@ -8,4 +8,10 @@ module.exports = defineConfig({
   reporter: [['line'], ['html', { outputFolder: `${__dirname}/html-report`, open: 'never' }]],
   use: { browserName: 'chromium', trace: 'retain-on-failure', screenshot: 'only-on-failure' },
   outputDir: `${__dirname}/test-results`,
+  webServer: {
+    command: 'npm run start -- --hostname 127.0.0.1 --port 3100',
+    url: 'http://127.0.0.1:3100',
+    reuseExistingServer: false,
+    timeout: 90_000,
+  },
 });
