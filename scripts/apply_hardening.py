@@ -2,6 +2,19 @@ from pathlib import Path
 import re
 
 
+site_data_now = Path("lib/site-data.ts").read_bytes().decode("utf-8")
+site_now = Path("app/components/Site.tsx").read_bytes().decode("utf-8")
+client_now = Path("app/components/SiteClient.tsx").read_bytes().decode("utf-8")
+if (
+    'hoursLabel: "7:00 am–8:00 pm daily"' in site_data_now
+    and "adelaide-canberra" not in site_data_now
+    and "Most Popular" not in site_now
+    and "Piano / Pool Table Move" not in client_now
+):
+    print("HF production hardening already applied")
+    raise SystemExit(0)
+
+
 def read_raw(path: str) -> tuple[Path, str]:
     p = Path(path)
     return p, p.read_bytes().decode("utf-8")
@@ -38,7 +51,6 @@ def remove_line(path: str, line: str) -> None:
     write_raw(p, updated)
 
 
-# Verified business hours and stale 24/7 claims.
 replace_once(
     "lib/site-data.ts",
     '    hoursLabel: "Open 24 Hours",',
@@ -50,7 +62,6 @@ replace_once(
     '      "We recommend booking 1–2 weeks in advance once your moving date is confirmed. Our published business hours are 7:00 am–8:00 pm daily, and same-day or urgent move requests may be accommodated when truck capacity allows.",',
 )
 
-# Remove route prices that were introduced by mapping other routes rather than from supplied pricing.
 for line in [
     '  { slug: "adelaide-western-sydney", label: "Adelaide ↔ Western Sydney", price: "$130.19", unit: "per m³" },',
     '  { slug: "adelaide-smithfield", label: "Adelaide ↔ Smithfield NSW", price: "$130.19", unit: "per m³" },',
@@ -63,7 +74,6 @@ for line in [
 ]:
     remove_line("lib/site-data.ts", line)
 
-# Quote form: keep only services represented by the verified service dataset.
 replace_block(
     "app/components/SiteClient.tsx",
     '''const ADDITIONAL_SERVICES = [
@@ -122,7 +132,6 @@ replace_once(
     '',
 )
 
-# Homepage pricing: remove unsourced popularity/fit/fee guarantees while preserving verified rates.
 replace_once(
     "app/components/Site.tsx",
     '          copy="Local Adelaide moves use fair 30-minute billing increments. Interstate moves are charged on clear per-cubic-metre rates."',
@@ -148,7 +157,6 @@ replace_once(
     '            <p>Calculated per cubic metre (m³); final pricing depends on the confirmed route, volume and move scope.</p>',
 )
 
-# Reusable pricing pattern mirrors the same integrity rules.
 replace_once(
     "app/components/patterns/PricingBreakdownPattern.tsx",
     '  subtitle = "Local Adelaide moves use fair 30-minute billing increments. Interstate moves are charged on clear per-cubic-metre rates.",',
@@ -183,7 +191,6 @@ remove_line("app/components/patterns/PricingBreakdownPattern.tsx", '    badge: i
 replace_once("app/components/patterns/PricingBreakdownPattern.tsx", '    ctaText: "Book This Option",', '    ctaText: "Request Quote for This Option",')
 replace_once("app/components/patterns/PricingBreakdownPattern.tsx", '{tier.ctaText || "Book This Option"}', '{tier.ctaText || "Request a Quote"}')
 
-# Visible trust/hours wording.
 replace_once(
     "app/components/Site.tsx",
     '      desc: `${business.googleBusiness.reviewCount}+ Verified Adelaide Reviews`,',
@@ -197,11 +204,9 @@ replace_once(
 replace_once("app/components/Site.tsx", '            <span><b>24h</b> Enquiries</span>', '            <span><b>{business.googleBusiness.hoursShort}</b> Daily hours</span>')
 replace_once("app/components/Site.tsx", '                <span>Primary phone (24/7)</span>', '                <span>Primary phone</span>')
 
-# Structured data agrees with visible hours.
 replace_once("app/page.tsx", '          opens: "00:00",', '          opens: "07:00",')
 replace_once("app/page.tsx", '          closes: "23:59",', '          closes: "20:00",')
 
-# Regression expectations.
 replace_once(
     "tests/rendered-html.test.mjs",
     '  assert.match(html, /Open 24 Hours/i);',
