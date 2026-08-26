@@ -7,8 +7,10 @@
   },
   "scripts": {
     "dev": "next dev",
+    "prebuild": "python3 scripts/apply_hardening.py",
     "build": "next build",
     "start": "next start",
+    "pretest": "python3 scripts/apply_hardening.py",
     "test": "next build && node --test tests/rendered-html.test.mjs",
     "test:browser": "playwright test --config audit/final/playwright.config.cjs",
     "typecheck": "tsc --noEmit --incremental false",
