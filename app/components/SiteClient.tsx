@@ -14,7 +14,7 @@ export function UtilityBar() {
         </div>
         <div className="utility-contact">
           <a href="https://maps.google.com/?cid=10700874558509895358" target="_blank" rel="noopener noreferrer" className="utility-rating">
-            <span className="utility-stars">★★★★★</span>
+            <span className="utility-stars" aria-hidden="true">★★★★★</span>
             <strong>{business.googleBusiness.rating}/5.0</strong> ({business.googleBusiness.reviewCount} Google Reviews)
           </a>
           <a href={business.phones[0].href} className="utility-phone" aria-label={`Call ${business.phones[0].display}`}>
@@ -215,7 +215,7 @@ export function Header() {
           <div className={`nav-dropdown ${openDropdown === "services" ? "is-open" : ""}`}>
             <button className={`nav-dropdown-btn ${pathname.startsWith("/services") ? "is-active" : ""}`} type="button" aria-haspopup="true" aria-expanded={openDropdown === "services"} aria-controls="services-menu" onClick={() => setOpenDropdown((value) => value === "services" ? null : "services")}>
               <span>Services</span>
-              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="m6 9 6 6 6-6" /></svg>
+              <svg aria-hidden="true" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="m6 9 6 6 6-6" /></svg>
             </button>
             <div className="nav-dropdown-menu" id="services-menu">
               {services.map((item) => (
@@ -233,7 +233,7 @@ export function Header() {
           <div className={`nav-dropdown ${openDropdown === "locations" ? "is-open" : ""}`}>
             <button className={`nav-dropdown-btn ${pathname.startsWith("/areas") || pathname.startsWith("/interstate") ? "is-active" : ""}`} type="button" aria-haspopup="true" aria-expanded={openDropdown === "locations"} aria-controls="locations-menu" onClick={() => setOpenDropdown((value) => value === "locations" ? null : "locations")}>
               <span>Locations & Routes</span>
-              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="m6 9 6 6 6-6" /></svg>
+              <svg aria-hidden="true" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="m6 9 6 6 6-6" /></svg>
             </button>
             <div className="nav-dropdown-menu nav-dropdown-wide" id="locations-menu">
               <div className="nav-dropdown-columns">
@@ -296,7 +296,11 @@ export function Header() {
         </div>
         </div>
       </header>
-      <div ref={menu} id="mobile-menu" className={`mobile-menu ${open ? "is-open" : ""}`} aria-hidden={!open} inert={!open} role="dialog" aria-modal="true" aria-label="Mobile navigation" onPointerDown={(event) => { if (event.target === event.currentTarget) setOpen(false); }}>
+      <div ref={menu} id="mobile-menu" className={`mobile-menu ${open ? "is-open" : ""}`} aria-hidden={!open} inert={!open} role="dialog" aria-modal="true" aria-label="Mobile navigation" onPointerDown={(event) => {
+          if (event.target !== event.currentTarget) return;
+          setOpen(false);
+          window.setTimeout(() => toggle.current?.focus(), 0);
+        }}>
         <nav aria-label="Mobile navigation">
           <a className={pathname === "/" ? "is-active" : ""} ref={firstLink} href="/" onClick={() => setOpen(false)}>
             Home <span>↗</span>
@@ -475,7 +479,7 @@ export function QuoteForm({ compact = false }: { compact?: boolean }) {
         </div>
       </div>
 
-      <div className="form-tabs" role="radiogroup" aria-label="Move type selection">
+      <div className="form-tabs" role="radiogroup" aria-label="Move type selection" aria-required="true">
         <button
           type="button"
           role="radio"
@@ -543,23 +547,23 @@ export function QuoteForm({ compact = false }: { compact?: boolean }) {
         <legend className="sr-only">Essential move details</legend>
         <label>
           <span className="field-label">Your Name <b aria-hidden="true">*</b></span>
-          <input name="name" required maxLength={100} autoComplete="name" value={form.name} onChange={(e) => update("name", e.target.value)} placeholder="e.g. Alex Smith" />
+          <input name="name" required maxLength={100} autoComplete="name" value={form.name} onChange={(e) => update("name", e.target.value)} placeholder="e.g. Alex Smith" aria-invalid={statusKind === "error" && !form.name} aria-describedby={statusKind === "error" ? "quote-form-status" : undefined} />
         </label>
         <label>
           <span className="field-label">Phone Number <b aria-hidden="true">*</b></span>
-          <input name="phone" required maxLength={32} autoComplete="tel" inputMode="tel" pattern="[0-9+ ()-]{8,}" value={form.phone} onChange={(e) => update("phone", e.target.value)} placeholder="e.g. 0400 000 000" />
+          <input name="phone" required maxLength={32} autoComplete="tel" inputMode="tel" pattern="[0-9+ ()-]{8,}" value={form.phone} onChange={(e) => update("phone", e.target.value)} placeholder="e.g. 0400 000 000" aria-invalid={statusKind === "error" && !form.phone} aria-describedby={statusKind === "error" ? "quote-form-status" : undefined} />
         </label>
         <label>
           <span className="field-label">Moving From (Suburb) <b aria-hidden="true">*</b></span>
-          <input name="moving_from" required maxLength={180} autoComplete="address-level2" value={form.from} onChange={(e) => update("from", e.target.value)} placeholder="e.g. Elizabeth Vale SA" />
+          <input name="moving_from" required maxLength={180} autoComplete="address-level2" value={form.from} onChange={(e) => update("from", e.target.value)} placeholder="e.g. Elizabeth Vale SA" aria-invalid={statusKind === "error" && !form.from} aria-describedby={statusKind === "error" ? "quote-form-status" : undefined} />
         </label>
         <label>
           <span className="field-label">Moving To (Suburb/City) <b aria-hidden="true">*</b></span>
-          <input name="moving_to" required maxLength={180} autoComplete="address-level2" value={form.to} onChange={(e) => update("to", e.target.value)} placeholder={form.tab === "local" ? "e.g. Marion SA" : "e.g. Melbourne VIC"} />
+          <input name="moving_to" required maxLength={180} autoComplete="address-level2" value={form.to} onChange={(e) => update("to", e.target.value)} placeholder={form.tab === "local" ? "e.g. Marion SA" : "e.g. Melbourne VIC"} aria-invalid={statusKind === "error" && !form.to} aria-describedby={statusKind === "error" ? "quote-form-status" : undefined} />
         </label>
         <label className="form-wide">
           <span className="field-label">Move Type <b aria-hidden="true">*</b></span>
-          <select name="move_type" required value={form.moveType} onChange={(e) => update("moveType", e.target.value)}>
+          <select name="move_type" required value={form.moveType} onChange={(e) => update("moveType", e.target.value)} aria-describedby={statusKind === "error" ? "quote-form-status" : undefined}>
             <option>Residential (House / Unit)</option>
             <option>Apartment / High-Rise (Lift Access)</option>
             <option>Studio / Granny Flat</option>
@@ -678,7 +682,7 @@ export function QuoteForm({ compact = false }: { compact?: boolean }) {
       </button>
 
       <div className="form-footer-guarantee">
-        <span>🛡️ {business.insurance}</span>
+        <span><span aria-hidden="true">🛡️</span> {business.insurance}</span>
         <span>•</span>
         <span>Policy terms and move scope apply</span>
       </div>
@@ -688,7 +692,7 @@ export function QuoteForm({ compact = false }: { compact?: boolean }) {
       </p>
 
       {status && (
-        <p className={`form-status is-${statusKind}`} aria-live="polite" role={statusKind === "error" ? "alert" : "status"}>
+        <p id="quote-form-status" className={`form-status is-${statusKind}`} aria-live="polite" role={statusKind === "error" ? "alert" : "status"}>
           {status}
         </p>
       )}
@@ -700,12 +704,12 @@ export function MobileStickyCta() {
   return (
     <aside className="mobile-sticky" aria-label="Quick mobile call and quote action">
       <a href={business.phones[0].href} className="mobile-sticky-call">
-        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z" /></svg>
+        <svg aria-hidden="true" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z" /></svg>
         <span>Call {business.phones[0].display}</span>
       </a>
       <a href="/#quote" className="mobile-sticky-quote button-ruby">
         <span>Get Free Quote</span>
-        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M5 12h14m-7-7 7 7-7 7" /></svg>
+        <svg aria-hidden="true" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M5 12h14m-7-7 7 7-7 7" /></svg>
       </a>
     </aside>
   );

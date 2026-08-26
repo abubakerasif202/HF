@@ -1574,7 +1574,7 @@ p {
 }
 .service-photo-copy small {
   grid-row: 1 / 3;
-  color: var(--hf-ruby-600);
+  color: var(--hf-gold-400);
   font: italic 700 1rem var(--font-display);
 }
 .service-photo-copy strong {

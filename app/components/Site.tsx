@@ -431,8 +431,8 @@ function LeadershipSection() {
           <span className="portrait-accent" />
         </div>
         <div>
-          <SectionHeading eyebrow="Company Leadership" title={<>Meet <em>Muhammad Rasheed</em></>} />
-          <p className="leader-title">CEO & Founder, HF Removals Adelaide</p>
+          <SectionHeading eyebrow="Company Leadership" title={<>Meet <em>{business.ceo.name}</em></>} />
+          <p className="leader-title">{business.ceo.title}</p>
           <p>
             HF Removals Adelaide receives enquiries from its Elizabeth Vale base for local, commercial and listed interstate moves. Each quote is scoped around inventory, access, protection and destination details.
           </p>
@@ -629,12 +629,12 @@ function Footer() {
           <p className="footer-tagline">“{business.tagline}”</p>
           <address>
             <a href={business.phones[0].href} className="footer-phone">
-              📞 {business.phones[0].display} (Primary)
+              <span aria-hidden="true">📞</span> {business.phones[0].display} (Primary)
             </a>
-            <a href={business.phones[1].href}>📞 {business.phones[1].display} (Secondary)</a>
-            <a href={`mailto:${business.emails[0]}`}>✉️ {business.emails[0]}</a>
-            <span>📍 {business.address.full}</span>
-            <span>⭐ {business.googleBusiness.rating} Google Rating · {business.googleBusiness.reviewCount} Reviews</span>
+            <a href={business.phones[1].href}><span aria-hidden="true">📞</span> {business.phones[1].display} (Secondary)</a>
+            <a href={`mailto:${business.emails[0]}`}><span aria-hidden="true">✉️</span> {business.emails[0]}</a>
+            <span><span aria-hidden="true">📍</span> {business.address.full}</span>
+            <span><span aria-hidden="true">⭐</span> {business.googleBusiness.rating} Google Rating · {business.googleBusiness.reviewCount} Reviews</span>
           </address>
         </div>
         <div>
