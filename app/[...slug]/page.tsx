@@ -90,7 +90,9 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 }
 
 export function generateStaticParams() {
-  return indexablePaths.filter((path) => path !== "/").map((path) => ({ slug: path.split("/").filter(Boolean) }));
+  return indexablePaths
+    .filter((path) => path !== "/" && path !== "/areas" && !path.startsWith("/areas/"))
+    .map((path) => ({ slug: path.split("/").filter(Boolean) }));
 }
 
 export default async function ContentRoute({ params }: Props) {
