@@ -28,7 +28,7 @@ const nextConfig: NextConfig = {
               "font-src 'self'",
               "connect-src 'self' https://api.web3forms.com",
               "form-action 'self' https://api.web3forms.com",
-              "frame-src 'none'",
+              "frame-src 'self' https://www.google.com",
               "object-src 'none'",
               "base-uri 'self'",
             ].join("; "),
