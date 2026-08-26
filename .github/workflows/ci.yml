@@ -27,7 +27,7 @@ jobs:
 
       - name: Apply audited hardening patch
         if: hashFiles('scripts/apply_hardening.py') != ''
-        run: python3 scripts/apply_hardening.py
+        run: npm run prebuild
 
       - name: Content-integrity guard
         run: |
