@@ -15,7 +15,9 @@ export type ContentPage = {
 
 export const siteOrigin = "https://www.hfremovalsadelaide.com.au";
 export const quoteFormEndpoint = "https://api.web3forms.com/submit";
-export const web3FormsAccessKey = "a6214fc2-9669-49a0-abf4-4f8bd77c3f88";
+export const canonicalEmail = "admin@hfremovalsadelaide.com.au";
+export const web3FormsAccessKey =
+  process.env.NEXT_PUBLIC_WEB3FORMS_ACCESS_KEY ?? "a6214fc2-9669-49a0-abf4-4f8bd77c3f88";
 
 export const business = {
   name: "HF Removals Adelaide",
@@ -26,7 +28,7 @@ export const business = {
     { display: "0491 704 136", href: "tel:+61491704136", primary: true },
     { display: "0493 092 539", href: "tel:+61493092539", primary: false },
   ],
-  emails: ["hfremovalad@gmail.com"],
+  emails: [canonicalEmail],
   address: {
     full: "20 Prunus Ave, Elizabeth Vale SA 5112, Australia",
     street: "20 Prunus Ave",

@@ -32,19 +32,19 @@
   {
     "label": "mobile-menu-entry-focus",
     "type": "interaction",
-    "tag": "BUTTON",
-    "text": "Close menu",
+    "tag": "A",
+    "text": "Home ↗",
     "inert": false
   },
   {
     "label": "mobile-menu-backdrop",
     "type": "interaction",
     "backdropTarget": {
-      "tag": "DIV",
+      "tag": "BODY",
       "id": "",
-      "className": "hero-overlay"
+      "className": "menu-locked"
     },
-    "closed": false
+    "closed": true
   },
   {
     "label": "mobile-orientation-landscape",
@@ -361,6 +361,231 @@
     "label": "overflow-1920",
     "type": "overflow",
     "pixels": 0
+  },
+  {
+    "label": "template-/pricing-320",
+    "route": "/pricing",
+    "type": "metrics",
+    "viewport": [
+      320,
+      844
+    ],
+    "clientWidth": 320,
+    "scrollWidth": 320,
+    "bodyScrollWidth": 320,
+    "title": "Removalist Pricing Adelaide | HF Removals Adelaide",
+    "h1Count": 1,
+    "canonical": "https://www.hfremovalsadelaide.com.au/pricing"
+  },
+  {
+    "label": "template-/pricing-768",
+    "route": "/pricing",
+    "type": "metrics",
+    "viewport": [
+      768,
+      900
+    ],
+    "clientWidth": 768,
+    "scrollWidth": 768,
+    "bodyScrollWidth": 768,
+    "title": "Removalist Pricing Adelaide | HF Removals Adelaide",
+    "h1Count": 1,
+    "canonical": "https://www.hfremovalsadelaide.com.au/pricing"
+  },
+  {
+    "label": "template-/pricing-1440",
+    "route": "/pricing",
+    "type": "metrics",
+    "viewport": [
+      1440,
+      900
+    ],
+    "clientWidth": 1440,
+    "scrollWidth": 1440,
+    "bodyScrollWidth": 1440,
+    "title": "Removalist Pricing Adelaide | HF Removals Adelaide",
+    "h1Count": 1,
+    "canonical": "https://www.hfremovalsadelaide.com.au/pricing"
+  },
+  {
+    "label": "template-/areas-320",
+    "route": "/areas",
+    "type": "metrics",
+    "viewport": [
+      320,
+      844
+    ],
+    "clientWidth": 320,
+    "scrollWidth": 320,
+    "bodyScrollWidth": 320,
+    "title": "Adelaide Service Areas | HF Removals Adelaide",
+    "h1Count": 1,
+    "canonical": "https://www.hfremovalsadelaide.com.au/areas"
+  },
+  {
+    "label": "template-/areas-768",
+    "route": "/areas",
+    "type": "metrics",
+    "viewport": [
+      768,
+      900
+    ],
+    "clientWidth": 768,
+    "scrollWidth": 768,
+    "bodyScrollWidth": 768,
+    "title": "Adelaide Service Areas | HF Removals Adelaide",
+    "h1Count": 1,
+    "canonical": "https://www.hfremovalsadelaide.com.au/areas"
+  },
+  {
+    "label": "template-/areas-1440",
+    "route": "/areas",
+    "type": "metrics",
+    "viewport": [
+      1440,
+      900
+    ],
+    "clientWidth": 1440,
+    "scrollWidth": 1440,
+    "bodyScrollWidth": 1440,
+    "title": "Adelaide Service Areas | HF Removals Adelaide",
+    "h1Count": 1,
+    "canonical": "https://www.hfremovalsadelaide.com.au/areas"
+  },
+  {
+    "label": "template-/areas/medindie-320",
+    "route": "/areas/medindie",
+    "type": "metrics",
+    "viewport": [
+      320,
+      844
+    ],
+    "clientWidth": 320,
+    "scrollWidth": 320,
+    "bodyScrollWidth": 320,
+    "title": "Medindie Removalists | HF Removals Adelaide",
+    "h1Count": 1,
+    "canonical": "https://www.hfremovalsadelaide.com.au/areas/medindie"
+  },
+  {
+    "label": "template-/areas/medindie-768",
+    "route": "/areas/medindie",
+    "type": "metrics",
+    "viewport": [
+      768,
+      900
+    ],
+    "clientWidth": 768,
+    "scrollWidth": 768,
+    "bodyScrollWidth": 768,
+    "title": "Medindie Removalists | HF Removals Adelaide",
+    "h1Count": 1,
+    "canonical": "https://www.hfremovalsadelaide.com.au/areas/medindie"
+  },
+  {
+    "label": "template-/areas/medindie-1440",
+    "route": "/areas/medindie",
+    "type": "metrics",
+    "viewport": [
+      1440,
+      900
+    ],
+    "clientWidth": 1440,
+    "scrollWidth": 1440,
+    "bodyScrollWidth": 1440,
+    "title": "Medindie Removalists | HF Removals Adelaide",
+    "h1Count": 1,
+    "canonical": "https://www.hfremovalsadelaide.com.au/areas/medindie"
+  },
+  {
+    "label": "template-/services/residential-removals-320",
+    "route": "/services/residential-removals",
+    "type": "metrics",
+    "viewport": [
+      320,
+      844
+    ],
+    "clientWidth": 320,
+    "scrollWidth": 320,
+    "bodyScrollWidth": 320,
+    "title": "House & Residential Removalists Adelaide | HF Removals Adelaide",
+    "h1Count": 1,
+    "canonical": "https://www.hfremovalsadelaide.com.au/services/residential-removals"
+  },
+  {
+    "label": "template-/services/residential-removals-768",
+    "route": "/services/residential-removals",
+    "type": "metrics",
+    "viewport": [
+      768,
+      900
+    ],
+    "clientWidth": 768,
+    "scrollWidth": 768,
+    "bodyScrollWidth": 768,
+    "title": "House & Residential Removalists Adelaide | HF Removals Adelaide",
+    "h1Count": 1,
+    "canonical": "https://www.hfremovalsadelaide.com.au/services/residential-removals"
+  },
+  {
+    "label": "template-/services/residential-removals-1440",
+    "route": "/services/residential-removals",
+    "type": "metrics",
+    "viewport": [
+      1440,
+      900
+    ],
+    "clientWidth": 1440,
+    "scrollWidth": 1440,
+    "bodyScrollWidth": 1440,
+    "title": "House & Residential Removalists Adelaide | HF Removals Adelaide",
+    "h1Count": 1,
+    "canonical": "https://www.hfremovalsadelaide.com.au/services/residential-removals"
+  },
+  {
+    "label": "template-/guides/adelaide-moving-checklist-320",
+    "route": "/guides/adelaide-moving-checklist",
+    "type": "metrics",
+    "viewport": [
+      320,
+      844
+    ],
+    "clientWidth": 320,
+    "scrollWidth": 320,
+    "bodyScrollWidth": 320,
+    "title": "Adelaide Moving Checklist | HF Removals Adelaide",
+    "h1Count": 1,
+    "canonical": "https://www.hfremovalsadelaide.com.au/guides/adelaide-moving-checklist"
+  },
+  {
+    "label": "template-/guides/adelaide-moving-checklist-768",
+    "route": "/guides/adelaide-moving-checklist",
+    "type": "metrics",
+    "viewport": [
+      768,
+      900
+    ],
+    "clientWidth": 768,
+    "scrollWidth": 768,
+    "bodyScrollWidth": 768,
+    "title": "Adelaide Moving Checklist | HF Removals Adelaide",
+    "h1Count": 1,
+    "canonical": "https://www.hfremovalsadelaide.com.au/guides/adelaide-moving-checklist"
+  },
+  {
+    "label": "template-/guides/adelaide-moving-checklist-1440",
+    "route": "/guides/adelaide-moving-checklist",
+    "type": "metrics",
+    "viewport": [
+      1440,
+      900
+    ],
+    "clientWidth": 1440,
+    "scrollWidth": 1440,
+    "bodyScrollWidth": 1440,
+    "title": "Adelaide Moving Checklist | HF Removals Adelaide",
+    "h1Count": 1,
+    "canonical": "https://www.hfremovalsadelaide.com.au/guides/adelaide-moving-checklist"
   },
   {
     "label": "form-keyboard",

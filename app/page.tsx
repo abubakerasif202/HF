@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { HomePage } from "./components/Site";
-import { business, canonical, entryLocalRate, standardMoveFaqs } from "../lib/site-data";
+import { business, canonical, entryLocalRate, localPricing, standardMoveFaqs } from "../lib/site-data";
 
 const homeTitle = "Adelaide Removalists | Local & Interstate Movers | HF";
 const homeDescription = `Adelaide removalists for house, furniture, office and interstate moves. Local movers from ${entryLocalRate.halfHour} per 30 minutes. Request a tailored quote.`;
@@ -16,6 +16,16 @@ export const metadata: Metadata = {
 const schema = {
   "@context": "https://schema.org",
   "@graph": [
+    {
+      "@type": "Organization",
+      "@id": `${business.domain}/#organization`,
+      name: business.name,
+      legalName: business.legalName,
+      url: business.domain,
+      email: business.emails[0],
+      telephone: business.phones[0].display,
+      logo: `${business.domain}${business.logo}`,
+    },
     {
       "@type": "MovingCompany",
       "@id": `${business.domain}/#business`,
@@ -53,6 +63,19 @@ const schema = {
           closes: "20:00",
         },
       ],
+      makesOffer: localPricing.map((price) => ({
+        "@type": "Offer",
+        name: `${price.name} Local Relocation`,
+        price: price.halfHour.replace("$", ""),
+        priceCurrency: "AUD",
+        unitText: price.note,
+        itemOffered: {
+          "@type": "Service",
+          name: `${price.name} local moving service`,
+          serviceType: "Local removalist service",
+          areaServed: "Adelaide, South Australia",
+        },
+      })),
     },
     {
       "@type": "WebPage",

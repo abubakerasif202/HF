@@ -28,6 +28,7 @@ const pageBySlug = new Map(hfServiceAreas.map((page) => [page.slug, page]));
 
 const groupedAreas = serviceAreaRegionOrder.map((region) => ({
   region,
+  id: `region-${region.replace(/[^a-z0-9]+/gi, "-").toLowerCase()}`,
   areas: hfServiceAreaRecords
     .filter((area) => area.region === region)
     .sort((a, b) => a.name.localeCompare(b.name)),
@@ -94,6 +95,11 @@ export default function AreasPage() {
               <a className="button button-ruby" href="/#quote">Get a free quote <span>→</span></a>
               <a className="button button-outline" href={business.phones[0].href}>Call {business.phones[0].display}</a>
             </div>
+            <nav className="area-region-jumps" aria-label="Jump to service-area region">
+              {groupedAreas.map(({ region, id }) => (
+                <a href={`#${id}`} key={region}>{region}</a>
+              ))}
+            </nav>
           </div>
           <div className="inner-monogram">
             <img
@@ -108,12 +114,12 @@ export default function AreasPage() {
         </div>
       </section>
 
-      {groupedAreas.map(({ region, areas }) => (
-        <section className="section listing-section" key={region} aria-labelledby={`region-${region.replace(/[^a-z0-9]+/gi, "-").toLowerCase()}`}>
+      {groupedAreas.map(({ region, id, areas }) => (
+        <section className="section listing-section" key={region} aria-labelledby={id}>
           <div className="container">
             <div className="section-heading">
               <p className="eyebrow">{region}</p>
-              <h2 id={`region-${region.replace(/[^a-z0-9]+/gi, "-").toLowerCase()}`}>{region} removalist coverage</h2>
+              <h2 id={id}>{region} removalist coverage</h2>
               <p>{regionDescriptions[region]}</p>
             </div>
             <div className="listing-grid">

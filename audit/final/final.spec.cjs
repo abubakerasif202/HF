@@ -164,7 +164,7 @@ test('quote form validation, package selection, success, failure and double-subm
   const email = form.getByLabel('Email Address');
   await email.fill('invalid-email');
   expect(await email.evaluate((input) => input.validity.typeMismatch)).toBe(true);
-  await email.fill('qa@example.com');
+  await email.fill('qa.test@hfremovalsadelaide.com.au');
 
   await form.getByLabel('Your Name').fill('QA Test');
   await form.getByLabel('Phone Number').fill('0400 000 000');

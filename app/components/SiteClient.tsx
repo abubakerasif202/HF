@@ -135,9 +135,11 @@ export function Header() {
         element.inert = true;
       });
     }
-    // Let the click that opened the drawer finish before moving focus into it;
-    // otherwise the trigger can reclaim focus in Chromium after a zero-delay timer.
-    const focusTimer = open ? window.setTimeout(() => firstLink.current?.focus(), 80) : undefined;
+    // Let the click/open transition finish before moving focus into the drawer;
+    // Chromium can otherwise leave focus on the trigger or body during animation.
+    const focusTimers = open ? [80, 180, 280].map((delay) =>
+      window.setTimeout(() => firstLink.current?.focus({ preventScroll: true }), delay),
+    ) : [];
     const onKey = (event: KeyboardEvent) => {
       if (event.key === "Escape" && open) {
         setOpen(false);
@@ -158,7 +160,7 @@ export function Header() {
     };
     document.addEventListener("keydown", onKey);
     return () => {
-      if (focusTimer !== undefined) window.clearTimeout(focusTimer);
+      focusTimers.forEach((timer) => window.clearTimeout(timer));
       inertRegions.forEach(({ element, wasInert }) => {
         element.inert = wasInert;
       });

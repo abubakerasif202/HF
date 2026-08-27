@@ -52,6 +52,9 @@ test("renders the premium HF homepage without placeholder claims", async () => {
   const html = await response.text();
   assert.match(html, /Adelaide[\s\S]*Removalists[\s\S]*You Can[\s\S]*Rely On/i);
   assert.match(html, /Tell us about your move/i);
+  assert.match(html, /id="services"/i);
+  assert.match(html, /id="pricing"/i);
+  assert.match(html, /id="faq"/i);
   assert.match(html, /Muhammad Rasheed/i);
   // Brand lockup ships as the right-sized derivative, not the 419KB 800px master.
   assert.match(html, /hf-logo-384\.webp/i);
@@ -270,10 +273,17 @@ test("the production origin is declared once and drives canonical output", async
   const data = await readFile(new URL("../lib/site-data.ts", import.meta.url), "utf8");
   assert.match(data, /export const siteOrigin = "https:\/\/www\.hfremovalsadelaide\.com\.au"/);
   assert.match(data, /export const quoteFormEndpoint = "https:\/\/api\.web3forms\.com\/submit"/);
-  assert.match(data, /export const web3FormsAccessKey = "a6214fc2-9669-49a0-abf4-4f8bd77c3f88"/);
+  assert.match(data, /export const canonicalEmail = "admin@hfremovalsadelaide\.com\.au"/);
+  assert.match(data, /NEXT_PUBLIC_WEB3FORMS_ACCESS_KEY/);
   const html = await (await render()).text();
   assert.match(html, /rel="canonical" href="https:\/\/www\.hfremovalsadelaide\.com\.au"/);
   assert.match(html, /property="og:url" content="https:\/\/www\.hfremovalsadelaide\.com\.au"/);
+  assert.match(html, /mailto:admin@hfremovalsadelaide\.com\.au/);
+  assert.doesNotMatch(html, /hfremovalad@gmail\.com/i);
+  assert.match(html, /"@type":"Organization"/);
+  assert.match(html, /"email":"admin@hfremovalsadelaide\.com\.au"/);
+  assert.match(html, /"priceCurrency":"AUD"/);
+  assert.match(html, /"unitText":"per 30 minutes"/);
   const client = await readFile(new URL("../app/components/SiteClient.tsx", import.meta.url), "utf8");
   assert.doesNotMatch(client, /hf-removals-adelaide\.vercel\.app|hfremovalsadelaide\.com(?!\.au)/);
 });
@@ -359,6 +369,9 @@ test("area pages provide contextual crawl paths and the directory keeps a nested
   assert.match(detail, /href="\/areas\/[^"]+"/i);
 
   const directory = await (await render("/areas")).text();
+  assert.match(directory, /aria-label="Jump to service-area region"/);
+  assert.match(directory, /href="#region-northern-adelaide"/);
+  assert.match(directory, /href="#region-southern-adelaide"/);
   assert.match(directory, /<h2[^>]*id="region-central-adelaide"/i);
   assert.match(directory, /Central Adelaide(?:<!-- -->)? removalist coverage/i);
   assert.match(directory, /<h3>Adelaide CBD(?:<!-- -->)? removals<\/h3>/i);
