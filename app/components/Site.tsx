@@ -1,5 +1,6 @@
 import { areas, business, ContentPage, entryLocalRate, googleReviews, guides, interstatePricing, interstateRoutes, localPricing, services, standardMoveFaqs } from "../../lib/site-data";
 import { hfServiceAreaRecords } from "../../lib/hf-service-areas";
+import { ABDeveloperCredit } from "./ABDeveloperCredit";
 import { Header, MobileStickyCta, MotionExperience, QuoteForm, UtilityBar } from "./SiteClient";
 
 export function ServiceTicker({ locations = false }: { locations?: boolean }) {
@@ -663,6 +664,9 @@ function Footer() {
           <a href="/privacy">Privacy Policy</a>
           <a href="/terms">Website Terms</a>
         </span>
+      </div>
+      <div className="container developer-credit-wrap">
+        <ABDeveloperCredit />
       </div>
     </footer>
   );
