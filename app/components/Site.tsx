@@ -555,22 +555,32 @@ function ContactMapSection() {
 }
 
 function AreasSection() {
+  const homepageAreaSlugs = [
+    "elizabeth", "munno-para", "angle-vale", "andrews-farm", "gawler",
+    "mawson-lakes", "golden-grove", "modbury", "tea-tree-gully",
+    "mount-barker", "morphett-vale", "west-lakes", "woodville", "findon",
+  ];
+  const homepageAreas = homepageAreaSlugs
+    .map((slug) => hfServiceAreaRecords.find((area) => area.slug === slug))
+    .filter((area): area is (typeof hfServiceAreaRecords)[number] => Boolean(area));
   return (
     <section className="section areas-section" id="areas">
       <div className="container">
         <SectionHeading
           eyebrow="Adelaide & Regional Coverage"
-          title={<>Local Move Planning Across <em>All Adelaide Suburbs</em></>}
-          copy="Servicing Northern Suburbs, Southern Suburbs, Adelaide CBD, Western Coastal Areas, Adelaide Hills, and Regional SA."
+          title={<>Removalists Across <em>Adelaide</em></>}
+          copy="Explore local planning pages for Adelaide's northern growth corridor, the north-east, the Hills, southern suburbs and western areas."
           light
         />
         <div className="area-links">
-          {areas.map((area) => (
+          {homepageAreas.map((area) => (
             <a key={area.slug} href={`/areas/${area.slug}`}>
-              <span>{area.eyebrow}</span>
+              <span>{area.name} removals</span>
               <b>↗</b>
             </a>
           ))}
+          <a href="/areas/playford"><span>Playford hub</span><b>↗</b></a>
+          <a href="/areas"><span>View all service areas</span><b>↗</b></a>
           <a href="/adelaide-removalists">
             <span>Adelaide Metro Hub</span>
             <b>↗</b>
@@ -879,12 +889,16 @@ function mediaForPage(page: ContentPage) {
 }
 
 function Breadcrumbs({ page }: { page: ContentPage }) {
+  const area = page.kind === "area" ? hfServiceAreaRecords.find((item) => item.slug === page.slug) : undefined;
+  const areaRegion = area?.region;
+  const regionPage = areaRegion ? hfServiceAreaRecords.find((item) => item.name === areaRegion) : undefined;
   const group = page.kind === "route" ? "interstate" : `${page.kind}s`;
   return (
     <nav className="breadcrumbs" aria-label="Breadcrumb">
       <a href="/">Home</a>
       <span>/</span>
       <a href={`/${group}`}>{group}</a>
+      {areaRegion && regionPage && regionPage.slug !== area?.slug && <><span>/</span><a href={`/areas/${regionPage.slug}`}>{areaRegion}</a></>}
       <span>/</span>
       <span aria-current="page">{page.eyebrow}</span>
     </nav>
@@ -902,14 +916,10 @@ function relatedLinksFor(page: ContentPage): RelatedLink[] {
   if (page.kind === "area") {
     const record = hfServiceAreaRecords.find((area) => area.slug === page.slug);
     const nearby = record
-      ? hfServiceAreaRecords
-          .filter((area) => area.region === record.region && area.slug !== page.slug)
-          .slice(0, 4)
-          .map((area) => ({
-            href: `/areas/${area.slug}`,
-            label: `${area.name} removals`,
-            description: `Review moving and access planning for ${area.name}.`,
-          }))
+      ? (record.nearby.length ? record.nearby : hfServiceAreaRecords.filter((area) => area.region === record.region && area.slug !== page.slug).slice(0, 4).map((area) => area.name))
+          .map((name) => hfServiceAreaRecords.find((area) => area.name === name))
+          .filter((area): area is (typeof hfServiceAreaRecords)[number] => Boolean(area))
+          .map((area) => ({ href: `/areas/${area.slug}`, label: `${area.name} removals`, description: `Review moving and access planning for ${area.name}.` }))
       : [];
     return [
       { href: "/services/residential-removals", label: "House removals", description: "Plan inventory, access, protection and destination placement." },
@@ -969,7 +979,8 @@ function RelatedLinks({ page }: { page: ContentPage }) {
 }
 
 export function DetailPage({ page }: { page: ContentPage }) {
-  const heading = page.kind === "service" || page.kind === "area" ? `${page.eyebrow}: ${page.title}` : page.title;
+  const area = page.kind === "area" ? hfServiceAreaRecords.find((item) => item.slug === page.slug) : undefined;
+  const heading = area ? (area.name === "Playford" ? "Removalists Across Playford" : `Removalists in ${area.name}`) : page.kind === "service" ? `${page.eyebrow}: ${page.title}` : page.title;
   return (
     <SiteFrame>
       <PageHero eyebrow={page.eyebrow} title={heading} description={page.intro} price={page.price} unit={page.unit} media={mediaForPage(page)} />

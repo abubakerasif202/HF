@@ -319,7 +319,7 @@ export const areas: ContentPage[] = [
     intro: "Salisbury enquiries can involve homes, units or workplaces. The most useful first step is to describe both sites and the access conditions the team needs to plan around.",
     highlights: ["Stairs and lifts", "Parking and loading", "Residential or commercial", "Named site contacts"],
     sections: [
-      { title: "Confirm access windows", body: "If a lift, loading area or site contact must be coordinated, include that information in the quote request." },
+      { title: "Coordinate homes, units and workplaces", body: "If a lift, loading area or site contact must be coordinated, include that information in the quote request." },
       { title: "Separate commercial requirements", body: "For workplace moves, group furniture and equipment by destination area and identify site rules in advance." },
     ],
     faqs: standardMoveFaqs,

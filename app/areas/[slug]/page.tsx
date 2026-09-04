@@ -20,9 +20,9 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   if (!page || !record) return {};
 
   const path = `/areas/${slug}`;
-  const title = `${record.name} Removalists`;
+  const title = `Removalists ${record.name} | HF Removals Adelaide`;
   return {
-    title,
+    title: { absolute: title },
     description: page.description,
     alternates: { canonical: canonical(path) },
     openGraph: {
@@ -50,6 +50,7 @@ export default async function ServiceAreaPage({ params }: Props) {
   if (!page || !record) notFound();
 
   const path = `/areas/${slug}`;
+  const regionRecord = hfServiceAreaRecords.find((area) => area.name === record.region);
   const schema = {
     "@context": "https://schema.org",
     "@graph": [
@@ -71,8 +72,18 @@ export default async function ServiceAreaPage({ params }: Props) {
         itemListElement: [
           { "@type": "ListItem", position: 1, name: "Home", item: business.domain },
           { "@type": "ListItem", position: 2, name: "Service Areas", item: canonical("/areas") },
-          { "@type": "ListItem", position: 3, name: record.name, item: canonical(path) },
+          ...(regionRecord && regionRecord.slug !== record.slug ? [{ "@type": "ListItem", position: 3, name: record.region, item: canonical(`/areas/${regionRecord.slug}`) }] : []),
+          { "@type": "ListItem", position: regionRecord && regionRecord.slug !== record.slug ? 4 : 3, name: record.name, item: canonical(path) },
         ],
+      },
+      {
+        "@type": "FAQPage",
+        "@id": `${canonical(path)}#faq`,
+        mainEntity: page.faqs.map((faq) => ({
+          "@type": "Question",
+          name: faq.question,
+          acceptedAnswer: { "@type": "Answer", text: faq.answer },
+        })),
       },
     ],
   };
