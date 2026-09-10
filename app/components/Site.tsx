@@ -3,6 +3,22 @@ import { hfServiceAreaRecords } from "../../lib/hf-service-areas";
 import { ABDeveloperCredit } from "./ABDeveloperCredit";
 import { Header, MobileStickyCta, MotionExperience, QuoteForm, UtilityBar } from "./SiteClient";
 
+function CheckIcon({ size = 12, style }: { size?: number; style?: React.CSSProperties }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" style={style}>
+      <polyline points="20 6 9 17 4 12" />
+    </svg>
+  );
+}
+
+function StarIcon({ size = 13, style, className }: { size?: number; style?: React.CSSProperties; className?: string }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" style={style} className={className}>
+      <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+    </svg>
+  );
+}
+
 export function ServiceTicker({ locations = false }: { locations?: boolean }) {
   const items = locations
     ? ["ADELAIDE METRO", "ELIZABETH VALE", "ELIZABETH", "SALISBURY", "BLAKEVIEW", "GAWLER", "ADELAIDE CBD", "MARION", "NORWOOD", "GLENELG"]
@@ -165,7 +181,10 @@ function ServicesGrid() {
               <p>{service.description}</p>
               <ul className="service-card-highlights">
                 {service.highlights.slice(0, 3).map((h) => (
-                  <li key={h}>✓ {h}</li>
+                  <li key={h}>
+                    <CheckIcon size={12} style={{ display: "inline-block", verticalAlign: "-1px", marginRight: "6px" }} />
+                    {h}
+                  </li>
                 ))}
               </ul>
               <span className="card-link">
@@ -206,7 +225,7 @@ function ApartmentAccessSection() {
           <div className="apartment-points">
             {points.map((p, i) => (
               <div key={i} className="apartment-point">
-                <span className="point-check">✓</span>
+                <span className="point-check" aria-hidden="true"><CheckIcon size={13} /></span>
                 <div>
                   <strong>{p.title}</strong>
                   <p>{p.desc}</p>
@@ -304,10 +323,22 @@ function PricingSection() {
               </div>
               <p className="price-hourly">{item.hourly} per hour</p>
               <ul className="price-features">
-                <li>✓ Full truck equipped with blankets & straps</li>
-                <li>✓ Complimentary mattress protection wrap</li>
-                <li>✓ Final quote confirms access, inventory and move scope</li>
-                <li>✓ {business.insurance}; terms apply</li>
+                <li>
+                  <CheckIcon size={13} style={{ display: "inline-block", verticalAlign: "-2px", marginRight: "7px" }} />
+                  Full truck equipped with blankets & straps
+                </li>
+                <li>
+                  <CheckIcon size={13} style={{ display: "inline-block", verticalAlign: "-2px", marginRight: "7px" }} />
+                  Complimentary mattress protection wrap
+                </li>
+                <li>
+                  <CheckIcon size={13} style={{ display: "inline-block", verticalAlign: "-2px", marginRight: "7px" }} />
+                  Final quote confirms access, inventory and move scope
+                </li>
+                <li>
+                  <CheckIcon size={13} style={{ display: "inline-block", verticalAlign: "-2px", marginRight: "7px" }} />
+                  {business.insurance}; terms apply
+                </li>
               </ul>
               <a className="button button-ruby" href="/#quote">Request Quote for This Option</a>
             </article>
@@ -382,7 +413,7 @@ function ReviewsSection() {
           <div className="rating-card-compact">
             <div className="rating-card-top">
               <span className="google-badge-pill">Google Verified</span>
-              <span className="rating-stars" aria-hidden="true">★★★★★</span>
+              <span className="rating-stars" aria-hidden="true" style={{ display: "inline-flex", gap: "2px" }}>{[...Array(5)].map((_, i) => <StarIcon key={i} size={14} />)}</span>
             </div>
             <strong>{google.rating} / 5.0</strong>
             <p>Based on {google.reviewCount} customer reviews</p>
@@ -397,7 +428,7 @@ function ReviewsSection() {
             <article className="review-card" key={review.name}>
               <div>
                 <div className="review-card-head">
-                  <span className="review-stars" aria-label="5 out of 5 stars">★★★★★</span>
+                  <span className="review-stars" aria-label="5 out of 5 stars" style={{ display: "inline-flex", gap: "2px" }}>{[...Array(5)].map((_, i) => <StarIcon key={i} size={13} />)}</span>
                   <span className="review-source">Google</span>
                 </div>
                 <blockquote className={`review-content ${review.complete ? "" : "is-excerpt"}`}>
@@ -467,7 +498,7 @@ function PackingSection() {
           <div className="check-list">
             {business.packingMaterials.map((item) => (
               <span key={item}>
-                <b>✓</b> {item}
+                <b aria-hidden="true"><CheckIcon size={13} /></b> {item}
               </span>
             ))}
           </div>
@@ -638,12 +669,25 @@ function Footer() {
           <p className="footer-tagline">“{business.tagline}”</p>
           <address>
             <a href={business.phones[0].href} className="footer-phone">
-              <span aria-hidden="true">📞</span> {business.phones[0].display} (Primary)
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" style={{ display: "inline-block", verticalAlign: "-2px", marginRight: "6px" }}><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z" /></svg>
+              {business.phones[0].display} (Primary)
             </a>
-            <a href={business.phones[1].href}><span aria-hidden="true">📞</span> {business.phones[1].display} (Secondary)</a>
-            <a href={`mailto:${business.emails[0]}`}><span aria-hidden="true">✉️</span> {business.emails[0]}</a>
-            <span><span aria-hidden="true">📍</span> {business.address.full}</span>
-            <span><span aria-hidden="true">⭐</span> {business.googleBusiness.rating} Google Rating · {business.googleBusiness.reviewCount} Reviews</span>
+            <a href={business.phones[1].href}>
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" style={{ display: "inline-block", verticalAlign: "-2px", marginRight: "6px" }}><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z" /></svg>
+              {business.phones[1].display} (Secondary)
+            </a>
+            <a href={`mailto:${business.emails[0]}`}>
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" style={{ display: "inline-block", verticalAlign: "-2px", marginRight: "6px" }}><rect width="20" height="16" x="2" y="4" rx="2" /><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7" /></svg>
+              {business.emails[0]}
+            </a>
+            <span>
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" style={{ display: "inline-block", verticalAlign: "-2px", marginRight: "6px" }}><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z" /><circle cx="12" cy="10" r="3" /></svg>
+              {business.address.full}
+            </span>
+            <span>
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="var(--hf-gold-500)" stroke="none" aria-hidden="true" style={{ display: "inline-block", verticalAlign: "-2px", marginRight: "6px" }}><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" /></svg>
+              {business.googleBusiness.rating} Google Rating · {business.googleBusiness.reviewCount} Reviews
+            </span>
           </address>
         </div>
         <div>
@@ -721,7 +765,7 @@ export function HomePage() {
         <div className="container hero-grid">
           <div className="hero-copy">
             <div className="hero-badge">
-              <span className="hero-badge-star" aria-hidden="true">★</span>
+              <StarIcon size={12} className="hero-badge-star" />
               <span>{business.googleBusiness.rating} RATED ADELAIDE REMOVALISTS ({business.googleBusiness.reviewCount} REVIEWS)</span>
             </div>
             <h1>
@@ -741,10 +785,22 @@ export function HomePage() {
               </a>
             </div>
             <div className="hero-proof-pills">
-              <span>✓ Local Adelaide Crew</span>
-              <span>✓ Up to $1M Insurance</span>
-              <span>✓ Free Mattress Wraps</span>
-              <span>✓ {business.googleBusiness.hoursLabel}</span>
+              <span>
+                <CheckIcon size={12} />
+                Local Adelaide Crew
+              </span>
+              <span>
+                <CheckIcon size={12} />
+                Up to $1M Insurance
+              </span>
+              <span>
+                <CheckIcon size={12} />
+                Free Mattress Wraps
+              </span>
+              <span>
+                <CheckIcon size={12} />
+                {business.googleBusiness.hoursLabel}
+              </span>
             </div>
           </div>
           <QuoteForm />

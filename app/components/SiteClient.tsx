@@ -14,7 +14,13 @@ export function UtilityBar() {
         </div>
         <div className="utility-contact">
           <a href="https://maps.google.com/?cid=10700874558509895358" target="_blank" rel="noopener noreferrer" className="utility-rating">
-            <span className="utility-stars" aria-hidden="true">★★★★★</span>
+            <span className="utility-stars" aria-hidden="true">
+              {[...Array(5)].map((_, i) => (
+                <svg key={i} width="11" height="11" viewBox="0 0 24 24" fill="currentColor" style={{ display: "inline-block", marginRight: "1px" }}>
+                  <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+                </svg>
+              ))}
+            </span>
             <strong>{business.googleBusiness.rating}/5.0</strong> ({business.googleBusiness.reviewCount} Google Reviews)
           </a>
           <a href={business.phones[0].href} className="utility-phone" aria-label={`Call ${business.phones[0].display}`}>
@@ -504,9 +510,19 @@ export function QuoteForm({ compact = false }: { compact?: boolean }) {
 
       <div className="form-rate-preview" aria-live="polite">
         {form.tab === "local" ? (
-          <p>⚡ <strong>Local Rate:</strong> {entryLocalRate.name} from <em>{entryLocalRate.halfHour} / 30 min</em> ({entryLocalRate.hourly}/hr) · Final quote confirms the move scope</p>
+          <p>
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" style={{ display: "inline-block", verticalAlign: "-2px", marginRight: "5px" }}>
+              <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />
+            </svg>
+            <strong>Local Rate:</strong> {entryLocalRate.name} from <em>{entryLocalRate.halfHour} / 30 min</em> ({entryLocalRate.hourly}/hr) · Final quote confirms the move scope
+          </p>
         ) : (
-          <p>⚡ <strong>Interstate Reference:</strong> Melbourne from <em>{melbourneRate.price}/{melbourneRate.unit.replace("per ", "")}</em> · Sydney from <em>{sydneyRate.price}/{sydneyRate.unit.replace("per ", "")}</em> · Queensland from <em>{queenslandRate.price}/{queenslandRate.unit.replace("per ", "")}</em></p>
+          <p>
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" style={{ display: "inline-block", verticalAlign: "-2px", marginRight: "5px" }}>
+              <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />
+            </svg>
+            <strong>Interstate Reference:</strong> Melbourne from <em>{melbourneRate.price}/{melbourneRate.unit.replace("per ", "")}</em> · Sydney from <em>{sydneyRate.price}/{sydneyRate.unit.replace("per ", "")}</em> · Queensland from <em>{queenslandRate.price}/{queenslandRate.unit.replace("per ", "")}</em>
+          </p>
         )}
       </div>
 
@@ -547,7 +563,7 @@ export function QuoteForm({ compact = false }: { compact?: boolean }) {
         </label>
         <label>
           <span className="field-label">Phone Number <b aria-hidden="true">*</b></span>
-          <input name="phone" required maxLength={32} autoComplete="tel" inputMode="tel" pattern="[0-9+ ()-]{8,}" value={form.phone} onChange={(e) => update("phone", e.target.value)} placeholder="e.g. 0400 000 000" aria-invalid={statusKind === "error" && !form.phone} aria-describedby={statusKind === "error" ? "quote-form-status" : undefined} />
+          <input name="phone" required maxLength={32} autoComplete="tel" inputMode="tel" pattern="[0-9+() -]{8,}" value={form.phone} onChange={(e) => update("phone", e.target.value)} placeholder="e.g. 0400 000 000" aria-invalid={statusKind === "error" && !form.phone} aria-describedby={statusKind === "error" ? "quote-form-status" : undefined} />
         </label>
         <label>
           <span className="field-label">Moving From (Suburb) <b aria-hidden="true">*</b></span>
@@ -670,7 +686,12 @@ export function QuoteForm({ compact = false }: { compact?: boolean }) {
       </button>
 
       <div className="form-footer-guarantee">
-        <span><span aria-hidden="true">🛡️</span> {business.insurance}</span>
+        <span>
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" style={{ display: "inline-block", verticalAlign: "-2px", marginRight: "5px" }}>
+            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+          </svg>
+          {business.insurance}
+        </span>
         <span>•</span>
         <span>Policy terms and move scope apply</span>
       </div>
