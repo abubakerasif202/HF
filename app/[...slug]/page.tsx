@@ -10,7 +10,7 @@ const staticPages: Record<string, { type: "about" | "contact" | "pricing" | "ade
   about: { type: "about", title: "About Our Adelaide Removalists", description: "Meet Muhammad Rasheed and learn how HF Removals Adelaide plans local, house, office and interstate moves around each customer's requirements.", schema: "AboutPage" },
   contact: { type: "contact", title: "Contact HF Removals Adelaide", description: "Contact HF Removals Adelaide to discuss a local, house, office or interstate move and request a quote based on your inventory and access details.", schema: "ContactPage" },
   pricing: { type: "pricing", title: "Removalist Pricing Adelaide", description: "Compare supplied Adelaide removalist hourly rates and interstate per-cubic-metre reference pricing, then request a quote for your move.", schema: "WebPage" },
-  "adelaide-removalists": { type: "adelaide", title: "Adelaide Moving Guide & Service Hub", description: "Explore HF's Adelaide moving services, published reference rates, packing support and practical move-planning resources.", schema: "WebPage" },
+  "adelaide-removalists": { type: "adelaide", title: "Adelaide Removalists & Moving Services", description: "Adelaide removalists for house, apartment, office and interstate moves. Compare services, supplied reference rates and packing support, then request a tailored quote.", schema: "WebPage" },
   privacy: { type: "privacy", title: "Privacy", description: "How HF Removals Adelaide handles website enquiry information.", schema: "WebPage" },
   terms: { type: "terms", title: "Website Terms", description: "General website, pricing and insurance wording terms for HF Removals Adelaide.", schema: "WebPage" },
 };

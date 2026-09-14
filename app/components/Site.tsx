@@ -1196,7 +1196,7 @@ export function StaticPage({ type }: { type: "about" | "contact" | "pricing" | "
   if (type === "adelaide")
     return (
       <SiteFrame>
-        <PageHero eyebrow="Adelaide moving hub" title="Services, pricing and move-planning resources" description="Compare Adelaide service options, published reference rates, packing support and practical planning considerations in one place." />
+        <PageHero eyebrow="Adelaide removalists" title="Adelaide removalists for local, house, office and interstate moves" description="Compare HF's Adelaide moving services, supplied reference rates, packing support and practical move-planning resources before requesting a tailored quote." />
         <ServicesGrid />
         <ApartmentAccessSection />
         <PricingSection />

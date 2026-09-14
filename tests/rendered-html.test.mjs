@@ -349,7 +349,7 @@ test("priority pages keep distinct metadata and useful page-level schema", async
   assert.match(pricingHtml, /<title>Removalist Pricing Adelaide \| HF Removals Adelaide<\/title>/i);
 
   const hubHtml = await (await render("/adelaide-removalists")).text();
-  assert.match(hubHtml, /<title>Adelaide Moving Guide &amp; Service Hub \| HF Removals Adelaide<\/title>/i);
+  assert.match(hubHtml, /<title>Adelaide Removalists &amp; Moving Services \| HF Removals Adelaide<\/title>/i);
 });
 
 test("sitemap contains only canonical indexable routes", async () => {
