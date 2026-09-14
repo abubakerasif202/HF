@@ -1,0 +1,16 @@
+export const jobCompletionTerms = [
+  "Your deposit is to secure your booking and goes toward your final payment upon completion of your move. The deposit is non-refundable under any circumstances.",
+  "Our hourly price starts from the moment the removalist(s) reach your doorstep and finishes at the completion of the service.",
+  "It is the customer’s responsibility to secure parking for the truck at both pick-up and delivery locations. Additional fees may apply if a close loading or unloading spot is not secured or is not possible.",
+  "Truck size is determined by the information provided at the time of booking. Please advise how many items and boxes you roughly have so an appropriate truck size can be provided. You will be advised if more than one truck or multiple trips are required.",
+  "We strongly advise that our professional removalist(s) perform the loading and unloading of the truck. If the customer assists, HF Removals Adelaide is not liable for damage caused while the customer is handling or assisting with goods.",
+  "All damage claims must be brought to the attention of HF Removals Adelaide staff at the time of the move and before the removalists leave the drop-off address after job completion. Damage claims raised after departure may not be accepted.",
+  "We do not use toll roads unless specifically requested or agreed to by the customer. Additional charges may apply.",
+  "Additional charges may apply to moving heavy or large goods weighing more than 80 kg, such as pianos, safes, fish tanks, gym equipment, massage chairs, heavy dining tables and billiard tables.",
+  "All reasonable measures will be taken for the safe removal of TVs, including wrapping with moving blankets where appropriate. If a TV is not supplied in its original manufacturer’s box, HF Removals Adelaide is not liable for damage that may occur during the move.",
+  "We aim to move all goods in a single trip using the truck arranged at the time of booking. If an additional trip is required to complete the move, additional charges may apply to cover the extra time and fuel.",
+  "Please ensure all small high-value belongings, including jewellery and designer watches, are moved personally by the customer and not by the removalists, to reduce the risk of loss during a busy move.",
+  "It is the customer’s responsibility to ensure adequate funds are available to make payment after job completion. Full payment is due at completion of the job.",
+  "In the event of non-payment, HF Removals Adelaide reserves its rights to recover amounts lawfully owing. Any recovery action will be taken in accordance with applicable law.",
+  "Lack of safety at the premises, threats, harassment or abusive behaviour of any kind will not be tolerated and may result in the move being stopped or cancelled.",
+] as const;
