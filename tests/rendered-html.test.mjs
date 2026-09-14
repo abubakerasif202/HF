@@ -98,7 +98,7 @@ test("renders the premium HF homepage without placeholder claims", async () => {
 
 test("renders service, area, route, guide and contact routes", async () => {
   const paths = [
-    ["/services/residential-removals", /A clear plan for moving home/i],
+    ["/services/residential-removals", /House Removalists Adelaide/i],
     ["/areas/salisbury", /Coordinate homes, units and workplaces/i],
     ["/interstate/adelaide-perth", /\$186\.06/i],
     ["/guides/office-relocation-checklist", /Office Relocation Checklist/i],
@@ -340,8 +340,11 @@ test("priority pages keep distinct metadata and useful page-level schema", async
   assert.match(servicesHtml, /alt="HF Removals Adelaide logo"/);
 
   const houseHtml = await (await render("/services/residential-removals")).text();
-  assert.match(houseHtml, /<title>House &amp; Residential Removalists Adelaide \| HF Removals Adelaide<\/title>/i);
-  assert.match(houseHtml, /<h1>House removals: A clear plan for moving home<\/h1>/i);
+  assert.match(houseHtml, /<title>House Removalists Adelaide \| Residential Movers \| HF Removals<\/title>/i);
+  assert.match(houseHtml, /<h1>House Removalists Adelaide<\/h1>/i);
+  assert.match(houseHtml, /House removals for homes, apartments and townhouses across Adelaide/i);
+  assert.match(houseHtml, /href="\/adelaide-removalists"/i);
+  assert.match(houseHtml, /href="\/services\/packing-unpacking"/i);
   assert.match(houseHtml, /Useful next steps for your move/i);
   assert.match(houseHtml, /href="\/pricing"/i);
 
@@ -364,6 +367,9 @@ test("sitemap contains only canonical indexable routes", async () => {
 
 test("area pages provide contextual crawl paths and the directory keeps a nested heading hierarchy", async () => {
   const detail = await (await render("/areas/medindie")).text();
+  assert.match(detail, /<title>Removalists Medindie \| HF Removals Adelaide<\/title>/i);
+  assert.match(detail, /Medindie removalists for homes, units and furniture moves in Adelaide/i);
+  assert.match(detail, /href="\/adelaide-removalists"/i);
   assert.match(detail, /href="\/services\/residential-removals"/i);
   assert.match(detail, /href="\/services\/packing-unpacking"/i);
   assert.match(detail, /href="\/areas\/[^"]+"/i);

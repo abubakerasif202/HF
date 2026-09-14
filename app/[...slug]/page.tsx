@@ -27,7 +27,7 @@ function contentTitle(page: NonNullable<ReturnType<typeof findContentPage>>) {
   if (page.kind === "area") return `${page.eyebrow.replace(/ removals| moving support/i, "")} Removalists`;
   if (page.kind === "service") {
     const titles: Record<string, string> = {
-      "residential-removals": "House & Residential Removalists Adelaide",
+      "residential-removals": "House Removalists Adelaide | Residential Movers | HF Removals",
       "office-commercial-removals": "Office & Commercial Removalists Adelaide",
       "interstate-removals": "Interstate Removalists Adelaide",
       backloading: "Backloading Services Adelaide",
@@ -95,7 +95,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const page = findContentPage(slug);
   if (!page) return {};
   const title = contentTitle(page);
-  return { title, description: page.description, alternates: { canonical: canonical(path) }, ...socialMetadata(title, page.description, path) };
+  return { title: page.slug === "residential-removals" ? { absolute: title } : title, description: page.description, alternates: { canonical: canonical(path) }, ...socialMetadata(title, page.description, path) };
 }
 
 export function generateStaticParams() {

@@ -978,9 +978,19 @@ function relatedLinksFor(page: ContentPage): RelatedLink[] {
           .map((area) => ({ href: `/areas/${area.slug}`, label: `${area.name} removals`, description: `Review moving and access planning for ${area.name}.` }))
       : [];
     return [
+      { href: "/adelaide-removalists", label: "Adelaide removalist services", description: "Compare the main Adelaide moving services and plan the right scope for your move." },
       { href: "/services/residential-removals", label: "House removals", description: "Plan inventory, access, protection and destination placement." },
       { href: "/services/packing-unpacking", label: "Packing support", description: "Prepare cartons, furniture and high-care items before moving day." },
       ...nearby,
+      ...shared,
+    ];
+  }
+
+  if (page.slug === "residential-removals") {
+    return [
+      { href: "/adelaide-removalists", label: "Adelaide removalist services", description: "Compare local, apartment, office, interstate and packing support from HF." },
+      { href: "/services/packing-unpacking", label: "Packing support", description: "Prepare cartons, furniture and high-care items before moving day." },
+      { href: "/areas", label: "Adelaide service areas", description: "Find local planning pages for the suburb and property access involved in your move." },
       ...shared,
     ];
   }
@@ -1036,7 +1046,7 @@ function RelatedLinks({ page }: { page: ContentPage }) {
 
 export function DetailPage({ page }: { page: ContentPage }) {
   const area = page.kind === "area" ? hfServiceAreaRecords.find((item) => item.slug === page.slug) : undefined;
-  const heading = area ? (area.name === "Playford" ? "Removalists Across Playford" : `Removalists in ${area.name}`) : page.kind === "service" ? `${page.eyebrow}: ${page.title}` : page.title;
+  const heading = area ? (area.name === "Playford" ? "Removalists Across Playford" : `Removalists in ${area.name}`) : page.kind === "service" && page.slug === "residential-removals" ? "House Removalists Adelaide" : page.kind === "service" ? `${page.eyebrow}: ${page.title}` : page.title;
   return (
     <SiteFrame>
       <PageHero eyebrow={page.eyebrow} title={heading} description={page.intro} price={page.price} unit={page.unit} media={mediaForPage(page)} />

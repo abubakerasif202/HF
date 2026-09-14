@@ -237,7 +237,19 @@ const localAccessOverrides: Record<string, string> = {
   "victor-harbor-road-corridor": "longer corridor travel, storage stops, regional timing and destination access",
   "toorak-gardens": "premium homes, careful furniture handling and tighter residential access",
   "hyde-park": "compact streets, villas, townhouses and careful loading positions",
-  malvern: "villa and townhouse moves with parking, stairs and furniture-access planning",
+  medindie: "established homes, units, parking and careful furniture carry paths",
+  "unley-park": "villas, townhouses, stairs, parking and furniture access",
+  "salisbury-east": "family homes, driveways, garages and longer furniture carries",
+  "malvern": "villa and townhouse moves with parking, stairs and furniture-access planning",
+};
+
+const localAreaDescriptions: Record<string, string> = {
+  "adelaide-cbd": "Adelaide CBD removalists for apartments, offices and city homes. Plan lifts, loading zones, parking and carry paths with HF Removals Adelaide.",
+  medindie: "Medindie removalists for homes, units and furniture moves in Adelaide. Plan parking, stairs, entry paths and protective wrapping around your inventory.",
+  "hyde-park": "Hyde Park removalists for homes, villas and townhouses. Plan compact-street loading, parking and furniture access with HF Removals Adelaide.",
+  "toorak-gardens": "Toorak Gardens removalists for homes, units and furniture moves. Share access, parking and protection requirements for a practical quote.",
+  "unley-park": "Unley Park removalists for homes, villas and townhouses. Share stairs, parking, furniture and packing requirements before moving day.",
+  "salisbury-east": "Salisbury East removalists for homes and furniture moves. Include driveway, garage, access and inventory details in your Adelaide quote request.",
 };
 
 /**
@@ -534,8 +546,8 @@ function buildGeneratedAreaPage(name: string, region: ServiceAreaRegion, slug: s
   const profile = regionProfiles[region];
   const local = localAreaProfiles[slug];
   const access = localAccessOverrides[slug] ?? profile.access;
-  const description = local?.description ?? `${name} removalists with practical planning for access, inventory, furniture protection, packing support and Adelaide connections.`;
-  const intro = local?.intro ?? `HF Removals Adelaide accepts enquiries involving ${name}. ${profile.intro} A useful quote starts with the actual addresses, inventory and access conditions rather than the suburb name alone.`;
+  const description = local?.description ?? localAreaDescriptions[slug] ?? `${name} removalists with practical planning for access, inventory, furniture protection, packing support and Adelaide connections.`;
+  const intro = local?.intro ?? `For a move involving ${name}, plan around ${access}. ${profile.intro} A useful quote starts with the actual addresses, inventory and access conditions rather than the suburb name alone.`;
   const localFaqs = [
     {
       question: `Does HF Removals service ${name}?`,
