@@ -44,7 +44,7 @@ const schema = {
         postalCode: business.address.postcode,
         addressCountry: business.address.countryCode,
       },
-      // No aggregateRating here on purpose. The 4.9/417 figures come from the
+      // No aggregateRating here on purpose. The Google rating/count figures come from the
       // business's Google profile, and Google's review-snippet policy expects
       // aggregateRating to describe reviews this site itself collects. Marking up
       // third-party ratings as first-party risks a manual action. The visible

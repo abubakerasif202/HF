@@ -70,13 +70,13 @@ test("renders the premium HF homepage without placeholder claims", async () => {
   assert.match(html, /Work in Motion/i);
   assert.match(html, /\$79/);
   assert.match(html, /\$119\.43/);
-  assert.match(html, /4\.9 Google rating/i);
-  assert.match(html, /417(?:<!-- -->)? reviews/i);
+  assert.match(html, /5\.0 Google rating/i);
+  assert.match(html, /438(?:<!-- -->)? reviews/i);
   assert.match(html, /7:00 am–8:00 pm daily/i);
   assert.doesNotMatch(html, /24\/7|24h Enquiries/i);
   assert.match(html, /25–45 m³/i);
   assert.match(html, /40–60 m³/i);
-  // The 4.9/417 figures are Google's, not reviews this site collects, so they must
+  // The Google rating/count figures are Google's, not reviews this site collects, so they must
   // not be marked up as first-party aggregateRating on the LocalBusiness node.
   assert.doesNotMatch(html, /AggregateRating|"ratingValue"/);
   assert.doesNotMatch(html, /"@type":"Review"/);
@@ -177,9 +177,9 @@ test("keeps verified rates, coverage wording and canonical route inventory centr
   assert.match(data, /\$186\.06/);
   assert.match(data, /per m³/);
   assert.match(data, /Up to \$1,000,000 Public Liability & Transit Insurance/);
-  assert.match(data, /rating: 4\.9/);
-  assert.match(data, /reviewCount: 417/);
-  assert.match(data, /verifiedAt: "2026-08-21"/);
+  assert.match(data, /rating: 5\.0/);
+  assert.match(data, /reviewCount: 438/);
+  assert.match(data, /verifiedAt: "2026-09-14"/);
   assert.match(data, /hoursVerifiedAt: "2026-08-27"/);
   assert.doesNotMatch(data, /adelaide-(?:western-sydney|smithfield|brisbane|canberra)/);
   assert.match(data, /Complimentary mattress protection/);
@@ -194,7 +194,7 @@ test("keeps verified rates, coverage wording and canonical route inventory centr
   const home = await readFile(new URL("../app/page.tsx", import.meta.url), "utf8");
   const stripComments = (source) => source.replace(/\/\*[\s\S]*?\*\//g, "").replace(/\/\/.*$/gm, "");
   for (const [label, source] of [["Site", site], ["SiteClient", client], ["page", home]]) {
-    assert.doesNotMatch(stripComments(source), /4\.9|417/, `${label} should read the rating from site-data`);
+    assert.doesNotMatch(stripComments(source), /4\.9|417|438/, `${label} should read the rating from site-data`);
   }
   // Local rates likewise: they were retyped in the trust strip, the quote form
   // banner and the homepage meta description.

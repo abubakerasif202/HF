@@ -47,7 +47,7 @@ function TrustBar() {
           <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" fill="var(--hf-gold-500)" stroke="none" />
         </svg>
       ),
-      title: `${business.googleBusiness.rating} Google Rating`,
+      title: `${business.googleBusiness.rating.toFixed(1)} Google Rating`,
       desc: `${business.googleBusiness.reviewCount} Google Reviews`,
     },
     {
@@ -415,7 +415,7 @@ function ReviewsSection() {
               <span className="google-badge-pill">Google Verified</span>
               <span className="rating-stars" aria-hidden="true" style={{ display: "inline-flex", gap: "2px" }}>{[...Array(5)].map((_, i) => <StarIcon key={i} size={14} />)}</span>
             </div>
-            <strong>{google.rating} / 5.0</strong>
+            <strong>{google.rating.toFixed(1)} / 5.0</strong>
             <p>Based on {google.reviewCount} customer reviews</p>
             <a href="https://maps.google.com/?cid=10700874558509895358" target="_blank" rel="noopener noreferrer" className="google-review-link">
               Read all reviews on Google <span>→</span>
@@ -686,7 +686,7 @@ function Footer() {
             </span>
             <span>
               <svg width="13" height="13" viewBox="0 0 24 24" fill="var(--hf-gold-500)" stroke="none" aria-hidden="true" style={{ display: "inline-block", verticalAlign: "-2px", marginRight: "6px" }}><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" /></svg>
-              {business.googleBusiness.rating} Google Rating · {business.googleBusiness.reviewCount} Reviews
+              {business.googleBusiness.rating.toFixed(1)} Google Rating · {business.googleBusiness.reviewCount} Reviews
             </span>
           </address>
         </div>
