@@ -241,6 +241,9 @@ const localAccessOverrides: Record<string, string> = {
   "unley-park": "villas, townhouses, stairs, parking and furniture access",
   "salisbury-east": "family homes, driveways, garages and longer furniture carries",
   "malvern": "villa and townhouse moves with parking, stairs and furniture-access planning",
+  "adelaide-hills": "hills driveways, gradients, turning space, stairs and longer furniture carries",
+  "salisbury-north": "family homes, driveways, garages, stairs and practical kerbside loading",
+  "munno-para": "driveway width, street parking, garage contents, gates and stairs or narrow entries",
 };
 
 const localAreaDescriptions: Record<string, string> = {
@@ -250,6 +253,10 @@ const localAreaDescriptions: Record<string, string> = {
   "toorak-gardens": "Toorak Gardens removalists for homes, units and furniture moves. Share access, parking and protection requirements for a practical quote.",
   "unley-park": "Unley Park removalists for homes, villas and townhouses. Share stairs, parking, furniture and packing requirements before moving day.",
   "salisbury-east": "Salisbury East removalists for homes and furniture moves. Include driveway, garage, access and inventory details in your Adelaide quote request.",
+  "adelaide-hills": "Adelaide Hills removalists for homes and connected Adelaide moves. Share gradients, driveway, access and inventory details for a practical quote.",
+  "malvern": "Malvern removalists for villas, townhouses and furniture moves. Plan parking, stairs, entry paths and protection around your inventory.",
+  "salisbury-north": "Salisbury North removalists for homes and furniture moves. Share driveway, garage, parking and access details before moving day.",
+  "munno-para": "Munno Para removalists for residential and furniture moves. Include driveway, garage, bulky-item and access details in your quote request.",
 };
 
 /**
@@ -288,6 +295,70 @@ type LocalAreaProfile = {
  * about move-planning differences, not claims about HF's job history.
  */
 const localAreaProfiles: Record<string, LocalAreaProfile> = {
+  "adelaide-cbd": {
+    description: "Adelaide CBD removalists for apartments, offices and city homes. Plan lifts, loading zones, parking and carry paths with HF Removals Adelaide.",
+    intro: "City moves benefit from early access planning because apartment, office and street-front loading conditions can be time-sensitive. Include both addresses, lift or loading-zone details and the furniture inventory in the enquiry.",
+    context: "apartments, offices, city homes and shared-building access",
+    route: "the city connection between the CBD, North Adelaide, city-fringe suburbs and the destination address",
+    access: "service lifts, loading zones, parking controls, shared entries and longer carry paths",
+    nearby: ["North Adelaide", "Medindie", "Norwood", "West Terrace"],
+  },
+  "adelaide-hills": {
+    description: "Adelaide Hills removalists for homes and connected metro moves. Share route, inventory and driveway details for a practical quote.",
+    intro: "Adelaide Hills moves need access planning at both ends, especially where gradients, long driveways or limited turning space affect loading. Include the relevant suburb, destination and bulky items in the enquiry.",
+    context: "hills homes, slopes, longer driveways and careful furniture carries",
+    route: "the Hills connection between Mount Barker, Stirling, Aldgate and Adelaide metro",
+    access: "gradients, long driveways, turning space, stairs and gates",
+    nearby: ["Mount Barker", "Blackwood", "Norwood", "Unley Park"],
+  },
+  "malvern": {
+    description: "Malvern removalists for villas, townhouses and furniture moves. Plan parking, stairs, entry paths and protection around your inventory.",
+    intro: "A Malvern move is easier to scope when the property type, furniture list and access path are clear. Share parking, stairs, narrow entries and any pieces that may need extra protection.",
+    context: "villas, townhouses, established homes and furniture-focused moves",
+    route: "the southern and inner-southern connection between Malvern, Unley Park, Hyde Park and nearby Adelaide suburbs",
+    access: "villa entries, townhouse stairs, parking, gates and furniture carry paths",
+    nearby: ["Unley Park", "Hyde Park", "Goodwood", "Mitcham"],
+  },
+  "toorak-gardens": {
+    description: "Toorak Gardens removalists for homes, units and furniture moves. Share access, parking and protection requirements before moving day.",
+    intro: "Toorak Gardens move planning should cover the property type, parking position, entry path and any furniture needing careful preparation. A complete inventory helps HF review the practical scope.",
+    context: "homes, units, established streets and careful furniture access",
+    route: "the eastern connection between Toorak Gardens, Norwood, St Peters and Adelaide",
+    access: "residential parking, stairs, narrow entries, shared access and furniture carry paths",
+    nearby: ["Norwood", "St Peters", "Trinity Gardens", "Unley Park"],
+  },
+  "hyde-park": {
+    description: "Hyde Park removalists for homes, villas and townhouses. Plan compact-street loading, parking and furniture access with HF Removals Adelaide.",
+    intro: "Hyde Park enquiries benefit from a clear inventory and access notes for villas, townhouses or compact residential streets. Include parking, stairs, gates and any bulky furniture in the quote request.",
+    context: "villas, townhouses, compact streets and furniture-focused moves",
+    route: "the inner-southern connection between Hyde Park, Malvern, Unley Park and Adelaide",
+    access: "compact streets, parking, villa entries, stairs and careful loading positions",
+    nearby: ["Malvern", "Unley Park", "Goodwood", "Mitcham"],
+  },
+  medindie: {
+    description: "Medindie removalists for homes, units and furniture moves in Adelaide. Plan parking, stairs, entry paths and protective wrapping around your inventory.",
+    intro: "Medindie moves are easier to plan when the property access and furniture list are supplied together. Note parking, stairs, shared entries, narrow paths and pieces that need protective wrapping.",
+    context: "established homes, units and careful furniture carry paths",
+    route: "the inner-northern connection between Medindie, North Adelaide, Adelaide CBD and nearby suburbs",
+    access: "residential parking, stairs, shared entries and furniture carry paths",
+    nearby: ["Adelaide CBD", "North Adelaide", "Walkerville", "Prospect"],
+  },
+  "unley-park": {
+    description: "Unley Park removalists for homes, villas and townhouses. Share stairs, parking, furniture and packing requirements before moving day.",
+    intro: "Unley Park move planning should start with the property access and a room-by-room inventory. Include villas or townhouses, stairs, parking, gates and furniture requiring protection or dismantling.",
+    context: "villas, townhouses, established homes and furniture-access planning",
+    route: "the inner-southern connection between Unley Park, Malvern, Hyde Park and Adelaide",
+    access: "villas, townhouses, stairs, parking, gates and furniture carry paths",
+    nearby: ["Malvern", "Hyde Park", "Unley", "Goodwood"],
+  },
+  "salisbury-north": {
+    description: "Salisbury North removalists for homes and furniture moves. Include driveway, garage, access and inventory details in your Adelaide quote request.",
+    intro: "Salisbury North moves can be scoped more clearly when the full household inventory is paired with driveway, garage, parking and entry details. Identify bulky items and any longer carry from the truck.",
+    context: "family homes, driveways, garages and household furniture",
+    route: "the northern connection between Salisbury North, Salisbury, Elizabeth and Parafield Gardens",
+    access: "driveways, garages, street parking, gates and furniture carry distance",
+    nearby: ["Salisbury", "Parafield Gardens", "Elizabeth", "Mawson Lakes"],
+  },
   playford: {
     description: "Removalists across Playford for homes, furniture and northern Adelaide moves. HF Removals Adelaide plans around the full route and property access.",
     intro: "Playford is a broader northern service area covering established suburbs and the growth corridor. Use the individual suburb pages for local planning, or send both addresses when a move crosses Elizabeth, Munno Para, Angle Vale or Gawler.",
@@ -311,14 +382,6 @@ const localAreaProfiles: Record<string, LocalAreaProfile> = {
     route: "the north-eastern network between Golden Grove, Modbury, Tea Tree Gully and Mawson Lakes",
     access: "slopes, stairs, driveways, shared entries and furniture carry distance",
     nearby: ["Golden Grove", "Modbury", "Tea Tree Gully", "Mawson Lakes"],
-  },
-  "adelaide-hills": {
-    description: "Removalists across the Adelaide Hills for homes and connected metro moves. Share route, inventory and driveway details for a quote.",
-    intro: "Adelaide Hills moves need access planning at both ends, especially where gradients, long driveways or limited turning space affect loading. The relevant suburb and destination should be included in the enquiry.",
-    context: "hills homes, slopes, longer driveways and careful furniture carries",
-    route: "the Hills connection between Mount Barker, Stirling, Aldgate and Adelaide metro",
-    access: "gradients, long driveways, turning space, stairs and gates",
-    nearby: ["Mount Barker", "Stirling", "Aldgate", "Norwood"],
   },
   "southern-adelaide": {
     description: "Removalists across Southern Adelaide for homes, furniture and coastal-connected moves. Request a practical quote based on your addresses.",
@@ -399,14 +462,6 @@ const localAreaProfiles: Record<string, LocalAreaProfile> = {
     route: "the corridor linking Smithfield with Elizabeth, Munno Para, Craigmore and Gawler",
     access: "older or newer driveway layouts, kerb access, stairs, gates and destination room placement",
     nearby: ["Elizabeth", "Munno Para", "Craigmore", "Salisbury", "Blakeview"],
-  },
-  "munno-para": {
-    description: "Removalists Munno Para for residential and furniture moves across the northern growth corridor. Send your inventory and access notes to HF.",
-    intro: "Munno Para enquiries often connect established local streets with newer housing around the northern corridor. Clarify whether the load includes garage contents, appliances, plants or furniture requiring disassembly.",
-    context: "mixed established and newer homes, garages and family inventories",
-    route: "the local corridor from Munno Para to Munno Para West, Smithfield, Elizabeth and Angle Vale",
-    access: "driveway width, street parking, garage contents, gates and stairs or narrow entries",
-    nearby: ["Munno Para West", "Smithfield", "Elizabeth", "Angle Vale", "Andrews Farm"],
   },
   "salisbury": {
     description: "Removalists Salisbury for homes, units, furniture and workplace moves. HF Removals Adelaide scopes loading access and the full route.",

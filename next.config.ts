@@ -80,6 +80,24 @@ const nextConfig: NextConfig = {
         permanent: true,
       },
       {
+        source: "/",
+        has: [{ type: "host", value: "www.hfremovalsadelaide.com" }],
+        destination: "https://www.hfremovalsadelaide.com.au/",
+        permanent: true,
+      },
+      {
+        source: "/",
+        has: [{ type: "host", value: "hfremovalsadelaide.com.au" }],
+        destination: "https://www.hfremovalsadelaide.com.au/",
+        permanent: true,
+      },
+      {
+        source: "/",
+        has: [{ type: "host", value: "hfremovalsadelaide.com" }],
+        destination: "https://www.hfremovalsadelaide.com.au/",
+        permanent: true,
+      },
+      {
         source: "/:path*",
         has: [{ type: "host", value: "www.hfremovalsadelaide.com" }],
         destination: "https://www.hfremovalsadelaide.com.au/:path*",

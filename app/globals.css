@@ -1377,6 +1377,34 @@ p {
 .service-card:hover .service-icon {
   transform: scale(1.15);
 }
+.home-intent-section {
+  background: #031811;
+  border-top: 1px solid rgba(223, 183, 92, 0.16);
+}
+.home-intent-links {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+}
+.home-intent-links a {
+  display: grid;
+  gap: 7px;
+  min-height: 122px;
+  padding: 20px;
+  border: 1px solid rgba(223, 183, 92, 0.22);
+  border-radius: 12px;
+  color: inherit;
+  background: rgba(3, 26, 18, 0.7);
+  text-decoration: none;
+  transition: border-color 0.2s ease, transform 0.2s ease;
+}
+.home-intent-links a:hover,
+.home-intent-links a:focus-visible {
+  border-color: var(--hf-gold-500);
+  transform: translateY(-2px);
+}
+.home-intent-links strong { color: var(--hf-gold-300); font-size: 1rem; }
+.home-intent-links span { color: rgba(255, 255, 255, 0.68); font-size: 0.82rem; line-height: 1.5; }
 .card-badge {
   color: var(--hf-gold-300);
   font-size: 0.65rem;
@@ -2758,14 +2786,16 @@ p {
 
 @media (max-width: 900px) {
   .listing-grid,
-  .related-links-grid {
+  .related-links-grid,
+  .home-intent-links {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 
 @media (max-width: 560px) {
   .listing-grid,
-  .related-links-grid {
+  .related-links-grid,
+  .home-intent-links {
     grid-template-columns: 1fr;
   }
 
@@ -2788,6 +2818,38 @@ p {
   font-size: 0.72rem;
   text-transform: uppercase;
   letter-spacing: 0.08em;
+}
+.listing-highlights {
+  display: grid;
+  gap: 5px;
+  margin: 0 0 18px;
+  padding-left: 1rem;
+  color: rgba(255, 255, 255, 0.72);
+  font-size: 0.78rem;
+  line-height: 1.45;
+}
+.area-directory-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 20px;
+}
+.area-directory-links a {
+  min-height: 40px;
+  display: inline-flex;
+  align-items: center;
+  padding: 8px 13px;
+  border: 1px solid rgba(223, 183, 92, 0.24);
+  border-radius: 999px;
+  color: #fff3f5;
+  font-size: 0.78rem;
+  font-weight: 800;
+  text-decoration: none;
+}
+.area-directory-links a:hover,
+.area-directory-links a:focus-visible {
+  border-color: var(--ruby-light);
+  background: rgba(201, 29, 59, 0.24);
 }
 .contact-section {
   background: #031811;

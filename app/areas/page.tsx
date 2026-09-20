@@ -10,15 +10,15 @@ import {
 } from "../../lib/hf-service-areas";
 
 export const metadata: Metadata = {
-  title: "Adelaide Service Areas",
-  description: `Browse ${hfServiceAreaCount} Adelaide, hills, coastal and regional South Australia locations serviced by HF Removals Adelaide.`,
+  title: { absolute: "Adelaide Removalist Service Areas | HF Removals" },
+  description: `Browse ${hfServiceAreaCount} Adelaide, Hills, coastal and regional South Australia service areas, with local access planning and links to moving services.`,
   alternates: { canonical: canonical("/areas") },
   openGraph: {
     type: "website",
     locale: "en_AU",
     siteName: business.name,
-    title: "Adelaide Service Areas",
-    description: `Browse ${hfServiceAreaCount} Adelaide, hills, coastal and regional South Australia locations serviced by HF Removals Adelaide.`,
+    title: "Adelaide Removalist Service Areas | HF Removals",
+    description: `Browse ${hfServiceAreaCount} Adelaide, Hills, coastal and regional South Australia service areas, with local access planning and links to moving services.`,
     url: canonical("/areas"),
     images: [{ url: "/og.webp", width: 1200, height: 630, alt: "HF Removals Adelaide — Moving Made Easy With Us" }],
   },
@@ -89,7 +89,8 @@ export default function AreasPage() {
             <h1>HF Removals service areas across Adelaide and South Australia</h1>
             <p>
               Browse {hfServiceAreaCount} local service-area pages covering central, northern, eastern, western,
-              coastal and southern Adelaide, the Adelaide Hills and selected regional SA corridors.
+              coastal and southern Adelaide, the Adelaide Hills and selected regional SA corridors. Use the pages
+              to compare access-planning details, then share both addresses and your inventory for a quote.
             </p>
             <div className="hero-actions">
               <a className="button button-ruby" href="/#quote">Get a free quote <span>→</span></a>
@@ -100,6 +101,12 @@ export default function AreasPage() {
                 <a href={`#${id}`} key={region}>{region}</a>
               ))}
             </nav>
+            <div className="area-directory-links" aria-label="Related moving services">
+              <a href="/services/residential-removals">House removals</a>
+              <a href="/services/office-commercial-removals">Office removals</a>
+              <a href="/services/interstate-removals">Interstate removals</a>
+              <a href="/adelaide-removalists">Moving planning guide</a>
+            </div>
           </div>
           <div className="inner-monogram">
             <img

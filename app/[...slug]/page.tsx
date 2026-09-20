@@ -10,13 +10,13 @@ const staticPages: Record<string, { type: "about" | "contact" | "pricing" | "ade
   about: { type: "about", title: "About Our Adelaide Removalists", description: "Meet Muhammad Rasheed and learn how HF Removals Adelaide plans local, house, office and interstate moves around each customer's requirements.", schema: "AboutPage" },
   contact: { type: "contact", title: "Contact HF Removals Adelaide", description: "Contact HF Removals Adelaide to discuss a local, house, office or interstate move and request a quote based on your inventory and access details.", schema: "ContactPage" },
   pricing: { type: "pricing", title: "Removalist Pricing Adelaide", description: "Compare supplied Adelaide removalist hourly rates and interstate per-cubic-metre reference pricing, then request a quote for your move.", schema: "WebPage" },
-  "adelaide-removalists": { type: "adelaide", title: "Adelaide Removalists & Moving Services", description: "Adelaide removalists for house, apartment, office and interstate moves. Compare services, supplied reference rates and packing support, then request a tailored quote.", schema: "WebPage" },
+  "adelaide-removalists": { type: "adelaide", title: "Adelaide Moving Services, Pricing & Planning Guide | HF Removals", description: "Compare Adelaide moving services, supplied reference pricing and practical planning guidance for house, office, interstate and packing enquiries.", schema: "WebPage" },
   privacy: { type: "privacy", title: "Privacy", description: "How HF Removals Adelaide handles website enquiry information.", schema: "WebPage" },
   terms: { type: "terms", title: "Website Terms", description: "General website, pricing and insurance wording terms for HF Removals Adelaide.", schema: "WebPage" },
 };
 
 const listingPages: Record<string, { kind: ListingKind; title: string; description: string }> = {
-  services: { kind: "services", title: "Removal Services in Adelaide", description: "Explore house, commercial, interstate, backloading and packing services from HF Removals Adelaide." },
+  services: { kind: "services", title: "Adelaide Moving Services | Compare Removal Options", description: "Compare residential, furniture, office, interstate, backloading and packing services, then share the details HF needs for your quote." },
   areas: { kind: "areas", title: "Adelaide Service Areas", description: "Move planning information for listed HF Removals Adelaide service areas." },
   interstate: { kind: "interstate", title: "Interstate Removal Routes", description: "Adelaide interstate route reference rates and practical volume planning." },
   guides: { kind: "guides", title: "Moving Guides", description: "Practical moving, packing, pricing, apartment, office and interstate guides." },
@@ -28,10 +28,11 @@ function contentTitle(page: NonNullable<ReturnType<typeof findContentPage>>) {
   if (page.kind === "service") {
     const titles: Record<string, string> = {
       "residential-removals": "House Removalists Adelaide | Residential Movers | HF Removals",
-      "office-commercial-removals": "Office & Commercial Removalists Adelaide",
-      "interstate-removals": "Interstate Removalists Adelaide",
+      "furniture-removals": "Furniture Removalists Adelaide | Furniture Movers",
+      "office-commercial-removals": "Office Removalists Adelaide | Commercial Movers",
+      "interstate-removals": "Interstate Removalists Adelaide | Movers & Routes",
       backloading: "Backloading Services Adelaide",
-      "packing-unpacking": "Packing & Unpacking Services Adelaide",
+      "packing-unpacking": "Packing Services Adelaide | Packing & Unpacking",
     };
     return titles[page.slug] ?? `${page.eyebrow} Adelaide`;
   }
@@ -86,7 +87,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const path = pathFor(slug);
   if (slug.length === 1 && staticPages[slug[0]]) {
     const page = staticPages[slug[0]];
-    return { title: page.title, description: page.description, alternates: { canonical: canonical(path) }, ...socialMetadata(page.title, page.description, path) };
+    const title = page.type === "adelaide" ? { absolute: page.title } : page.title;
+    return { title, description: page.description, alternates: { canonical: canonical(path) }, ...socialMetadata(page.title, page.description, path) };
   }
   if (slug.length === 1 && listingPages[slug[0]]) {
     const page = listingPages[slug[0]];

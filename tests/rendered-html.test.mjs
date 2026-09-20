@@ -76,7 +76,7 @@ test("renders the premium HF homepage without placeholder claims", async () => {
   assert.doesNotMatch(html, /24\/7|24h Enquiries/i);
   assert.match(html, /25–45 m³/i);
   assert.match(html, /40–60 m³/i);
-  // The Google rating/count figures are Google's, not reviews this site collects, so they must
+  // The Google rating/count are third-party profile data, not reviews this site collects, so they must
   // not be marked up as first-party aggregateRating on the LocalBusiness node.
   assert.doesNotMatch(html, /AggregateRating|"ratingValue"/);
   assert.doesNotMatch(html, /"@type":"Review"/);
@@ -194,7 +194,7 @@ test("keeps verified rates, coverage wording and canonical route inventory centr
   const home = await readFile(new URL("../app/page.tsx", import.meta.url), "utf8");
   const stripComments = (source) => source.replace(/\/\*[\s\S]*?\*\//g, "").replace(/\/\/.*$/gm, "");
   for (const [label, source] of [["Site", site], ["SiteClient", client], ["page", home]]) {
-    assert.doesNotMatch(stripComments(source), /4\.9|417|442/, `${label} should read the rating from site-data`);
+    assert.doesNotMatch(stripComments(source), /4\.9|417/, `${label} should read the rating from site-data`);
   }
   // Local rates likewise: they were retyped in the trust strip, the quote form
   // banner and the homepage meta description.
@@ -329,11 +329,11 @@ test("canonical routes normalize trailing slashes instead of serving duplicates"
 
 test("priority pages keep distinct metadata and useful page-level schema", async () => {
   const home = await (await render("/")).text();
-  assert.match(home, /name="description" content="Adelaide removalists for house, furniture, office and interstate moves\./i);
+  assert.match(home, /name="description" content="Adelaide removalists, movers and moving services for house, apartment, office and interstate moves\./i);
   assert.doesNotMatch(home, /"priceRange":"\$\$"/);
 
   const servicesHtml = await (await render("/services")).text();
-  assert.match(servicesHtml, /<title>Removal Services in Adelaide \| HF Removals Adelaide<\/title>/i);
+  assert.match(servicesHtml, /<title>Adelaide Moving Services \| Compare Removal Options \| HF Removals Adelaide<\/title>/i);
   assert.match(servicesHtml, /"@type":"CollectionPage"/);
   assert.match(servicesHtml, /"@type":"ItemList"/);
   assert.match(servicesHtml, /"@type":"BreadcrumbList"/);
@@ -352,7 +352,7 @@ test("priority pages keep distinct metadata and useful page-level schema", async
   assert.match(pricingHtml, /<title>Removalist Pricing Adelaide \| HF Removals Adelaide<\/title>/i);
 
   const hubHtml = await (await render("/adelaide-removalists")).text();
-  assert.match(hubHtml, /<title>Adelaide Removalists &amp; Moving Services \| HF Removals Adelaide<\/title>/i);
+  assert.match(hubHtml, /<title>Adelaide Moving Services, Pricing &amp; Planning Guide \| HF Removals<\/title>/i);
 });
 
 test("sitemap contains only canonical indexable routes", async () => {

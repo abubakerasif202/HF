@@ -3,7 +3,7 @@ import { HomePage } from "./components/Site";
 import { business, canonical, entryLocalRate, localPricing, standardMoveFaqs } from "../lib/site-data";
 
 const homeTitle = "Adelaide Removalists | Local & Interstate Movers | HF";
-const homeDescription = `Adelaide removalists for house, furniture, office and interstate moves. Local movers from ${entryLocalRate.halfHour} per 30 minutes. Request a tailored quote.`;
+const homeDescription = `Adelaide removalists, movers and moving services for house, apartment, office and interstate moves. Local rates from ${entryLocalRate.halfHour} per 30 minutes.`;
 
 export const metadata: Metadata = {
   title: { absolute: homeTitle },
@@ -44,7 +44,7 @@ const schema = {
         postalCode: business.address.postcode,
         addressCountry: business.address.countryCode,
       },
-      // No aggregateRating here on purpose. The Google rating/count figures come from the
+      // No aggregateRating here on purpose. The Google rating and review count come from the
       // business's Google profile, and Google's review-snippet policy expects
       // aggregateRating to describe reviews this site itself collects. Marking up
       // third-party ratings as first-party risks a manual action. The visible

@@ -160,6 +160,9 @@ function ServicesGrid() {
     "packing-unpacking": (
       <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="m9 12 2 2 4-4"/></svg>
     ),
+    "furniture-removals": (
+      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M5 11V7a3 3 0 0 1 3-3h8a3 3 0 0 1 3 3v4"/><path d="M4 11h16a2 2 0 0 1 2 2v3H2v-3a2 2 0 0 1 2-2Z"/><path d="M5 16v3M19 16v3M8 8h8"/></svg>
+    ),
   };
 
   return (
@@ -766,7 +769,7 @@ export function HomePage() {
           <div className="hero-copy">
             <div className="hero-badge">
               <StarIcon size={12} className="hero-badge-star" />
-              <span>{business.googleBusiness.rating} RATED ADELAIDE REMOVALISTS ({business.googleBusiness.reviewCount} REVIEWS)</span>
+              <span>{business.googleBusiness.rating.toFixed(1)} RATED ADELAIDE REMOVALISTS ({business.googleBusiness.reviewCount} REVIEWS)</span>
             </div>
             <h1>
               Adelaide <em>Removalists</em>
@@ -810,6 +813,23 @@ export function HomePage() {
       <TrustBar />
       <ServiceTicker />
       <ServicesGrid />
+      <section className="section home-intent-section">
+        <div className="container">
+          <SectionHeading
+            eyebrow="Adelaide moving services"
+            title={<>Choose the right <em>moving support</em></>}
+            copy="Whether you are planning house moving, local removals, furniture support or a longer route, start with the service that matches the job and share the access and inventory details that shape the quote."
+          />
+          <div className="home-intent-links">
+            <a href="/services/residential-removals"><strong>House movers in Adelaide</strong><span>Residential removals for homes, apartments and townhouses.</span></a>
+            <a href="/services/furniture-removals"><strong>Furniture removalists Adelaide</strong><span>Plan large furniture, access, protection and placement.</span></a>
+            <a href="/services/office-commercial-removals"><strong>Office movers Adelaide</strong><span>Workplace relocation around furniture, equipment and loading access.</span></a>
+            <a href="/services/interstate-removals"><strong>Adelaide interstate removals</strong><span>Route, inventory, volume and access planning for longer moves.</span></a>
+            <a href="/services/packing-unpacking"><strong>Packing services Adelaide</strong><span>Prepare, protect and label belongings before moving day.</span></a>
+            <a href="/areas"><strong>Local removals Adelaide</strong><span>Browse the service-area directory and nearby planning pages.</span></a>
+          </div>
+        </div>
+      </section>
       <ApartmentAccessSection />
       <PricingSection />
       <VolumeGuidanceSection />
@@ -855,7 +875,7 @@ function PageHero({
             <a className="button button-outline" href={business.phones[0].href}>Call {business.phones[0].display}</a>
           </div>
           <div className="inner-proof" aria-label="HF business profile summary">
-            <span><b>{business.googleBusiness.rating}★</b> Rating</span>
+            <span><b>{business.googleBusiness.rating.toFixed(1)}★</b> Rating</span>
             <span><b>{business.googleBusiness.reviewCount}</b> Reviews</span>
             <span><b>Up to $1M</b> Insurance</span>
             <span><b>{business.googleBusiness.hoursShort}</b> Daily hours</span>
@@ -989,8 +1009,21 @@ function relatedLinksFor(page: ContentPage): RelatedLink[] {
   if (page.slug === "residential-removals") {
     return [
       { href: "/adelaide-removalists", label: "Adelaide removalist services", description: "Compare local, apartment, office, interstate and packing support from HF." },
+      { href: "/services/furniture-removals", label: "Furniture removalists", description: "Plan large furniture, access, protection and destination placement." },
       { href: "/services/packing-unpacking", label: "Packing support", description: "Prepare cartons, furniture and high-care items before moving day." },
       { href: "/areas", label: "Adelaide service areas", description: "Find local planning pages for the suburb and property access involved in your move." },
+      ...shared,
+    ];
+  }
+
+  if (page.slug === "interstate-removals") {
+    return [
+      { href: "/interstate/adelaide-melbourne", label: "Adelaide to Melbourne removals", description: "Review the Melbourne route reference rate and inventory requirements." },
+      { href: "/interstate/adelaide-sydney", label: "Adelaide to Sydney removals", description: "Prepare destination access and a useful volume estimate." },
+      { href: "/interstate/adelaide-queensland", label: "Adelaide to Queensland removals", description: "Add the destination city, suburb and postcode to the enquiry." },
+      { href: "/interstate/adelaide-perth", label: "Adelaide to Perth removals", description: "Plan bulky items, protection and longer-distance access." },
+      { href: "/pricing", label: "Interstate removalist pricing", description: "Compare the supplied per-cubic-metre reference rates." },
+      { href: "/guides/preparing-interstate-move", label: "Prepare for an interstate move", description: "Use the inventory, route and packing checklist before requesting a quote." },
       ...shared,
     ];
   }
@@ -1132,13 +1165,14 @@ export function ListingPage({ kind }: { kind: "services" | "areas" | "interstate
       <PageHero eyebrow={map.eyebrow} title={map.title} description={map.description} />
       <section className="section listing-section">
         <div className="container listing-grid">
-          {map.items.map((item, index) => (
-            <a key={item.slug} href={`/${kind}/${item.slug}`}>
-              <span>{String(index + 1).padStart(2, "0")}</span>
-              <h2>{item.eyebrow}</h2>
-              <p>{item.description}</p>
-              <b>Explore <i>→</i></b>
-            </a>
+            {map.items.map((item, index) => (
+              <a key={item.slug} href={`/${kind}/${item.slug}`}>
+                <span>{String(index + 1).padStart(2, "0")}</span>
+                <h2>{item.eyebrow}</h2>
+                <p>{item.description}</p>
+                {kind === "services" && <ul className="listing-highlights">{item.highlights.slice(0, 2).map((highlight) => <li key={highlight}>{highlight}</li>)}</ul>}
+                <b>Explore <i>→</i></b>
+              </a>
           ))}
         </div>
       </section>
@@ -1206,7 +1240,7 @@ export function StaticPage({ type }: { type: "about" | "contact" | "pricing" | "
   if (type === "adelaide")
     return (
       <SiteFrame>
-        <PageHero eyebrow="Adelaide removalists" title="Adelaide removalists for local, house, office and interstate moves" description="Compare HF's Adelaide moving services, supplied reference rates, packing support and practical move-planning resources before requesting a tailored quote." />
+        <PageHero eyebrow="Adelaide moving guide" title="Adelaide moving services, pricing and planning" description="Compare HF's Adelaide moving services, supplied reference rates, packing support and practical move-planning resources before requesting a tailored quote." />
         <ServicesGrid />
         <ApartmentAccessSection />
         <PricingSection />
