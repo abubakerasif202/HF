@@ -63,14 +63,14 @@ export const business = {
     "Coverage and eligibility depend on the applicable policy terms and the scope of the move. Ask us about the details relevant to your move.",
   googleBusiness: {
     rating: 5.0,
-    reviewCount: 438,
+    reviewCount: 442,
     hoursLabel: "7:00 am–8:00 pm daily",
     hoursShort: "7am–8pm",
     hoursVerifiedAt: "2026-08-27",
     category: "Moving and storage service",
     plusCode: "6MW7+J5 Elizabeth Vale, South Australia",
     coordinates: { latitude: -34.7578, longitude: 138.6834 },
-    verifiedAt: "2026-09-14",
+    verifiedAt: "2026-09-20",
     directionsUrl:
       "https://www.google.com/maps/dir/?api=1&destination=20%20Prunus%20Ave%2C%20Elizabeth%20Vale%20SA%205112%2C%20Australia",
     mapEmbedUrl:
