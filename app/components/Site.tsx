@@ -1,7 +1,7 @@
 import { areas, business, ContentPage, entryLocalRate, googleReviews, guides, interstatePricing, interstateRoutes, localPricing, services, standardMoveFaqs } from "../../lib/site-data";
 import { hfServiceAreaRecords } from "../../lib/hf-service-areas";
 import { ABDeveloperCredit } from "./ABDeveloperCredit";
-import { Header, MobileStickyCta, MotionExperience, QuoteForm, UtilityBar } from "./SiteClient";
+import { BookNowButton, Header, MobileStickyCta, MotionExperience, QuoteForm, SideQuoteTab, UtilityBar } from "./SiteClient";
 
 function CheckIcon({ size = 12, style }: { size?: number; style?: React.CSSProperties }) {
   return (
@@ -306,6 +306,34 @@ function ServicePhotosSection() {
   );
 }
 
+function BookingHowItWorksSection() {
+  const steps = [
+    ["Tell us about your move", "Enter your pickup and destination, move details and the service you need."],
+    ["Choose an available time", "See available booking times and choose the one that works for you."],
+    ["Secure your booking", "Pay the $100 booking confirmation payment securely online."],
+    ["We handle your move", "Your booking is confirmed and our team prepares for your move. Your final price is calculated when the job is completed."],
+  ] as const;
+  return (
+    <section className="section booking-steps-section">
+      <div className="container">
+        <SectionHeading eyebrow="Book Your Move Online" title={<>Simple. Clear. <em>Secure.</em></>} copy="Your move booked in a few easy steps." center />
+        <ol className="booking-steps">
+          {steps.map(([title, copy], index) => (
+            <li className="booking-step" key={title}>
+              <span className="booking-step-number">{String(index + 1).padStart(2, "0")}</span>
+              <h3>{title}</h3>
+              <p>{copy}</p>
+            </li>
+          ))}
+        </ol>
+        <div className="booking-steps-cta">
+          <BookNowButton location="how_it_works">Book Now <span>→</span></BookNowButton>
+        </div>
+      </div>
+    </section>
+  );
+}
+
 function PricingSection() {
   return (
     <section className="section pricing-section" id="pricing">
@@ -343,7 +371,13 @@ function PricingSection() {
                   {business.insurance}; terms apply
                 </li>
               </ul>
-              <a className="button button-ruby" href="/#quote">Request Quote for This Option</a>
+              <div className="package-cta-row">
+                <BookNowButton location="pricing" packageId={item.name.startsWith("3") ? "3-men" : "2-men"}>
+                  Book Now <span>→</span>
+                </BookNowButton>
+                <a className="package-quote-link" href="/#quote">Not ready? Get a Quote instead</a>
+              </div>
+              <p className="package-trust-line">$100 secures your booking · credited to your final balance</p>
             </article>
           ))}
         </div>
@@ -352,6 +386,12 @@ function PricingSection() {
           Additional service time is billed in 30-minute increments at your selected package rate. Your final price
           is calculated when the job is completed.
         </p>
+
+        <div className="payment-info-panel">
+          <h3>$100 Booking Confirmation</h3>
+          <p>Secure your booking online with a $100 payment. This is credited toward your final balance — it is not an extra charge.</p>
+          <p>Your final price is calculated once your move is completed, based on the 3-hour minimum service plus the separate 1-hour call-out fee.</p>
+        </div>
 
         <div className="interstate-table">
           <div className="table-intro">
@@ -651,18 +691,39 @@ export function FaqSection({ faqs = standardMoveFaqs, title = "Frequently Asked 
   );
 }
 
-function QuoteStrip() {
+function QuoteStrip({ quotePrimary = false }: { quotePrimary?: boolean } = {}) {
+  if (quotePrimary) {
+    return (
+      <section className="quote-strip">
+        <div className="container">
+          <div>
+            <p className="eyebrow">Ready To Plan Your Move?</p>
+            <h2>Get Your Free, Transparent Quote From HF Removals</h2>
+            <p className="quote-strip-lead">Share your route, inventory and access details and HF will scope the job.</p>
+          </div>
+          <div className="quote-strip-actions">
+            <a className="button button-ruby" href="/#quote">Get a Quote <span>→</span></a>
+            <a className="button button-outline" href={business.phones[0].href}>Call {business.phones[0].display}</a>
+          </div>
+        </div>
+      </section>
+    );
+  }
   return (
     <section className="quote-strip">
       <div className="container">
         <div>
-          <p className="eyebrow">Ready For A Smooth Move?</p>
-          <h2>Get Your Free, Transparent Quote From HF Removals Today.</h2>
+          <p className="eyebrow">Ready To Move?</p>
+          <h2>Book Your Adelaide Move Today</h2>
+          <p className="quote-strip-lead">Choose your move details, select an available time and secure your booking online.</p>
         </div>
         <div className="quote-strip-actions">
-          <a className="button button-ruby" href="/#quote">Request Free Quote <span>→</span></a>
+          <BookNowButton location="final_cta">Book Now <span>→</span></BookNowButton>
           <a className="button button-outline" href={business.phones[0].href}>Call {business.phones[0].display}</a>
         </div>
+        <p className="quote-strip-fallback">
+          Not ready to book? <a href="/#quote">Get a Free Quote →</a>
+        </p>
       </div>
     </section>
   );
@@ -743,6 +804,7 @@ export function SiteFrame({ children }: { children: React.ReactNode }) {
       <Header />
       <main id="main">{children}</main>
       <Footer />
+      <SideQuoteTab />
       <MobileStickyCta />
     </>
   );
@@ -784,14 +846,18 @@ export function HomePage() {
             <p className="hero-lead">
               HF is an Adelaide moving company for home, apartment, office and interstate moves, with published reference rates. Coverage includes {business.insurance}, subject to applicable policy terms.
             </p>
+            <p className="hero-book-line">Book your move online in minutes — choose your date, secure your booking, and we take it from there.</p>
             <div className="hero-actions">
-              <a className="button button-ruby" href="#quote">
-                Get a Free Quote <span>→</span>
-              </a>
+              <BookNowButton location="hero">
+                Book Now <span>→</span>
+              </BookNowButton>
               <a className="button button-outline" href={business.phones[0].href}>
                 Call {business.phones[0].display}
               </a>
             </div>
+            <p className="hero-quote-fallback">
+              Not ready to book? <a href="#quote">Get a Free Quote</a>
+            </p>
             <div className="hero-proof-pills">
               <span>
                 <CheckIcon size={12} />
@@ -835,6 +901,7 @@ export function HomePage() {
           </div>
         </div>
       </section>
+      <BookingHowItWorksSection />
       <ApartmentAccessSection />
       <PricingSection />
       <VolumeGuidanceSection />
@@ -859,6 +926,7 @@ function PageHero({
   price,
   unit,
   media,
+  quotePrimary = false,
 }: {
   eyebrow: string;
   title: string;
@@ -866,6 +934,11 @@ function PageHero({
   price?: string;
   unit?: string;
   media?: { src: string; alt: string; label: string };
+  /** True for pages describing a service the /book wizard cannot actually
+   * complete (interstate routes, backloading, etc.) — never send a
+   * customer into a booking flow they can't finish. "Get a Quote"
+   * becomes primary and Call stays secondary; no Book Now CTA at all. */
+  quotePrimary?: boolean;
 }) {
   return (
     <section className={`inner-hero ${media ? "inner-hero-media" : ""}`}>
@@ -875,10 +948,22 @@ function PageHero({
           <p className="eyebrow">{eyebrow}</p>
           <h1>{title}</h1>
           <p>{description}</p>
-          <div className="hero-actions">
-            <a className="button button-ruby" href="/#quote">Get a free quote <span>→</span></a>
-            <a className="button button-outline" href={business.phones[0].href}>Call {business.phones[0].display}</a>
-          </div>
+          {quotePrimary ? (
+            <div className="hero-actions">
+              <a className="button button-ruby" href="/#quote">Get a Quote <span>→</span></a>
+              <a className="button button-outline" href={business.phones[0].href}>Call {business.phones[0].display}</a>
+            </div>
+          ) : (
+            <>
+              <div className="hero-actions">
+                <BookNowButton location="inner_hero">Book Now <span>→</span></BookNowButton>
+                <a className="button button-outline" href={business.phones[0].href}>Call {business.phones[0].display}</a>
+              </div>
+              <p className="hero-quote-fallback">
+                Not ready to book? <a href="/#quote">Get a Free Quote</a>
+              </p>
+            </>
+          )}
           <div className="inner-proof" aria-label="HF business profile summary">
             <span><b>{business.googleBusiness.rating.toFixed(1)}★</b> Rating</span>
             <span><b>{business.googleBusiness.reviewCount}</b> Reviews</span>
@@ -1082,12 +1167,24 @@ function RelatedLinks({ page }: { page: ContentPage }) {
   );
 }
 
+// Services actually selectable/completable in the /book wizard today
+// (see lib/booking's `services` seed — residential/furniture/office only).
+// Interstate and backloading are per-cubic-metre quote-only, and
+// packing-unpacking is a wizard add-on, not a standalone bookable
+// service — none of the three can be booked as their own flow.
+const BOOKABLE_SERVICE_SLUGS = new Set(["residential-removals", "furniture-removals", "office-commercial-removals"]);
+
 export function DetailPage({ page }: { page: ContentPage }) {
   const area = page.kind === "area" ? hfServiceAreaRecords.find((item) => item.slug === page.slug) : undefined;
   const heading = area ? (area.name === "Playford" ? "Removalists Across Playford" : `Removalists in ${area.name}`) : page.kind === "service" && page.slug === "residential-removals" ? "House Removalists Adelaide" : page.kind === "service" ? `${page.eyebrow}: ${page.title}` : page.title;
+  // Areas are local-move coverage pages — genuinely bookable regardless
+  // of slug. Guides are educational and don't map to one specific
+  // service, so they get the neutral "Get a Quote" treatment rather than
+  // guessing. Routes (interstate) are never bookable today.
+  const isBookable = page.kind === "area" || (page.kind === "service" && BOOKABLE_SERVICE_SLUGS.has(page.slug));
   return (
     <SiteFrame>
-      <PageHero eyebrow={page.eyebrow} title={heading} description={page.intro} price={page.price} unit={page.unit} media={mediaForPage(page)} />
+      <PageHero eyebrow={page.eyebrow} title={heading} description={page.intro} price={page.price} unit={page.unit} media={mediaForPage(page)} quotePrimary={!isBookable} />
       <ServiceTicker />
       <section className="section detail-section">
         <div className="container">
@@ -1110,15 +1207,32 @@ export function DetailPage({ page }: { page: ContentPage }) {
               </div>
             </article>
             <aside>
-              <p className="eyebrow">Start your enquiry</p>
-              <h3>Share the essentials</h3>
-              <p>Both suburbs, move type, preferred date, and access notes help HF review the scope.</p>
-              <a className="button button-ruby" href="/#quote">
-                Request a quote <span>→</span>
-              </a>
-              <a className="aside-call" href={business.phones[0].href}>
-                Or call {business.phones[0].display}
-              </a>
+              {isBookable ? (
+                <>
+                  <p className="eyebrow">Ready to move?</p>
+                  <h3>Book online in minutes</h3>
+                  <p>Choose your move details, select an available time and secure your booking online.</p>
+                  <BookNowButton location="detail_sidebar">
+                    Book Now <span>→</span>
+                  </BookNowButton>
+                  <a className="aside-call" href={business.phones[0].href}>
+                    Or call {business.phones[0].display}
+                  </a>
+                  <a className="package-quote-link" href="/#quote">Not ready? Get a Quote instead</a>
+                </>
+              ) : (
+                <>
+                  <p className="eyebrow">Start your enquiry</p>
+                  <h3>Share the essentials</h3>
+                  <p>Both suburbs, move type, preferred date, and access notes help HF review the scope.</p>
+                  <a className="button button-ruby" href="/#quote">
+                    Get a Quote <span>→</span>
+                  </a>
+                  <a className="aside-call" href={business.phones[0].href}>
+                    Or call {business.phones[0].display}
+                  </a>
+                </>
+              )}
             </aside>
           </div>
           <div className="editorial-sections">
@@ -1133,7 +1247,7 @@ export function DetailPage({ page }: { page: ContentPage }) {
         </div>
       </section>
       <FaqSection faqs={page.faqs} title={`Questions about ${page.eyebrow.toLowerCase()}`} />
-      <QuoteStrip />
+      <QuoteStrip quotePrimary={!isBookable} />
     </SiteFrame>
   );
 }
@@ -1167,7 +1281,7 @@ export function ListingPage({ kind }: { kind: "services" | "areas" | "interstate
   }[kind];
   return (
     <SiteFrame>
-      <PageHero eyebrow={map.eyebrow} title={map.title} description={map.description} />
+      <PageHero eyebrow={map.eyebrow} title={map.title} description={map.description} quotePrimary={kind === "interstate"} />
       <section className="section listing-section">
         <div className="container listing-grid">
             {map.items.map((item, index) => (
@@ -1181,7 +1295,7 @@ export function ListingPage({ kind }: { kind: "services" | "areas" | "interstate
           ))}
         </div>
       </section>
-      <QuoteStrip />
+      <QuoteStrip quotePrimary={kind === "interstate"} />
     </SiteFrame>
   );
 }

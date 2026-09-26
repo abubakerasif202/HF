@@ -4,6 +4,64 @@ import { FormEvent, useEffect, useRef, useState } from "react";
 import { usePathname } from "next/navigation";
 import { areas, business, entryLocalRate, interstatePricing, interstateRoutes, localPricing, quoteFormEndpoint, services, web3FormsAccessKey } from "../../lib/site-data";
 
+declare global {
+  interface Window {
+    gtag?: (...args: unknown[]) => void;
+  }
+}
+
+/**
+ * Fires the `book_now_click` GA4 event with only non-personal context
+ * (where the click happened, and which package if relevant) — never
+ * customer PII. Safe to call even when GA hasn't loaded (e.g. analytics
+ * blocked): `window.gtag` is checked before use.
+ */
+export function trackBookNowClick(location: string, packageId?: "2-men" | "3-men"): void {
+  if (typeof window === "undefined" || typeof window.gtag !== "function") return;
+  window.gtag("event", "book_now_click", { location, ...(packageId ? { package: packageId } : {}) });
+}
+
+interface BookNowButtonProps {
+  location: string;
+  packageId?: "2-men" | "3-men";
+  className?: string;
+  children: React.ReactNode;
+  onNavigate?: () => void;
+}
+
+/**
+ * The single primary conversion action across the public site. Always a
+ * ".button-ruby" (the site's strongest CTA style) plus ".button-book-now"
+ * for the extra attention pulse — see globals.css for both, and its
+ * `prefers-reduced-motion` handling. `packageId` optionally preselects a
+ * package on /book via a query param the wizard already reads; this is a
+ * UX nicety only, not a second booking architecture.
+ */
+export function BookNowButton({ location, packageId, className = "", children, onNavigate }: BookNowButtonProps) {
+  const href = packageId ? `/book?crewSize=${packageId === "3-men" ? 3 : 2}` : "/book";
+  return (
+    <a
+      className={`button button-ruby button-book-now ${className}`.trim()}
+      href={href}
+      onClick={() => {
+        trackBookNowClick(location, packageId);
+        onNavigate?.();
+      }}
+    >
+      {children}
+    </a>
+  );
+}
+
+/** Quiet, always-available secondary path to the existing quote form — desktop only (see .side-quote-tab). */
+export function SideQuoteTab() {
+  return (
+    <a href="/#quote" className="side-quote-tab" aria-label="Get a free quote">
+      <span>Get a Quote</span>
+    </a>
+  );
+}
+
 export function UtilityBar() {
   return (
     <aside className="utility-bar" aria-label="Announcement and direct contact">
@@ -133,7 +191,7 @@ export function Header() {
     if (open && menu.current && toggle.current) {
       const backgroundRegions = [
         ...Array.from(document.querySelectorAll<HTMLElement>("main, footer, .utility-bar, .mobile-sticky")),
-        ...Array.from(document.querySelectorAll<HTMLElement>(".site-header .brand, .site-header .desktop-nav, .site-header .phone-chip, .site-header .header-quote")),
+        ...Array.from(document.querySelectorAll<HTMLElement>(".site-header .brand, .site-header .desktop-nav, .site-header .phone-chip, .site-header .header-quote-link, .site-header .header-book-now")),
       ];
 
       backgroundRegions.forEach((element) => {
@@ -293,10 +351,11 @@ export function Header() {
               <strong>{business.phones[0].display}</strong>
             </div>
           </a>
-          <a className="button button-ruby header-quote" href="/#quote">
-            <span>Free Quote</span>
+          <a href="/#quote" className="header-quote-link">Get a Quote</a>
+          <BookNowButton location="header" className="header-book-now">
+            <span>Book Now</span>
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><path d="M5 12h14m-7-7 7 7-7 7" /></svg>
-          </a>
+          </BookNowButton>
           <button ref={toggle} className={`menu-toggle ${open ? "is-open" : ""}`} type="button" aria-expanded={open} aria-controls="mobile-menu" onClick={() => setOpen((value) => !value)}>
             <span className="sr-only">{open ? "Close menu" : "Open menu"}</span>
             <span /><span /><span />
@@ -335,11 +394,14 @@ export function Header() {
             Contact <span>↗</span>
           </a>
           <div className="mobile-menu-actions">
-            <a className="button button-ruby" href="/#quote" onClick={() => setOpen(false)}>
-              Request Free Quote <span>→</span>
-            </a>
+            <BookNowButton location="mobile_menu" onNavigate={() => setOpen(false)}>
+              Book Now <span>→</span>
+            </BookNowButton>
             <a className="button button-outline" href={business.phones[0].href}>
               Call {business.phones[0].display}
+            </a>
+            <a href="/#quote" className="mobile-quote-link" onClick={() => setOpen(false)}>
+              Not ready to book? Get a Quote
             </a>
           </div>
         </nav>
@@ -475,9 +537,9 @@ export function QuoteForm({ compact = false }: { compact?: boolean }) {
       <div className="form-heading">
         <span className="form-mark">HF</span>
         <div>
-          <p className="eyebrow">Instant Quote Request</p>
+          <p className="eyebrow">Prefer a quote first?</p>
           <h2>Tell Us About Your Move</h2>
-          <p>Get a transparent quote scoped around your exact inventory & access.</p>
+          <p>Ready to reserve your date right now? <a href="/book">Book Now</a> instead — or get a transparent quote scoped around your exact inventory & access below.</p>
         </div>
       </div>
 
@@ -711,15 +773,15 @@ export function QuoteForm({ compact = false }: { compact?: boolean }) {
 
 export function MobileStickyCta() {
   return (
-    <aside className="mobile-sticky" aria-label="Quick mobile call and quote action">
+    <aside className="mobile-sticky" aria-label="Quick mobile call and booking action">
       <a href={business.phones[0].href} className="mobile-sticky-call">
         <svg aria-hidden="true" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z" /></svg>
         <span>Call {business.phones[0].display}</span>
       </a>
-      <a href="/#quote" className="mobile-sticky-quote button-ruby">
-        <span>Get Free Quote</span>
+      <BookNowButton location="sticky_mobile" className="mobile-sticky-quote">
+        <span>Book Now</span>
         <svg aria-hidden="true" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M5 12h14m-7-7 7 7-7 7" /></svg>
-      </a>
+      </BookNowButton>
     </aside>
   );
 }
