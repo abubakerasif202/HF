@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { transitionBookingStatusAction } from "./actions.ts";
-import type { BookingStatus } from "../../../../lib/booking/types.ts";
+import type { BookingStatus } from "../../../../../lib/booking/types.ts";
 
 const NEXT_STATUS_OPTIONS: Record<string, BookingStatus[]> = {
   confirmed: ["assigned", "cancelled"],

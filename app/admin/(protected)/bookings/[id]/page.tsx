@@ -1,5 +1,5 @@
 import { notFound } from "next/navigation";
-import { getSupabaseAdmin } from "../../../../lib/server/supabase.ts";
+import { getSupabaseAdmin } from "../../../../../lib/server/supabase.ts";
 import { StatusControls } from "./StatusControls";
 import { RescheduleForm } from "./RescheduleForm";
 import { CalendarSyncStatus } from "./CalendarSyncStatus";

@@ -1,4 +1,4 @@
-import { getSupabaseAdmin } from "../../../lib/server/supabase.ts";
+import { getSupabaseAdmin } from "../../../../lib/server/supabase.ts";
 import { BookingRow } from "./BookingRow";
 
 export const dynamic = "force-dynamic";

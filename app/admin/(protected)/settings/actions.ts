@@ -1,8 +1,8 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { getStaffSession } from "../../../lib/server/supabase-ssr.ts";
-import { getSupabaseAdmin } from "../../../lib/server/supabase.ts";
+import { getStaffSession } from "../../../../lib/server/supabase-ssr.ts";
+import { getSupabaseAdmin } from "../../../../lib/server/supabase.ts";
 
 async function requireStaff() {
   const session = await getStaffSession();

@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { classifyBlockedTime } from "../../../lib/booking/calendar-range.ts";
+import { classifyBlockedTime } from "../../../../lib/booking/calendar-range.ts";
 
 interface Booking {
   id: string;

@@ -1,4 +1,4 @@
-import { getSupabaseAdmin } from "../../../lib/server/supabase.ts";
+import { getSupabaseAdmin } from "../../../../lib/server/supabase.ts";
 import { createBlockedTimeAction } from "./actions.ts";
 import { DeleteBlockedTimeButton } from "./DeleteBlockedTimeButton";
 

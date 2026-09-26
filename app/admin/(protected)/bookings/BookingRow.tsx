@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useTransition } from "react";
-import { assignVehicleAction, assignCrewAction, cancelBookingAction } from "../actions.ts";
+import { assignVehicleAction, assignCrewAction, cancelBookingAction } from "../../actions.ts";
 
 interface Resource {
   id: string;

@@ -1,6 +1,6 @@
-import { getSupabaseAdmin } from "../../../lib/server/supabase.ts";
-import { getBusinessSettings } from "../../../lib/server/booking-repo.ts";
-import { getRangeForView, type CalendarView } from "../../../lib/booking/calendar-range.ts";
+import { getSupabaseAdmin } from "../../../../lib/server/supabase.ts";
+import { getBusinessSettings } from "../../../../lib/server/booking-repo.ts";
+import { getRangeForView, type CalendarView } from "../../../../lib/booking/calendar-range.ts";
 import { CalendarClient } from "./CalendarClient";
 
 export const dynamic = "force-dynamic";

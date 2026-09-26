@@ -1,7 +1,7 @@
 "use client";
 
 import { useRef, useTransition } from "react";
-import { addInternalNoteAction } from "../../actions.ts";
+import { addInternalNoteAction } from "../../../actions.ts";
 
 export function NoteForm({ bookingId }: { bookingId: string }) {
   const [pending, startTransition] = useTransition();
