@@ -347,6 +347,11 @@ function PricingSection() {
             </article>
           ))}
         </div>
+        <p className="pricing-disclosure">
+          3-hour minimum service + 1-hour call-out fee. The call-out covers truck fuel and basic transport charges.
+          Additional service time is billed in 30-minute increments at your selected package rate. Your final price
+          is calculated when the job is completed.
+        </p>
 
         <div className="interstate-table">
           <div className="table-intro">

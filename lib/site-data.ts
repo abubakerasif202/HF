@@ -159,7 +159,12 @@ export const standardMoveFaqs: Faq[] = [
   {
     question: "How much do removalists cost in Adelaide?",
     answer:
-      "Our local rates start from $79 per 30 minutes ($158/hr) for 2 movers and a truck, or $99 per 30 minutes ($198/hr) for 3 movers and a truck. Final cost depends on access, inventory, travel distance, and packing requirements.",
+      "Our local rates start from $79 per 30 minutes ($158/hr) for 2 movers and a truck, or $99 per 30 minutes ($198/hr) for 3 movers and a truck. A 3-hour minimum service and a separate 1-hour call-out fee apply — the call-out covers truck fuel and basic transport charges, not extra labour time. Additional service time beyond the 3-hour minimum is billed in 30-minute increments, and your final price is calculated when the job is completed.",
+  },
+  {
+    question: "How does the online booking confirmation payment work?",
+    answer:
+      "Booking online through Book Your Move takes a $100 booking confirmation payment via secure Stripe checkout. This isn't an extra fee — it's credited toward your final job total, which is calculated once the move is complete based on actual billable time (3-hour minimum service plus a separate 1-hour call-out fee).",
   },
   {
     question: "Are moving blankets, straps, and protective wraps included?",
