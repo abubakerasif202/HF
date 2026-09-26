@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { useSearchParams } from "next/navigation";
 
 type Step = "details" | "locations" | "schedule" | "customer" | "review";
 
@@ -40,8 +41,13 @@ export function BookingWizard() {
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
+  const searchParams = useSearchParams();
+  const preselectedCrewSize = searchParams.get("crewSize") === "3" ? 3 : searchParams.get("crewSize") === "2" ? 2 : null;
   const [serviceSlug, setServiceSlug] = useState(SERVICES[0].slug);
-  const [crewSize, setCrewSize] = useState(2);
+  // Optional preselection from a "Book Now" link on a specific package
+  // card (e.g. /book?crewSize=3) — a UX nicety only; the customer can
+  // still change it on this step, and no separate booking path exists.
+  const [crewSize, setCrewSize] = useState(preselectedCrewSize ?? 2);
   const [propertySize, setPropertySize] = useState("");
   const [customerNotes, setCustomerNotes] = useState("");
 

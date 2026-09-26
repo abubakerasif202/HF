@@ -30,6 +30,20 @@ export default function BookPage() {
 
   return (
     <>
+      <div className="mx-auto max-w-3xl px-6 pt-16 pb-4 text-center">
+        <p className="text-xs font-bold uppercase tracking-widest text-neutral-400">Book Your Move</p>
+        <h1 className="mt-2 text-3xl font-semibold">Book your move online in a few easy steps</h1>
+        <ol className="mx-auto mt-6 grid max-w-xl grid-cols-1 gap-2 text-left text-sm text-neutral-600 sm:grid-cols-2">
+          <li>1. Enter your move details</li>
+          <li>2. Choose an available time</li>
+          <li>3. Pay $100 to secure the booking</li>
+          <li>4. Receive your booking confirmation</li>
+        </ol>
+        <p className="mx-auto mt-6 max-w-xl text-xs text-neutral-500">
+          Your $100 booking confirmation payment is credited toward your final balance. Final pricing is calculated
+          after your move is completed. A 3-hour minimum service and a separate 1-hour call-out fee apply.
+        </p>
+      </div>
       <BookingWizard />
       <div className="mx-auto mt-4 max-w-3xl px-6 pb-24">
         <GoogleAppointmentSchedule />
