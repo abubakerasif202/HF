@@ -79,18 +79,37 @@ export default async function AdminBookingDetailPage({ params }: { params: Promi
       </Section>
 
       <Section title="Final job billing">
-        {booking.finalised_at ? (
-          <>
-            <Row label="Actual duration" value={`${booking.actual_duration_minutes} minutes`} />
-            <Row label="Billable duration" value={`${booking.billable_duration_minutes} minutes`} />
-            <Row label="Service charge" value={`$${(booking.service_charge_cents / 100).toFixed(2)}`} />
-            <Row label="Call-out fee" value={`$${(booking.callout_fee_cents / 100).toFixed(2)}`} />
-            <Row label="Final total" value={`$${(booking.final_total_cents / 100).toFixed(2)}`} />
-            <Row label="Finalised" value={new Date(booking.finalised_at).toLocaleString("en-AU", { timeZone: "Australia/Adelaide" })} />
-          </>
-        ) : (
-          <FinalizeJobForm bookingId={booking.id} bookingStatus={booking.booking_status} />
-        )}
+        {(() => {
+          const snapshot = (booking.pricing_snapshot ?? {}) as { package?: string; ratePer30MinCents?: number };
+          if (booking.finalised_at) {
+            return (
+              <div className="space-y-4 text-sm">
+                <div>
+                  <p className="text-xs uppercase tracking-wide text-neutral-400">Package</p>
+                  <Row label={snapshot.package ?? "—"} value={snapshot.ratePer30MinCents ? `$${(snapshot.ratePer30MinCents / 100).toFixed(0)} / 30 min` : "—"} />
+                </div>
+                <div>
+                  <p className="text-xs uppercase tracking-wide text-neutral-400">Service</p>
+                  <Row label="Actual duration" value={`${booking.actual_duration_minutes} minutes`} />
+                  <Row label="Billable duration" value={`${booking.billable_duration_minutes} minutes`} />
+                  <Row label="Service charge" value={`$${(booking.service_charge_cents / 100).toFixed(2)}`} />
+                </div>
+                <div>
+                  <p className="text-xs uppercase tracking-wide text-neutral-400">Call-out</p>
+                  <Row label="1 hour" value={`$${(booking.callout_fee_cents / 100).toFixed(2)} — truck fuel + basic transport included`} />
+                </div>
+                <div className="rounded-lg bg-neutral-50 p-3">
+                  <p className="text-xs uppercase tracking-wide text-neutral-400">Final billing</p>
+                  <Row label="Final job total" value={`$${(booking.final_total_cents / 100).toFixed(2)}`} />
+                  <Row label="Booking confirmation paid" value={`-$${(booking.deposit_paid_cents / 100).toFixed(2)}`} />
+                  <Row label="Balance due" value={`$${(booking.balance_due_cents / 100).toFixed(2)}`} />
+                  <Row label="Finalised" value={new Date(booking.finalised_at).toLocaleString("en-AU", { timeZone: "Australia/Adelaide" })} />
+                </div>
+              </div>
+            );
+          }
+          return <FinalizeJobForm bookingId={booking.id} bookingStatus={booking.booking_status} />;
+        })()}
       </Section>
 
       <Section title="Calendar sync">

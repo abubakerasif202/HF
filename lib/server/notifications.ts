@@ -94,14 +94,14 @@ export async function sendBookingConfirmedEmail(booking: BookingRow): Promise<vo
         <li>Destination: ${addressLine(booking.destination_address)}</li>
         <li>Package: ${snapshot.package ?? "—"}</li>
         <li>Rate per 30 minutes: ${rateLine}</li>
-        <li>Minimum booking: ${snapshot.minimumBookingMinutes ? snapshot.minimumBookingMinutes / 60 : 3} hours</li>
-        <li>Call-out: ${snapshot.calloutMinutes ? snapshot.calloutMinutes / 60 : 1} hour — includes truck fuel and basic transport charges</li>
+        <li>Minimum service: ${snapshot.minimumBookingMinutes ? snapshot.minimumBookingMinutes / 60 : 3} hours</li>
+        <li>Call-out: ${snapshot.calloutMinutes ? snapshot.calloutMinutes / 60 : 1} hour${snapshot.ratePer30MinCents && snapshot.calloutMinutes ? ` — $${((snapshot.ratePer30MinCents * (snapshot.calloutMinutes / 30)) / 100).toFixed(0)}` : ""} — includes truck fuel and basic transport charges</li>
         <li>$100 booking confirmation received</li>
         <li>Estimated minimum: $${((booking.subtotal_cents ?? 0) / 100).toFixed(2)}</li>
-        <li>Estimated remaining balance: $${((booking.balance_due_cents ?? 0) / 100).toFixed(2)}</li>
+        <li>Estimated minimum balance after booking payment: $${((booking.balance_due_cents ?? 0) / 100).toFixed(2)}</li>
       </ul>
       <p>Your $100 booking confirmation has been received and credited toward your final balance.</p>
-      <p>Final price will be calculated upon completion of the job based on actual billable time.</p>
+      <p>3-hour minimum service + 1-hour call-out fee. The call-out covers truck fuel and basic transport charges. Additional service time is billed in 30-minute increments at your selected package rate. Your final price is calculated when the job is completed.</p>
       <p>Questions? Reply to this email or call ${business.phones[0].display}.</p>
     `;
     const result = await getResend().emails.send({

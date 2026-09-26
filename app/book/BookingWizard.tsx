@@ -194,8 +194,11 @@ export function BookingWizard() {
             </select>
           </label>
           <div className="rounded-lg bg-neutral-50 px-4 py-3 text-sm text-neutral-600">
-            <p><strong>Minimum booking:</strong> 3 hours</p>
-            <p className="mt-1"><strong>Call-out:</strong> 1 hour — includes truck fuel and basic transport charges.</p>
+            <p><strong>Minimum service:</strong> 3 hours</p>
+            <p className="mt-1">
+              <strong>Call-out:</strong> 1 hour — ${(crewSize === 3 ? 99 : 79) * 2}
+              <br />Includes truck fuel and basic transport charges
+            </p>
           </div>
           <label className="block">
             <span className="text-sm font-medium">Property size / notes</span>
@@ -311,17 +314,18 @@ export function BookingWizard() {
               <h3 className="font-medium">Booking summary</h3>
               <dl className="mt-3 space-y-2 text-sm">
                 <Row label="Package" value={hold.quote.packageName} />
-                <Row label="Rate" value={`$${(hold.quote.ratePer30MinCents / 100).toFixed(0)} / 30 min ($${((hold.quote.ratePer30MinCents * 2) / 100).toFixed(0)}/hour)`} />
-                <Row label="Minimum booking" value={`${hold.quote.minimumBookingMinutes / 60} hours`} />
-                <Row label="Call-out" value={`${hold.quote.calloutMinutes / 60} hour — includes truck fuel and basic transport charges`} />
-                <Row label="Estimated minimum charge" value={`$${(hold.quote.finalTotalCents / 100).toFixed(2)}`} />
-                <Row label="Booking confirmation payable now" value={`$${(hold.quote.bookingConfirmationCents / 100).toFixed(2)}`} />
-                <Row label="Estimated remaining balance" value={`$${(hold.quote.estimatedBalanceCents / 100).toFixed(2)}`} />
+                <Row label="Rate" value={`$${(hold.quote.ratePer30MinCents / 100).toFixed(0)} / 30 min ($${((hold.quote.ratePer30MinCents * 2) / 100).toFixed(0)}/hr)`} />
+                <Row label="Minimum service" value={`${hold.quote.minimumBookingMinutes / 60} hours`} />
+                <Row label="Call-out" value={`1 hour — $${(hold.quote.calloutFeeCents / 100).toFixed(0)}`} />
+                <Row label="Estimated minimum" value={`$${(hold.quote.finalTotalCents / 100).toFixed(2)}`} />
+                <Row label="Booking confirmation" value={`$${(hold.quote.bookingConfirmationCents / 100).toFixed(2)} payable now`} />
+                <Row label="Estimated minimum balance after booking payment" value={`$${(hold.quote.estimatedBalanceCents / 100).toFixed(2)}`} />
               </dl>
               <p className="mt-4 text-xs text-neutral-500">
-                Final price is calculated upon completion of the job based on actual billable time. Additional time
-                beyond the 3-hour minimum is charged in 30-minute increments. The $100 booking confirmation payment
-                is credited toward your final balance.
+                3-hour minimum service + 1-hour call-out fee. The call-out covers truck fuel and basic transport
+                charges. Additional service time is billed in 30-minute increments at your selected package rate.
+                Your final price is calculated when the job is completed. The $100 booking confirmation payment is
+                credited toward your final balance.
               </p>
             </div>
           )}

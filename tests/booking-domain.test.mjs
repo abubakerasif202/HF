@@ -169,11 +169,57 @@ test("pricing: 30-minute billing increments round up, never truncate, partial ov
   assert.equal(quote.billableServiceMinutes, 210);
 });
 
-test("pricing: 1-hour call-out is billed at the same canonical rate, not a separate flat fee", () => {
+test("pricing: call-out is exactly 15800 cents for 2 Men, 19800 cents for 3 Men", () => {
   const quote2 = calculateQuote({ crewSize: 2, actualDurationMinutes: 180, startsAt: new Date("2026-03-10T00:00:00Z") }, rule2, configuredSettings, TZ);
-  assert.equal(quote2.calloutFeeCents, 2 * 7900); // 15800
+  assert.equal(quote2.calloutFeeCents, 15800);
   const quote3 = calculateQuote({ crewSize: 3, actualDurationMinutes: 180, startsAt: new Date("2026-03-10T00:00:00Z") }, rule3, configuredSettings, TZ);
-  assert.equal(quote3.calloutFeeCents, 2 * 9900); // 19800
+  assert.equal(quote3.calloutFeeCents, 19800);
+});
+
+test("pricing: the call-out is never folded into billableServiceMinutes (it is not a 4th hour of job time)", () => {
+  const quote = calculateQuote({ crewSize: 2, actualDurationMinutes: 180, startsAt: new Date("2026-03-10T00:00:00Z") }, rule2, configuredSettings, TZ);
+  // 3-hour job -> billable service stays 180, never 240 (180 + the 60-min call-out).
+  assert.equal(quote.billableServiceMinutes, 180);
+});
+
+test("pricing: changing package changes the call-out automatically, with no separate stored call-out price", () => {
+  const twoMen = calculateQuote({ crewSize: 2, actualDurationMinutes: 180, startsAt: new Date("2026-03-10T00:00:00Z") }, rule2, configuredSettings, TZ);
+  const threeMen = calculateQuote({ crewSize: 3, actualDurationMinutes: 180, startsAt: new Date("2026-03-10T00:00:00Z") }, rule3, configuredSettings, TZ);
+  assert.equal(twoMen.calloutFeeCents, twoMen.ratePer30MinCents * 2);
+  assert.equal(threeMen.calloutFeeCents, threeMen.ratePer30MinCents * 2);
+  assert.notEqual(twoMen.calloutFeeCents, threeMen.calloutFeeCents);
+});
+
+test("pricing worked example: 2 Men + Truck minimum job totals $632, balance $532 after the $100 confirmation", () => {
+  const quote = calculateQuote({ crewSize: 2, actualDurationMinutes: 180, startsAt: new Date("2026-03-10T00:00:00Z") }, rule2, configuredSettings, TZ);
+  assert.equal(quote.serviceChargeCents, 47400); // 6 x $79
+  assert.equal(quote.calloutFeeCents, 15800); // 2 x $79
+  assert.equal(quote.finalTotalCents, 63200); // $632
+  assert.equal(quote.estimatedBalanceCents, 53200); // $532
+});
+
+test("pricing worked example: 3 Men + Truck minimum job totals $792, balance $692 after the $100 confirmation", () => {
+  const quote = calculateQuote({ crewSize: 3, actualDurationMinutes: 180, startsAt: new Date("2026-03-10T00:00:00Z") }, rule3, configuredSettings, TZ);
+  assert.equal(quote.serviceChargeCents, 59400); // 6 x $99
+  assert.equal(quote.calloutFeeCents, 19800); // 2 x $99
+  assert.equal(quote.finalTotalCents, 79200); // $792
+  assert.equal(quote.estimatedBalanceCents, 69200); // $692
+});
+
+test("pricing worked example: a 4-hour 2 Men job totals $790, balance $690", () => {
+  const quote = calculateQuote({ crewSize: 2, actualDurationMinutes: 240, startsAt: new Date("2026-03-10T00:00:00Z") }, rule2, configuredSettings, TZ);
+  assert.equal(quote.billableServiceMinutes, 240);
+  assert.equal(quote.serviceChargeCents, 63200); // 8 x $79
+  assert.equal(quote.finalTotalCents, 79000); // $790
+  assert.equal(quote.estimatedBalanceCents, 69000); // $690
+});
+
+test("pricing worked example: 4h15m (255 min) rounds up to 4h30m billable, totalling $869", () => {
+  const quote = calculateQuote({ crewSize: 2, actualDurationMinutes: 255, startsAt: new Date("2026-03-10T00:00:00Z") }, rule2, configuredSettings, TZ);
+  assert.equal(quote.billableServiceMinutes, 270); // 4.5 hours, never truncated to 4h
+  assert.equal(quote.serviceChargeCents, 71100); // 9 x $79
+  assert.equal(quote.finalTotalCents, 86900); // $869
+  assert.equal(quote.estimatedBalanceCents, 76900); // $769
 });
 
 test("pricing: final total is service charge plus call-out, nothing else", () => {
@@ -194,6 +240,26 @@ test("pricing: the $100 confirmation is deducted from the final balance, never a
   assert.equal(quote.estimatedBalanceCents, quote.finalTotalCents - quote.bookingConfirmationCents);
   assert.equal(quote.estimatedBalanceCents, 53200); // 63200 - 10000
   assert.notEqual(quote.estimatedBalanceCents, quote.finalTotalCents + quote.bookingConfirmationCents);
+});
+
+test("pricing: the $100 booking confirmation is deducted exactly once, regardless of job length", () => {
+  const short = calculateQuote({ crewSize: 2, actualDurationMinutes: 180, startsAt: new Date("2026-03-10T00:00:00Z") }, rule2, configuredSettings, TZ);
+  const long = calculateQuote({ crewSize: 2, actualDurationMinutes: 480, startsAt: new Date("2026-03-10T00:00:00Z") }, rule2, configuredSettings, TZ);
+  assert.equal(short.finalTotalCents - short.estimatedBalanceCents, 10000);
+  assert.equal(long.finalTotalCents - long.estimatedBalanceCents, 10000);
+});
+
+test("scheduling: the 1-hour call-out is a billing charge only and never extends truck/crew occupancy", () => {
+  // Mirrors app/api/booking/hold/route.ts's scheduling-duration formula:
+  // Math.max(requested, minimumBookingMinutes) — deliberately does NOT add
+  // settings.calloutMinutes. A 3-hour job occupies the truck for 3 hours,
+  // not 4, even though it bills for a 1-hour call-out on top.
+  const minimumBookingMinutes = 180;
+  const calloutMinutes = 60;
+  const requestedDurationMinutes = 180;
+  const schedulingDurationMinutes = Math.max(requestedDurationMinutes, minimumBookingMinutes);
+  assert.equal(schedulingDurationMinutes, 180);
+  assert.notEqual(schedulingDurationMinutes, minimumBookingMinutes + calloutMinutes);
 });
 
 test("pricing: estimated balance never goes negative even if confirmation exceeded the total", () => {

@@ -35,7 +35,7 @@ export function calculateQuote(
   timeZone: string,
 ): QuoteResult {
   const caveats: string[] = [
-    "Final price is calculated upon completion of the job based on actual billable time. A 3-hour minimum booking and 1-hour call-out fee apply. Additional service time is charged in 30-minute increments. The $100 booking confirmation payment is credited toward the final balance.",
+    "3-hour minimum service + 1-hour call-out fee. The call-out covers truck fuel and basic transport charges. Additional service time is billed in 30-minute increments at your selected package rate. Your final price is calculated when the job is completed. The $100 booking confirmation payment is credited toward your final balance.",
   ];
 
   if (!rule) {

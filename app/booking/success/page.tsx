@@ -55,15 +55,25 @@ export default async function BookingSuccessPage({ searchParams }: { searchParam
         <Row label="Move date" value={new Date(booking.starts_at).toLocaleString("en-AU", { timeZone: "Australia/Adelaide" })} />
         <Row label="Pickup" value={pickup?.formattedAddress ?? `${pickup?.addressLine ?? ""} ${pickup?.suburb ?? ""}`} />
         <Row label="Destination" value={destination?.formattedAddress ?? `${destination?.addressLine ?? ""} ${destination?.suburb ?? ""}`} />
-        <Row label="Minimum booking" value={snapshot.minimumBookingMinutes ? `${snapshot.minimumBookingMinutes / 60} hours` : "—"} />
-        <Row label="Call-out" value={snapshot.calloutMinutes ? `${snapshot.calloutMinutes / 60} hour` : "—"} />
+        <Row label="Minimum service" value={snapshot.minimumBookingMinutes ? `${snapshot.minimumBookingMinutes / 60} hours` : "—"} />
+        <Row
+          label="Call-out"
+          value={
+            snapshot.calloutMinutes && snapshot.ratePer30MinCents
+              ? `${snapshot.calloutMinutes / 60} hour — $${((snapshot.ratePer30MinCents * (snapshot.calloutMinutes / 30)) / 100).toFixed(0)}`
+              : "—"
+          }
+        />
         <Row label="Estimated minimum" value={`$${(booking.subtotal_cents / 100).toFixed(2)}`} />
-        <Row label="$100 paid" value={`$${(booking.deposit_paid_cents / 100).toFixed(2)}`} />
-        <Row label="Estimated remaining balance" value={`$${(booking.balance_due_cents / 100).toFixed(2)}`} />
+        <Row label="Booking confirmation" value={`$${(booking.deposit_paid_cents / 100).toFixed(2)} paid`} />
+        <Row label="Estimated minimum balance after booking payment" value={`$${(booking.balance_due_cents / 100).toFixed(2)}`} />
       </dl>
 
       <p className="mt-6 text-xs text-neutral-500">
-        Your final price will be calculated upon completion of the job based on actual billable time.
+        3-hour minimum service + 1-hour call-out fee. The call-out covers truck fuel and basic transport charges.
+        Additional service time is billed in 30-minute increments at your selected package rate. Your final price is
+        calculated when the job is completed. The $100 booking confirmation payment is credited toward your final
+        balance.
       </p>
 
       <Link href="/" className="mt-10 inline-block rounded-full bg-neutral-900 px-6 py-3 text-white">Return home</Link>
