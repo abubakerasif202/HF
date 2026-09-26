@@ -27,7 +27,7 @@ export const BOOKING_STATUS: Record<string, StatusStyle> = {
 
 export const PAYMENT_STATUS: Record<string, StatusStyle> = {
   pending: { label: "Payment pending", tone: "ruby", icon: "clock" },
-  deposit_paid: { label: "$100 paid", tone: "success", icon: "check" },
+  deposit_paid: { label: "Confirmation paid", tone: "success", icon: "check" },
   paid: { label: "Paid in full", tone: "solid-green", icon: "check" },
   failed: { label: "Payment failed", tone: "danger", icon: "alert" },
   refunded: { label: "Refunded", tone: "neutral", icon: "arrowLeft" },

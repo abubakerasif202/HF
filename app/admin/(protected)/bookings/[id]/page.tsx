@@ -97,7 +97,7 @@ export default async function AdminBookingDetailPage({ params }: { params: Promi
                     <AdminDataList>
                       <AdminDataRow label="Call-out (1 hour)" value={formatMoney(booking.callout_fee_cents)} tone="strong" />
                     </AdminDataList>
-                    <p className="admin-help mt-1">Truck fuel + basic transport included.</p>
+                    <div className="admin-help mt-1">Truck fuel + basic transport included.</div>
                   </div>
                 </div>
                 <div className="admin-billing-summary">
@@ -107,7 +107,7 @@ export default async function AdminBookingDetailPage({ params }: { params: Promi
                     <AdminDataRow className="admin-billing-balance" label="Balance remaining" value={formatMoney(booking.balance_due_cents)} />
                   </AdminDataList>
                 </div>
-                <p className="admin-help mt-3">Finalised {formatAdelaide(booking.finalised_at)}</p>
+                <div className="admin-help mt-3">Finalised {formatAdelaide(booking.finalised_at)}</div>
               </div>
             ) : (
               <FinalizeJobForm bookingId={booking.id} bookingStatus={booking.booking_status} />
@@ -146,7 +146,7 @@ export default async function AdminBookingDetailPage({ params }: { params: Promi
               <AdminDataRow label="Rate" value={snapshot.ratePer30MinCents ? `${formatMoney(snapshot.ratePer30MinCents, { decimals: 0 })} / 30 min` : null} />
               <AdminDataRow label="Estimated / final total" value={formatMoney(booking.subtotal_cents)} tone="strong" />
             </AdminDataList>
-            <p className="admin-help mt-2">Locked at confirmation — later rate changes never affect this booking.</p>
+            <div className="admin-help mt-2">Locked at confirmation — later rate changes never affect this booking.</div>
           </AdminCard>
 
           <AdminCard icon="sync" title="Calendar sync">
