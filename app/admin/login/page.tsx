@@ -9,7 +9,7 @@ export const metadata = { robots: { index: false, follow: false } };
 export default async function AdminLoginPage() {
   if (!isBookingSystemLive()) {
     return (
-      <main className="mx-auto max-w-md px-6 py-24 text-center">
+      <main className="admin-shell mx-auto max-w-md px-6 py-24 text-center">
         <h1 className="text-xl font-semibold">Admin is not configured yet</h1>
         <p className="mt-4 text-neutral-500">Supabase and Stripe must be configured before staff accounts can sign in.</p>
       </main>
@@ -20,7 +20,7 @@ export default async function AdminLoginPage() {
   if (session) redirect("/admin/bookings");
 
   return (
-    <main className="mx-auto max-w-md px-6 py-24">
+    <main className="admin-shell mx-auto max-w-md px-6 py-24">
       <h1 className="text-2xl font-semibold">Staff sign in</h1>
       <p className="mt-2 text-sm text-neutral-500">
         Public sign-up is disabled. Staff accounts are created directly in Supabase Auth and added to the

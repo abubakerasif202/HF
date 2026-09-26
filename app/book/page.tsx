@@ -15,7 +15,7 @@ export const dynamic = "force-dynamic";
 export default function BookPage() {
   if (!isBookingSystemLive()) {
     return (
-      <main className="mx-auto max-w-2xl px-6 py-24 text-center">
+      <main className="booking-shell mx-auto max-w-2xl px-6 py-24 text-center">
         <h1 className="text-2xl font-semibold">Online booking is coming soon</h1>
         <p className="mt-4 text-neutral-600">
           Our instant booking system is being switched on. In the meantime, tell us about your move and
@@ -29,7 +29,7 @@ export default function BookPage() {
   }
 
   return (
-    <>
+    <div className="booking-shell">
       <div className="mx-auto max-w-3xl px-6 pt-16 pb-4 text-center">
         <p className="text-xs font-bold uppercase tracking-widest text-neutral-400">Book Your Move</p>
         <h1 className="mt-2 text-3xl font-semibold">Book your move online in a few easy steps</h1>
@@ -48,6 +48,6 @@ export default function BookPage() {
       <div className="mx-auto mt-4 max-w-3xl px-6 pb-24">
         <GoogleAppointmentSchedule />
       </div>
-    </>
+    </div>
   );
 }

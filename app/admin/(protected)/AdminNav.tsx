@@ -44,11 +44,11 @@ export function AdminNav({ items, staffEmail, staffRole }: { items: NavItem[]; s
             </li>
           ))}
         </ul>
-        <div className="mt-8 border-t pt-4 px-3 text-xs text-neutral-400">
-          <div>{staffEmail}</div>
-          <div className="uppercase">{staffRole}</div>
+        <div className="mt-8 border-t pt-4 px-3 text-xs">
+          <div className="text-neutral-600 text-sm font-medium">{staffEmail}</div>
+          <div className="uppercase text-neutral-500 mt-0.5">{staffRole}</div>
           <form action={signOutAction} className="mt-3">
-            <button className="rounded-full border px-3 py-1 text-xs">Sign out</button>
+            <button className="admin-signout-button rounded-full border px-3 py-1.5 text-xs font-semibold">Sign out</button>
           </form>
         </div>
       </nav>

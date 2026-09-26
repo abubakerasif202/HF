@@ -35,7 +35,7 @@ export default async function BookingSuccessPage({ searchParams }: { searchParam
   const destination = booking.destination_address as { formattedAddress?: string; addressLine?: string; suburb?: string } | null;
 
   return (
-    <main className="mx-auto max-w-2xl px-6 py-24 text-center">
+    <main className="booking-shell mx-auto max-w-2xl px-6 py-24 text-center">
       <h1 className="text-3xl font-semibold">{isConfirmed ? "✓ Booking Confirmed" : "Payment received — confirming…"}</h1>
       <p className="mt-4 text-neutral-600">
         {isConfirmed
@@ -92,7 +92,7 @@ function Row({ label, value }: { label: string; value: string }) {
 
 function Fallback({ message }: { message: string }) {
   return (
-    <main className="mx-auto max-w-2xl px-6 py-24 text-center">
+    <main className="booking-shell mx-auto max-w-2xl px-6 py-24 text-center">
       <h1 className="text-2xl font-semibold">{message}</h1>
       <Link href="/" className="mt-8 inline-block rounded-full bg-neutral-900 px-6 py-3 text-white">Return home</Link>
     </main>
