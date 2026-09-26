@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { rescheduleBookingAction } from "./actions.ts";
+import { AdminAlert, formatAdelaide } from "../../../_components/ui";
 
 export function RescheduleForm({ bookingId, currentStartsAt }: { bookingId: string; currentStartsAt: string }) {
   const [pending, startTransition] = useTransition();
@@ -10,7 +11,7 @@ export function RescheduleForm({ bookingId, currentStartsAt }: { bookingId: stri
 
   return (
     <form
-      className="mt-3 flex flex-wrap items-end gap-2"
+      className="mt-4 grid gap-3 border-t pt-4"
       onSubmit={(e) => {
         e.preventDefault();
         if (!value) return;
@@ -21,15 +22,19 @@ export function RescheduleForm({ bookingId, currentStartsAt }: { bookingId: stri
         });
       }}
     >
-      <label className="text-sm">
-        Reschedule to
-        <input type="datetime-local" value={value} onChange={(e) => setValue(e.target.value)} className="mt-1 block rounded-lg border px-3 py-2" />
-      </label>
-      <button type="submit" disabled={pending || !value} className="rounded-full border px-4 py-2 text-sm disabled:opacity-40">
-        {pending ? "Checking availability…" : "Reschedule"}
-      </button>
-      {error && <p className="w-full text-xs text-red-600">{error}</p>}
-      <p className="w-full text-xs text-neutral-400">Current: {new Date(currentStartsAt).toLocaleString("en-AU", { timeZone: "Australia/Adelaide" })}. This re-checks availability before moving the booking; it does not currently email the customer automatically.</p>
+      <div className="flex flex-wrap items-end gap-3">
+        <label className="admin-field min-w-[220px] flex-1">
+          <span className="admin-label">Reschedule to</span>
+          <input type="datetime-local" value={value} onChange={(e) => setValue(e.target.value)} className="admin-input" />
+        </label>
+        <button type="submit" disabled={pending || !value} className="admin-btn admin-btn--primary">
+          {pending ? "Checking availability…" : "Reschedule"}
+        </button>
+      </div>
+      {error && <AdminAlert tone="error">{error}</AdminAlert>}
+      <p className="admin-help">
+        Current: {formatAdelaide(currentStartsAt)}. Availability is re-checked before the booking moves. The customer is not emailed automatically.
+      </p>
     </form>
   );
 }

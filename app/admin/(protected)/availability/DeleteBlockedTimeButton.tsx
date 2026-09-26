@@ -7,13 +7,14 @@ export function DeleteBlockedTimeButton({ id }: { id: string }) {
   const [pending, startTransition] = useTransition();
   return (
     <button
+      type="button"
       disabled={pending}
       onClick={() => {
         if (confirm("Remove this blocked time?")) startTransition(() => deleteBlockedTimeAction(id));
       }}
-      className="text-xs text-red-600 underline"
+      className="admin-btn admin-btn--danger admin-btn--sm"
     >
-      Remove
+      {pending ? "Removing…" : "Remove"}
     </button>
   );
 }

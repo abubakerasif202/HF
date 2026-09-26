@@ -1,8 +1,15 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, useTransition } from "react";
 import { upsertPricingRuleAction, setPricingRuleActiveAction } from "./actions.ts";
-import { useTransition } from "react";
+import { packageNameForCrewSize } from "../../../../lib/booking/pricing.ts";
+import { AdminAlert, AdminCard, AdminDataList, AdminDataRow, AdminEmptyState, formatMoney } from "../../_components/ui";
+import { AdminActiveBadge } from "../../_components/AdminStatusBadge";
+
+interface SaveState {
+  error?: string;
+  saved?: boolean;
+}
 
 interface Rule {
   id: string;
@@ -15,75 +22,128 @@ interface Rule {
   active: boolean;
 }
 
-export function PricingRuleForm({ existing }: { existing: Rule[] }) {
+interface PricingRuleFormProps {
+  existing: Rule[];
+  /** Business-wide values from business_settings — the ones quotes actually use. */
+  minimumBookingMinutes: number;
+  calloutMinutes: number;
+}
+
+// Display-only: how many 30-minute billing units make up an hour. The
+// canonical stored figure is the per-30-minute rate; hourly is shown for
+// convenience, exactly as on the public site.
+const UNITS_PER_HOUR = 2;
+
+function formatHours(minutes: number): string {
+  const hours = minutes / 60;
+  return `${Number.isInteger(hours) ? hours : hours.toFixed(1)} hour${hours === 1 ? "" : "s"}`;
+}
+
+export function PricingRuleForm({ existing, minimumBookingMinutes, calloutMinutes }: PricingRuleFormProps) {
   const [state, formAction, pending] = useActionState(
-    async (_prev: { error?: string }, formData: FormData) => upsertPricingRuleAction(formData),
-    {},
+    async (_prev: SaveState, formData: FormData): Promise<SaveState> => {
+      const result = await upsertPricingRuleAction(formData);
+      return { ...result, saved: !result?.error };
+    },
+    {} as SaveState,
   );
 
   return (
-    <div className="space-y-6">
-      <ul className="divide-y rounded-xl border">
-        {existing.map((rule) => (
-          <RuleRow key={rule.id} rule={rule} />
-        ))}
-        {existing.length === 0 && <li className="px-4 py-8 text-center text-neutral-400">No pricing rules yet.</li>}
-      </ul>
-
-      <form action={formAction} className="space-y-3 rounded-xl border p-4">
-        <h2 className="font-medium">Add / update a crew-size rate</h2>
-        {state?.error && <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">{state.error}</p>}
-        <div className="grid grid-cols-2 gap-3">
-          <label className="block text-sm">
-            Crew size
-            <input type="number" name="crew_size" min={1} required className="mt-1 w-full rounded-lg border px-3 py-2" />
-          </label>
-          <label className="block text-sm">
-            Rate per 30 min ($)
-            <input type="number" step="0.01" name="rate_per_30_min" required className="mt-1 w-full rounded-lg border px-3 py-2" />
-          </label>
-          <label className="block text-sm">
-            Minimum billable minutes
-            <input type="number" name="minimum_billable_minutes" defaultValue={60} required className="mt-1 w-full rounded-lg border px-3 py-2" />
-          </label>
-          <label className="block text-sm">
-            Call-out fee ($)
-            <input type="number" step="0.01" name="call_out_fee" defaultValue={0} required className="mt-1 w-full rounded-lg border px-3 py-2" />
-          </label>
-          <label className="block text-sm">
-            Weekend multiplier
-            <input type="number" step="0.01" name="weekend_multiplier" defaultValue={1} required className="mt-1 w-full rounded-lg border px-3 py-2" />
-          </label>
-          <label className="block text-sm">
-            Public holiday multiplier
-            <input type="number" step="0.01" name="public_holiday_multiplier" defaultValue={1} required className="mt-1 w-full rounded-lg border px-3 py-2" />
-          </label>
+    <div className="grid gap-5">
+      {existing.length === 0 ? (
+        <AdminCard>
+          <AdminEmptyState icon="pricing" title="No pricing rules yet" description="Add a crew-size rate below so customers can get a quote." />
+        </AdminCard>
+      ) : (
+        <div className="grid gap-5 md:grid-cols-2">
+          {existing.map((rule) => (
+            <RuleCard key={rule.id} rule={rule} minimumBookingMinutes={minimumBookingMinutes} calloutMinutes={calloutMinutes} />
+          ))}
         </div>
-        <button type="submit" disabled={pending} className="rounded-full bg-neutral-900 px-5 py-2 text-sm text-white disabled:opacity-40">
-          {pending ? "Saving…" : "Save rule"}
-        </button>
-      </form>
+      )}
+
+      <AdminCard
+        icon="pricing"
+        title="Add or update a crew-size rate"
+        description="Saving a crew size that already exists updates its rate."
+      >
+        <form action={formAction} className="grid gap-4">
+          {state?.error && <AdminAlert tone="error">{state.error}</AdminAlert>}
+          {state?.saved && !pending && <AdminAlert tone="success">Pricing saved.</AdminAlert>}
+          <div className="admin-form-grid admin-form-grid--2 admin-form-grid--3">
+            <label className="admin-field">
+              <span className="admin-label">Crew size</span>
+              <input type="number" name="crew_size" min={1} required className="admin-input" />
+            </label>
+            <label className="admin-field">
+              <span className="admin-label">Rate per 30 min ($)</span>
+              <input type="number" step="0.01" name="rate_per_30_min" required className="admin-input" />
+            </label>
+            <label className="admin-field">
+              <span className="admin-label">Weekend multiplier</span>
+              <input type="number" step="0.01" name="weekend_multiplier" defaultValue={1} required className="admin-input" />
+            </label>
+            <label className="admin-field">
+              <span className="admin-label">Public holiday multiplier</span>
+              <input type="number" step="0.01" name="public_holiday_multiplier" defaultValue={1} required className="admin-input" />
+            </label>
+            <label className="admin-field">
+              <span className="admin-label">Minimum billable minutes (legacy)</span>
+              <input type="number" name="minimum_billable_minutes" defaultValue={60} required className="admin-input" />
+              <span className="admin-help">Not used for quotes — the {formatHours(minimumBookingMinutes)} minimum comes from business settings.</span>
+            </label>
+            <label className="admin-field">
+              <span className="admin-label">Call-out fee ($, legacy)</span>
+              <input type="number" step="0.01" name="call_out_fee" defaultValue={0} required className="admin-input" />
+              <span className="admin-help">Not used for quotes — the call-out is {formatHours(calloutMinutes)} at the package rate.</span>
+            </label>
+          </div>
+          <div>
+            <button type="submit" disabled={pending} className="admin-btn admin-btn--primary">
+              {pending ? "Saving…" : "Save pricing"}
+            </button>
+          </div>
+        </form>
+      </AdminCard>
     </div>
   );
 }
 
-function RuleRow({ rule }: { rule: Rule }) {
+function RuleCard({ rule, minimumBookingMinutes, calloutMinutes }: { rule: Rule; minimumBookingMinutes: number; calloutMinutes: number }) {
   const [pending, startTransition] = useTransition();
+  const rate = rule.rate_per_30_min_cents;
+
   return (
-    <li className="flex items-center justify-between px-4 py-3 text-sm">
-      <div>
-        <div className="font-medium">{rule.crew_size} movers — ${(rule.rate_per_30_min_cents / 100).toFixed(2)}/30min</div>
-        <div className="text-xs text-neutral-400">
-          Min {rule.minimum_billable_minutes} min · call-out ${(rule.call_out_fee_cents / 100).toFixed(2)} · weekend ×{rule.weekend_multiplier} · holiday ×{rule.public_holiday_multiplier}
-        </div>
+    <AdminCard
+      icon="truck"
+      title={packageNameForCrewSize(rule.crew_size)}
+      actions={<AdminActiveBadge active={rule.active} />}
+    >
+      <p className="admin-price">
+        {formatMoney(rate, { decimals: rate % 100 === 0 ? 0 : 2 })}
+        <span className="admin-price-unit"> / 30 min</span>
+      </p>
+      <p className="admin-price-hourly">{formatMoney(rate * UNITS_PER_HOUR, { decimals: rate % 100 === 0 ? 0 : 2 })}/hr</p>
+
+      <div className="mt-3">
+        <AdminDataList>
+          <AdminDataRow label="Minimum service" value={formatHours(minimumBookingMinutes)} />
+          <AdminDataRow label="Call-out" value={`${formatHours(calloutMinutes)} at package rate`} />
+          <AdminDataRow label="Weekend" value={`×${rule.weekend_multiplier}`} />
+          <AdminDataRow label="Public holiday" value={`×${rule.public_holiday_multiplier}`} />
+        </AdminDataList>
       </div>
-      <button
-        disabled={pending}
-        onClick={() => startTransition(() => setPricingRuleActiveAction(rule.id, !rule.active))}
-        className={`rounded-full px-3 py-1 text-xs ${rule.active ? "bg-green-100 text-green-700" : "bg-neutral-100 text-neutral-500"}`}
-      >
-        {rule.active ? "Active" : "Inactive"}
-      </button>
-    </li>
+
+      <div className="mt-4">
+        <button
+          type="button"
+          disabled={pending}
+          onClick={() => startTransition(() => setPricingRuleActiveAction(rule.id, !rule.active))}
+          className="admin-btn admin-btn--secondary admin-btn--sm"
+        >
+          {pending ? "Saving…" : rule.active ? "Deactivate rate" : "Activate rate"}
+        </button>
+      </div>
+    </AdminCard>
   );
 }

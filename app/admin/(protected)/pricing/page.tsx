@@ -1,22 +1,28 @@
 import { getSupabaseAdmin } from "../../../../lib/server/supabase.ts";
+import { getBusinessSettings } from "../../../../lib/server/booking-repo.ts";
 import { PricingRuleForm } from "./PricingRuleForm";
+import { AdminPageHeader } from "../../_components/ui";
 
 export const dynamic = "force-dynamic";
 export const metadata = { robots: { index: false, follow: false } };
 
 export default async function AdminPricingPage() {
-  const { data: rules } = await getSupabaseAdmin().from("pricing_rules").select("*").order("crew_size", { ascending: true });
+  const [{ data: rules }, settings] = await Promise.all([
+    getSupabaseAdmin().from("pricing_rules").select("*").order("crew_size", { ascending: true }),
+    getBusinessSettings(),
+  ]);
 
   return (
-    <div className="mx-auto max-w-2xl">
-      <h1 className="text-2xl font-semibold">Pricing</h1>
-      <p className="mt-1 text-sm text-neutral-500">
-        Changing a rate here only affects future quotes — confirmed bookings keep the price they were confirmed at
-        (<code className="rounded bg-neutral-100 px-1">pricing_snapshot</code>), so past totals never move.
-      </p>
-      <div className="mt-6">
-        <PricingRuleForm existing={rules ?? []} />
-      </div>
+    <div className="mx-auto max-w-5xl">
+      <AdminPageHeader
+        title="Pricing"
+        description="Package rates used for new quotes. Confirmed bookings keep the price they were confirmed at, so past totals never change."
+      />
+      <PricingRuleForm
+        existing={rules ?? []}
+        minimumBookingMinutes={settings.minimumBookingMinutes}
+        calloutMinutes={settings.calloutMinutes}
+      />
     </div>
   );
 }

@@ -7,11 +7,12 @@ export function VehicleToggle({ vehicleId, active }: { vehicleId: string; active
   const [pending, startTransition] = useTransition();
   return (
     <button
+      type="button"
       disabled={pending}
       onClick={() => startTransition(() => setVehicleActiveAction(vehicleId, !active))}
-      className={`rounded-full px-3 py-1 text-xs ${active ? "bg-green-100 text-green-700" : "bg-neutral-100 text-neutral-500"}`}
+      className="admin-btn admin-btn--secondary admin-btn--sm"
     >
-      {active ? "Active" : "Inactive"}
+      {pending ? "Saving…" : active ? "Deactivate" : "Activate"}
     </button>
   );
 }

@@ -1,19 +1,19 @@
 import { redirect } from "next/navigation";
 import { getStaffSession } from "../../../lib/server/supabase-ssr.ts";
 import { isBookingSystemLive } from "../../../lib/server/config.ts";
-import { AdminNav } from "./AdminNav";
+import { AdminNav, type NavItem } from "./AdminNav";
 
 export const dynamic = "force-dynamic";
 
-const NAV_ITEMS = [
-  { href: "/admin", label: "Dashboard" },
-  { href: "/admin/bookings", label: "Bookings" },
-  { href: "/admin/calendar", label: "Calendar" },
-  { href: "/admin/availability", label: "Availability" },
-  { href: "/admin/vehicles", label: "Vehicles" },
-  { href: "/admin/crews", label: "Crews" },
-  { href: "/admin/pricing", label: "Pricing" },
-  { href: "/admin/settings", label: "Settings" },
+const NAV_ITEMS: NavItem[] = [
+  { href: "/admin", label: "Dashboard", icon: "dashboard" },
+  { href: "/admin/bookings", label: "Bookings", icon: "bookings" },
+  { href: "/admin/calendar", label: "Calendar", icon: "calendar" },
+  { href: "/admin/availability", label: "Availability", icon: "availability" },
+  { href: "/admin/vehicles", label: "Vehicles", icon: "truck" },
+  { href: "/admin/crews", label: "Crews", icon: "crew" },
+  { href: "/admin/pricing", label: "Pricing", icon: "pricing" },
+  { href: "/admin/settings", label: "Settings", icon: "settings" },
 ];
 
 /**
@@ -31,7 +31,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   return (
     <div className="admin-shell flex min-h-screen flex-col md:flex-row">
       <AdminNav items={NAV_ITEMS} staffEmail={staff.email ?? ""} staffRole={staff.role} />
-      <main className="flex-1 px-4 py-6 md:px-8 md:py-8">{children}</main>
+      <main id="admin-main" className="admin-main">{children}</main>
     </div>
   );
 }

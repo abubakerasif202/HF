@@ -3,6 +3,7 @@
 import { useState, useTransition } from "react";
 import { transitionBookingStatusAction } from "./actions.ts";
 import type { BookingStatus } from "../../../../../lib/booking/types.ts";
+import { AdminAlert } from "../../../_components/ui";
 
 const NEXT_STATUS_OPTIONS: Record<string, BookingStatus[]> = {
   confirmed: ["assigned", "cancelled"],
@@ -20,10 +21,11 @@ export function StatusControls({ bookingId, currentStatus }: { bookingId: string
   if (options.length === 0) return null;
 
   return (
-    <div className="mt-3 flex flex-wrap items-center gap-2">
+    <div className="mt-4 flex flex-wrap items-center gap-2">
       {options.map((next) => (
         <button
           key={next}
+          type="button"
           disabled={pending}
           onClick={() => {
             if (next === "cancelled" && !confirm("Cancel this booking?")) return;
@@ -33,12 +35,12 @@ export function StatusControls({ bookingId, currentStatus }: { bookingId: string
               if (result?.error) setError(result.error);
             });
           }}
-          className="rounded-full border px-3 py-1 text-xs"
+          className={`admin-btn admin-btn--sm ${next === "cancelled" ? "admin-btn--danger" : "admin-btn--secondary"}`}
         >
-          Mark as {next.replace(/_/g, " ")}
+          {next === "cancelled" ? "Cancel booking" : `Mark as ${next.replace(/_/g, " ")}`}
         </button>
       ))}
-      {error && <p className="w-full text-xs text-red-600">{error}</p>}
+      {error && <div className="w-full"><AdminAlert tone="error">{error}</AdminAlert></div>}
     </div>
   );
 }

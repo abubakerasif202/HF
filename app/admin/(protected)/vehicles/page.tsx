@@ -1,37 +1,74 @@
 import { getSupabaseAdmin } from "../../../../lib/server/supabase.ts";
 import { createVehicleAction } from "./actions.ts";
 import { VehicleToggle } from "./VehicleToggle";
+import { AdminCard, AdminEmptyState, AdminPageHeader } from "../../_components/ui";
+import { AdminActiveBadge } from "../../_components/AdminStatusBadge";
+import { Icon } from "../../_components/Icon";
 
 export const dynamic = "force-dynamic";
 export const metadata = { robots: { index: false, follow: false } };
 
 export default async function AdminVehiclesPage() {
   const { data: vehicles } = await getSupabaseAdmin().from("vehicles").select("id, name, vehicle_type, active").order("created_at", { ascending: true });
+  const rows = vehicles ?? [];
+  const activeCount = rows.filter((v) => v.active).length;
 
   return (
-    <div className="mx-auto max-w-3xl">
-      <h1 className="text-2xl font-semibold">Vehicles</h1>
-      <p className="mt-1 text-sm text-neutral-500">Active vehicles are what customer availability is calculated against — an empty list means /book always reports no availability.</p>
+    <div className="mx-auto max-w-5xl">
+      <AdminPageHeader
+        title="Vehicles"
+        description="Customer availability is calculated against active vehicles. With no active vehicle, online booking shows no times."
+        actions={
+          <a href="#add-vehicle" className="admin-btn admin-btn--primary">
+            <Icon name="plus" size={16} />
+            Add vehicle
+          </a>
+        }
+      />
 
-      <ul className="mt-6 divide-y rounded-xl border">
-        {(vehicles ?? []).map((v) => (
-          <li key={v.id} className="flex items-center justify-between px-4 py-3">
+      <div className="grid gap-5 lg:grid-cols-[minmax(0,1.5fr)_minmax(0,1fr)]">
+        <AdminCard icon="truck" title="Fleet" description={`${activeCount} of ${rows.length} active`} flush>
+          {rows.length === 0 ? (
+            <AdminEmptyState
+              icon="truck"
+              title="No vehicles yet"
+              description="Add your first vehicle to start accepting online bookings."
+              action={<a href="#add-vehicle" className="admin-btn admin-btn--primary">Add vehicle</a>}
+            />
+          ) : (
+            <ul className="admin-list">
+              {rows.map((v) => (
+                <li key={v.id} className="admin-list-item">
+                  <div className="min-w-0">
+                    <div className="admin-list-title">{v.name}</div>
+                    <div className="admin-list-meta">{v.vehicle_type || "Type not set"}</div>
+                  </div>
+                  <div className="admin-list-actions">
+                    <AdminActiveBadge active={v.active} />
+                    <VehicleToggle vehicleId={v.id} active={v.active} />
+                  </div>
+                </li>
+              ))}
+            </ul>
+          )}
+        </AdminCard>
+
+        <AdminCard id="add-vehicle" icon="plus" title="Add a vehicle" className="scroll-mt-20 self-start">
+          <form action={createVehicleAction} className="grid gap-4">
+            <label className="admin-field">
+              <span className="admin-label">Vehicle name</span>
+              <input name="name" required placeholder="e.g. Truck 1" className="admin-input" />
+            </label>
+            <label className="admin-field">
+              <span className="admin-label">Type <span className="font-medium text-[var(--admin-text-muted)]">(optional)</span></span>
+              <input name="vehicle_type" placeholder="e.g. 4-tonne pantech" className="admin-input" />
+            </label>
             <div>
-              <div className="font-medium">{v.name}</div>
-              {v.vehicle_type && <div className="text-xs text-neutral-400">{v.vehicle_type}</div>}
+              <button type="submit" className="admin-btn admin-btn--primary">Add vehicle</button>
             </div>
-            <VehicleToggle vehicleId={v.id} active={v.active} />
-          </li>
-        ))}
-        {(vehicles ?? []).length === 0 && <li className="px-4 py-8 text-center text-neutral-400">No vehicles yet — add one below.</li>}
-      </ul>
-
-      <form action={createVehicleAction} className="mt-8 space-y-3 rounded-xl border p-4">
-        <h2 className="font-medium">Add a vehicle</h2>
-        <input name="name" required placeholder="e.g. Truck 1" className="w-full rounded-lg border px-3 py-2" />
-        <input name="vehicle_type" placeholder="Type (optional, e.g. 4-tonne pantech)" className="w-full rounded-lg border px-3 py-2" />
-        <button type="submit" className="rounded-full bg-neutral-900 px-5 py-2 text-sm text-white">Add vehicle</button>
-      </form>
+          </form>
+        </AdminCard>
+      </div>
     </div>
   );
 }

@@ -1,4 +1,7 @@
 import Link from "next/link";
+import { AdminCard, AdminEmptyState, AdminPageHeader, formatMoney, formatAdelaide } from "../_components/ui";
+import { AdminStatusBadge } from "../_components/AdminStatusBadge";
+import { Icon, type IconName } from "../_components/Icon";
 import { getSupabaseAdmin } from "../../../lib/server/supabase.ts";
 
 export const dynamic = "force-dynamic";
@@ -54,59 +57,106 @@ export default async function AdminDashboardPage() {
       b.calendar_sync_status === "failed",
   );
 
+  const unassignedCount = (unassigned ?? []).length;
+
   return (
-    <div className="mx-auto max-w-6xl">
-      <h1 className="text-2xl font-semibold">Dashboard</h1>
+    <div className="mx-auto max-w-7xl">
+      <AdminPageHeader
+        eyebrow="Operations"
+        title="Dashboard"
+        description="Today's workload, payments to chase and jobs that still need a truck or crew."
+        actions={
+          <>
+            <Link href="/admin/calendar" className="admin-btn admin-btn--secondary">
+              <Icon name="calendar" size={16} />
+              Calendar
+            </Link>
+            <Link href="/admin/bookings" className="admin-btn admin-btn--primary">
+              <Icon name="bookings" size={16} />
+              View bookings
+            </Link>
+          </>
+        }
+      />
 
-      <div className="mt-6 grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-6">
-        <Card label="Today's jobs" value={todayCount ?? 0} />
-        <Card label="Tomorrow's jobs" value={tomorrowCount ?? 0} />
-        <Card label="Pending payment" value={pendingCount ?? 0} />
-        <Card label="Confirmed" value={confirmedCount ?? 0} />
-        <Card label="Unassigned truck" value={(unassigned ?? []).length} />
-        <Card label="Outstanding balance" value={`$${(outstandingCents / 100).toFixed(0)}`} />
+      <div className="admin-kpi-grid">
+        <Kpi icon="calendar" label="Today's bookings" value={todayCount ?? 0} hint="Moves scheduled today" />
+        <Kpi icon="clock" label="Tomorrow" value={tomorrowCount ?? 0} hint="Moves scheduled tomorrow" />
+        <Kpi icon="dollar" label="Pending payments" value={pendingCount ?? 0} hint="Awaiting $100 confirmation" tone={(pendingCount ?? 0) > 0 ? "amber" : "neutral"} />
+        <Kpi icon="check" label="Confirmed bookings" value={confirmedCount ?? 0} hint="Confirmed or assigned" />
+        <Kpi icon="truck" label="Unassigned jobs" value={unassignedCount} hint="Confirmed, no truck yet" tone={unassignedCount > 0 ? "ruby" : "neutral"} />
+        <Kpi icon="dollar" label="Outstanding balance" value={formatMoney(outstandingCents, { decimals: 0 })} hint="Still to collect" tone={outstandingCents > 0 ? "ruby" : "neutral"} />
       </div>
 
-      <h2 className="mt-10 text-lg font-semibold">Needs attention</h2>
-      <div className="mt-4 overflow-x-auto">
-        <table className="w-full min-w-[700px] text-left text-sm">
-          <thead>
-            <tr className="border-b text-neutral-500">
-              <th className="py-2">Booking #</th>
-              <th>Date</th>
-              <th>Issue</th>
-            </tr>
-          </thead>
-          <tbody>
-            {attention.map((b) => (
-              <tr key={b.id} className="border-b">
-                <td className="py-2">
-                  <Link href={`/admin/bookings/${b.id}`} className="underline">{b.booking_number}</Link>
-                </td>
-                <td>{new Date(b.starts_at).toLocaleDateString("en-AU", { timeZone: "Australia/Adelaide" })}</td>
-                <td>
-                  {!b.vehicle_id && b.booking_status === "confirmed" && "No truck assigned"}
-                  {!b.crew_id && b.booking_status === "confirmed" && b.vehicle_id && "No crew assigned"}
-                  {b.booking_status === "pending_payment" && "Payment pending"}
-                  {b.calendar_sync_status === "failed" && " · Calendar sync failed"}
-                </td>
-              </tr>
-            ))}
-            {attention.length === 0 && (
-              <tr><td colSpan={3} className="py-8 text-center text-neutral-400">Nothing needs attention right now.</td></tr>
-            )}
-          </tbody>
-        </table>
-      </div>
+      <AdminCard
+        className="mt-8"
+        icon="alert"
+        title="Needs attention"
+        description="Upcoming bookings missing a truck or crew, awaiting payment, or with a failed calendar sync."
+        flush
+      >
+        {attention.length === 0 ? (
+          <AdminEmptyState icon="check" title="All clear" description="Nothing needs attention right now." />
+        ) : (
+          <div className="admin-table-wrap">
+            <table className="admin-table admin-table--stack">
+              <thead>
+                <tr>
+                  <th scope="col">Booking #</th>
+                  <th scope="col">Date</th>
+                  <th scope="col">Status</th>
+                  <th scope="col">Issue</th>
+                </tr>
+              </thead>
+              <tbody>
+                {attention.map((b) => (
+                  <tr key={b.id}>
+                    <td data-label="Booking" className="admin-cell-strong">
+                      <Link href={`/admin/bookings/${b.id}`} className="admin-link">{b.booking_number}</Link>
+                    </td>
+                    <td data-label="Date">{formatAdelaide(b.starts_at, { dateStyle: "medium" })}</td>
+                    <td data-label="Status"><AdminStatusBadge status={b.booking_status} /></td>
+                    <td data-label="Issue">
+                      <span>
+                        {[
+                          !b.vehicle_id && b.booking_status === "confirmed" && "No truck assigned",
+                          !b.crew_id && b.booking_status === "confirmed" && b.vehicle_id && "No crew assigned",
+                          b.booking_status === "pending_payment" && "Payment pending",
+                          b.calendar_sync_status === "failed" && "Calendar sync failed",
+                        ]
+                          .filter(Boolean)
+                          .join(" · ")}
+                      </span>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </AdminCard>
     </div>
   );
 }
 
-function Card({ label, value }: { label: string; value: string | number }) {
+function Kpi({
+  icon,
+  label,
+  value,
+  hint,
+  tone = "green",
+}: {
+  icon: IconName;
+  label: string;
+  value: string | number;
+  hint: string;
+  tone?: "green" | "ruby" | "amber" | "neutral";
+}) {
   return (
-    <div className="rounded-xl border p-4">
-      <div className="text-xs uppercase text-neutral-400">{label}</div>
-      <div className="mt-1 text-2xl font-semibold">{value}</div>
+    <div className="admin-card admin-kpi" data-tone={tone}>
+      <div className="admin-kpi-label"><Icon name={icon} size={15} />{label}</div>
+      <div className="admin-kpi-value">{value}</div>
+      <div className="admin-kpi-hint">{hint}</div>
     </div>
   );
 }

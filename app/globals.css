@@ -35,13 +35,14 @@
   --hf-text-muted: #a3b8af;
   --hf-border: rgba(255, 215, 0, 0.35);
 
-  /* Shared semantic tokens for the customer booking flow (/book,
-     /booking/success, /booking/cancel) and the /admin dashboard. Both
-     surfaces sit on the same dark-premium background but were built with
+  /* Semantic tokens for the customer booking flow (/book,
+     /booking/success, /booking/cancel). (/admin has its own light token
+     set in app/admin/admin.css.) The flow sits on the dark-premium
+     background but was built with
      Tailwind utility classes that assumed a light page (bg-neutral-900
      "primary" buttons, text-neutral-400/500/600 "muted" text) — on the
      site's actual near-black background those render as low/no contrast.
-     Rather than hand-fix every className, .booking-shell/.admin-shell
+     Rather than hand-fix every className, .booking-shell
      below remap the specific utility classes actually in use to these
      tokens, so the whole surface gets the fix consistently. */
   --text-primary: var(--hf-ivory);
@@ -49,8 +50,7 @@
   --text-muted: rgba(163, 184, 175, 0.72);
   --border-default: rgba(163, 184, 175, 0.28);
   --border-strong: rgba(163, 184, 175, 0.5);
-  --admin-bg: var(--hf-green-950);
-  --admin-surface: rgba(255, 255, 255, 0.05);
+  --booking-input-surface: rgba(255, 255, 255, 0.05);
   --booking-bg: var(--hf-green-950);
   --surface-elevated: rgba(255, 255, 255, 0.07);
   --ruby-hover: var(--hf-ruby-500);
@@ -3775,137 +3775,97 @@ p {
 }
 
 /* ====================================================================
-   BOOKING FLOW + ADMIN: SHARED CONTRAST FIX
+   BOOKING FLOW: CONTRAST FIX
    ====================================================================
    .booking-shell wraps /book, /booking/success, /booking/cancel.
-   .admin-shell wraps every /admin/* page including /admin/login.
-   Both were built with Tailwind utility classes tuned for a light page
+   (The /admin area has its own light design system in app/admin/admin.css.)
+   It was built with Tailwind utility classes tuned for a light page
    (bg-neutral-900 as a "dark/primary" button, text-neutral-400/500/600
    as "muted" text, thin light borders) sitting on the site's actual
    near-black background — that combination is low- or zero-contrast.
    These rules remap the SPECIFIC utility classes actually used in those
-   trees to the semantic tokens above, so text/buttons/borders read
+   tree to the semantic tokens above, so text/buttons/borders read
    correctly wherever they appear, without one-off per-component fixes. */
-.booking-shell,
-.admin-shell {
+.booking-shell {
   background: var(--booking-bg);
   color: var(--text-primary);
   min-height: 100vh;
 }
-.admin-shell { background: var(--admin-bg); }
-
-.booking-shell h1, .booking-shell h2, .booking-shell h3,
-.admin-shell h1, .admin-shell h2, .admin-shell h3 {
+.booking-shell h1, .booking-shell h2, .booking-shell h3 {
   color: var(--text-primary);
 }
 
 /* Muted/secondary text: text-neutral-600 was the most-readable of the
    three greys on a light page, so it maps to the (lighter) secondary
    token; -400/-500 map to the dimmer-but-still-AA muted token. */
-.booking-shell .text-neutral-600,
-.admin-shell .text-neutral-600 { color: var(--text-secondary) !important; }
+.booking-shell .text-neutral-600 { color: var(--text-secondary) !important; }
 .booking-shell .text-neutral-400,
-.booking-shell .text-neutral-500,
-.admin-shell .text-neutral-400,
-.admin-shell .text-neutral-500 { color: var(--text-muted) !important; }
+.booking-shell .text-neutral-500 { color: var(--text-muted) !important; }
 /* text-neutral-300 is deliberately used only for disabled/unavailable
    controls (e.g. an already-booked time slot) — WCAG's contrast minimums
    don't apply to disabled content, so this stays visibly dim rather than
    being boosted to the muted token, which would make it read as active. */
-.booking-shell .text-neutral-300,
-.admin-shell .text-neutral-300 { color: rgba(247, 245, 239, 0.38) !important; }
+.booking-shell .text-neutral-300 { color: rgba(247, 245, 239, 0.38) !important; }
 
 /* Danger / destructive text (Cancel links, error copy) directly on the
    dark background needs a brighter red than Tailwind's red-600/700. */
-.booking-shell .text-red-600, .booking-shell .text-red-700,
-.admin-shell .text-red-600, .admin-shell .text-red-700 { color: var(--danger) !important; }
+.booking-shell .text-red-600, .booking-shell .text-red-700 { color: var(--danger) !important; }
 /* A standalone success line (no light chip behind it) needs the same
    brightening — green-700 assumed a white page too. */
-.booking-shell .text-green-700,
-.admin-shell .text-green-700 { color: var(--success) !important; }
+.booking-shell .text-green-700 { color: var(--success) !important; }
 
 /* Borders: every bare "border" plus the specific shades used all assumed
    a light page. Map them to one visible, consistent boundary colour
    (kept distinguishable from surfaces/focus rings — see below). */
 .booking-shell .border, .booking-shell .border-t, .booking-shell .border-b,
-.booking-shell .border-r, .booking-shell .border-l,
-.admin-shell .border, .admin-shell .border-t, .admin-shell .border-b,
-.admin-shell .border-r, .admin-shell .border-l { border-color: var(--border-default) !important; }
+.booking-shell .border-r, .booking-shell .border-l { border-color: var(--border-default) !important; }
 .booking-shell .border-neutral-100, .booking-shell .border-neutral-200,
-.booking-shell .border-neutral-300, .booking-shell .border-neutral-400,
-.admin-shell .border-neutral-100, .admin-shell .border-neutral-200,
-.admin-shell .border-neutral-300, .admin-shell .border-neutral-400 { border-color: var(--border-default) !important; }
+.booking-shell .border-neutral-300, .booking-shell .border-neutral-400 { border-color: var(--border-default) !important; }
 
 /* Surfaces: bg-white/neutral-50/neutral-100 were light "cards" — convert
    to a subtle elevated dark surface so cards remain visually distinct
    from the page background without becoming a jarring light box. */
-.booking-shell .bg-white, .booking-shell .bg-neutral-50, .booking-shell .bg-neutral-100,
-.admin-shell .bg-white, .admin-shell .bg-neutral-50, .admin-shell .bg-neutral-100 {
+.booking-shell .bg-white, .booking-shell .bg-neutral-50, .booking-shell .bg-neutral-100 {
   background: var(--surface-elevated) !important;
   color: var(--text-primary);
 }
-.admin-shell .hover\:bg-neutral-100:hover,
-.admin-shell .hover\:bg-neutral-50:hover { background: var(--surface-elevated) !important; }
 
 /* Primary action: every "bg-neutral-900 ... text-white" button/pill in
-   both trees (Continue, Pay $100 & Confirm, selected date/time, the
-   active step pill, admin's primary submit buttons, the active nav item)
+   the booking flow (Continue, Pay $100 & Confirm, selected date/time,
+   the active step pill)
    is the PRIMARY action or the CURRENT/SELECTED state — exactly what
    the brand's ruby accent is for. bg-neutral-900 was chosen precisely
    because near-black read as "solid/primary" on a light mockup; on the
    real near-black page it was nearly invisible. */
-.booking-shell .bg-neutral-900,
-.admin-shell .bg-neutral-900 {
+.booking-shell .bg-neutral-900 {
   background: var(--ruby) !important;
   color: var(--hf-white) !important;
   border-color: var(--ruby) !important;
 }
-.booking-shell .bg-neutral-900:hover:not(:disabled),
-.admin-shell .bg-neutral-900:hover:not(:disabled) { background: var(--ruby-hover) !important; }
-.booking-shell .border-neutral-900,
-.admin-shell .border-neutral-900 { border-color: var(--ruby) !important; }
+.booking-shell .bg-neutral-900:hover:not(:disabled) { background: var(--ruby-hover) !important; }
+.booking-shell .border-neutral-900 { border-color: var(--ruby) !important; }
 
 /* Form controls: visible border, readable entered text, readable
    placeholder, obvious ruby focus ring, clear disabled state. */
-.booking-shell input, .booking-shell select, .booking-shell textarea,
-.admin-shell input, .admin-shell select, .admin-shell textarea {
-  background: var(--admin-surface);
+.booking-shell input, .booking-shell select, .booking-shell textarea {
+  background: var(--booking-input-surface);
   color: var(--text-primary);
   border-color: var(--border-default);
 }
-.booking-shell input::placeholder, .booking-shell textarea::placeholder,
-.admin-shell input::placeholder, .admin-shell textarea::placeholder { color: var(--text-muted); }
-.booking-shell input:hover, .booking-shell select:hover, .booking-shell textarea:hover,
-.admin-shell input:hover, .admin-shell select:hover, .admin-shell textarea:hover { border-color: var(--border-strong); }
-.booking-shell input:disabled, .booking-shell select:disabled, .booking-shell textarea:disabled, .booking-shell button:disabled,
-.admin-shell input:disabled, .admin-shell select:disabled, .admin-shell textarea:disabled, .admin-shell button:disabled {
+.booking-shell input::placeholder, .booking-shell textarea::placeholder { color: var(--text-muted); }
+.booking-shell input:hover, .booking-shell select:hover, .booking-shell textarea:hover { border-color: var(--border-strong); }
+.booking-shell input:disabled, .booking-shell select:disabled, .booking-shell textarea:disabled, .booking-shell button:disabled {
   opacity: 0.55;
   cursor: not-allowed;
 }
 .booking-shell input:focus-visible, .booking-shell select:focus-visible, .booking-shell textarea:focus-visible,
-.booking-shell button:focus-visible, .booking-shell a:focus-visible,
-.admin-shell input:focus-visible, .admin-shell select:focus-visible, .admin-shell textarea:focus-visible,
-.admin-shell button:focus-visible, .admin-shell a:focus-visible {
+.booking-shell button:focus-visible, .booking-shell a:focus-visible {
   outline: 2px solid var(--ruby-light);
   outline-offset: 2px;
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .booking-shell *, .admin-shell * { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
-}
-
-/* Sign out: called out explicitly as needing to be unmistakably visible,
-   not just "technically AA" — full-contrast text on a clearly bordered
-   button, brightening further on hover/focus. */
-.admin-signout-button {
-  color: var(--text-primary) !important;
-  border-color: var(--border-strong) !important;
-  transition: color 150ms var(--ease-premium), border-color 150ms var(--ease-premium), background 150ms var(--ease-premium);
-}
-.admin-signout-button:hover {
-  color: var(--hf-white) !important;
-  border-color: var(--ruby) !important;
-  background: var(--ruby-surface);
+  .booking-shell * { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
 }
 
 /* ==================== JOB COMPLETION ==================== */

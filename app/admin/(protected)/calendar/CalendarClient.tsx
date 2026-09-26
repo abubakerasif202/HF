@@ -4,6 +4,9 @@ import Link from "next/link";
 import { useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { classifyBlockedTime } from "../../../../lib/booking/calendar-range.ts";
+import { AdminPageHeader } from "../../_components/ui";
+import { AdminStatusBadge, statusStyle } from "../../_components/AdminStatusBadge";
+import { Icon } from "../../_components/Icon";
 
 interface Booking {
   id: string;
@@ -35,25 +38,10 @@ interface Resource {
   name: string;
 }
 
-const STATUS_LABELS: Record<string, string> = {
-  held: "Held",
-  pending_payment: "Pending payment",
-  confirmed: "Confirmed",
-  assigned: "Assigned",
-  in_progress: "In progress",
-  completed: "Completed",
-};
-
-// Never rely on colour alone: every status also gets its own text label
-// and a distinct border style, not just a background colour.
-const STATUS_STYLES: Record<string, string> = {
-  held: "bg-amber-50 border-amber-300 text-amber-800",
-  pending_payment: "bg-amber-50 border-amber-400 border-dashed text-amber-800",
-  confirmed: "bg-green-50 border-green-400 text-green-800",
-  assigned: "bg-blue-50 border-blue-400 text-blue-800",
-  in_progress: "bg-blue-100 border-blue-500 text-blue-900",
-  completed: "bg-neutral-100 border-neutral-400 text-neutral-600",
-};
+// Statuses the calendar can show (cancelled/expired/draft are excluded
+// by the page query). Labels + tones come from the shared badge system;
+// every event shows its status as text, never colour alone.
+const FILTERABLE_STATUSES = ["held", "pending_payment", "confirmed", "assigned", "in_progress", "completed"];
 
 function packageLabel(crewSize: number): string {
   return crewSize === 3 ? "3 Men + Truck" : crewSize === 2 ? "2 Men + Truck" : `${crewSize} Men + Truck`;
@@ -157,56 +145,62 @@ export function CalendarClient({
     return map;
   }, [blockedTimes, timezone]);
 
+  const rangeLabel = `${new Date(rangeStartIso).toLocaleDateString("en-AU", { timeZone: timezone, dateStyle: "medium" })} – ${new Date(new Date(rangeEndIso).getTime() - 1).toLocaleDateString("en-AU", { timeZone: timezone, dateStyle: "medium" })}`;
+
   return (
-    <div className="mx-auto max-w-6xl">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <h1 className="text-2xl font-semibold">Calendar</h1>
-        <div className="flex flex-wrap gap-2">
-          {(["day", "week", "month"] as const).map((v) => (
-            <button
-              key={v}
-              onClick={() => navigate(v, anchorDate)}
-              className={`rounded-full px-4 py-1.5 text-sm capitalize ${view === v ? "bg-neutral-900 text-white" : "border"}`}
-            >
-              {v}
+    <div className="mx-auto max-w-7xl">
+      <AdminPageHeader
+        title="Calendar"
+        description="View upcoming jobs, crew allocation and blocked periods."
+        actions={
+          <div className="admin-segmented" role="group" aria-label="Calendar view">
+            {(["day", "week", "month"] as const).map((v) => (
+              <button key={v} type="button" aria-pressed={view === v} onClick={() => navigate(v, anchorDate)}>
+                {v}
+              </button>
+            ))}
+          </div>
+        }
+      />
+
+      <div className="admin-card mb-5 grid gap-4 p-4">
+        <div className="admin-cal-toolbar">
+          <div className="flex flex-wrap items-center gap-2">
+            <button type="button" onClick={() => shift(view === "month" ? -30 : view === "week" ? -7 : -1)} className="admin-btn admin-btn--secondary admin-btn--sm" aria-label={`Previous ${view}`}>
+              <Icon name="arrowLeft" size={15} />
+              Prev
             </button>
-          ))}
+            <button type="button" onClick={() => navigate(view, new Date().toISOString().slice(0, 10))} className="admin-btn admin-btn--secondary admin-btn--sm">Today</button>
+            <button type="button" onClick={() => shift(view === "month" ? 30 : view === "week" ? 7 : 1)} className="admin-btn admin-btn--secondary admin-btn--sm" aria-label={`Next ${view}`}>
+              Next
+              <Icon name="arrowRight" size={15} />
+            </button>
+          </div>
+          <p className="admin-cal-range" aria-live="polite">{rangeLabel}</p>
+        </div>
+
+        <div className="admin-cal-filters">
+          <select aria-label="Filter by vehicle" value={vehicleFilter} onChange={(e) => setVehicleFilter(e.target.value)} className="admin-input admin-input--compact">
+            <option value="">All vehicles</option>
+            {vehicles.map((v) => <option key={v.id} value={v.id}>{v.name}</option>)}
+          </select>
+          <select aria-label="Filter by crew" value={crewFilter} onChange={(e) => setCrewFilter(e.target.value)} className="admin-input admin-input--compact">
+            <option value="">All crews</option>
+            {crews.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
+          </select>
+          <select aria-label="Filter by status" value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)} className="admin-input admin-input--compact">
+            <option value="">All statuses</option>
+            {FILTERABLE_STATUSES.map((value) => <option key={value} value={value}>{statusStyle("booking", value).label}</option>)}
+          </select>
+          <select aria-label="Filter by package" value={packageFilter} onChange={(e) => setPackageFilter(e.target.value)} className="admin-input admin-input--compact">
+            <option value="">All packages</option>
+            <option value="2">2 Men + Truck</option>
+            <option value="3">3 Men + Truck</option>
+          </select>
         </div>
       </div>
 
-      <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
-        <div className="flex items-center gap-2">
-          <button onClick={() => shift(view === "month" ? -30 : view === "week" ? -7 : -1)} className="rounded-full border px-3 py-1 text-sm">← Prev</button>
-          <button onClick={() => navigate(view, new Date().toISOString().slice(0, 10))} className="rounded-full border px-3 py-1 text-sm">Today</button>
-          <button onClick={() => shift(view === "month" ? 30 : view === "week" ? 7 : 1)} className="rounded-full border px-3 py-1 text-sm">Next →</button>
-        </div>
-        <p className="text-sm text-neutral-500">
-          {new Date(rangeStartIso).toLocaleDateString("en-AU", { timeZone: timezone, dateStyle: "medium" })} –{" "}
-          {new Date(new Date(rangeEndIso).getTime() - 1).toLocaleDateString("en-AU", { timeZone: timezone, dateStyle: "medium" })}
-        </p>
-      </div>
-
-      <div className="mt-4 flex flex-wrap gap-2 text-sm">
-        <select value={vehicleFilter} onChange={(e) => setVehicleFilter(e.target.value)} className="rounded-lg border px-3 py-1.5">
-          <option value="">All vehicles</option>
-          {vehicles.map((v) => <option key={v.id} value={v.id}>{v.name}</option>)}
-        </select>
-        <select value={crewFilter} onChange={(e) => setCrewFilter(e.target.value)} className="rounded-lg border px-3 py-1.5">
-          <option value="">All crews</option>
-          {crews.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
-        </select>
-        <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)} className="rounded-lg border px-3 py-1.5">
-          <option value="">All statuses</option>
-          {Object.entries(STATUS_LABELS).map(([value, label]) => <option key={value} value={value}>{label}</option>)}
-        </select>
-        <select value={packageFilter} onChange={(e) => setPackageFilter(e.target.value)} className="rounded-lg border px-3 py-1.5">
-          <option value="">All packages</option>
-          <option value="2">2 Men + Truck</option>
-          <option value="3">3 Men + Truck</option>
-        </select>
-      </div>
-
-      <div className={`mt-6 grid gap-3 ${view === "day" ? "grid-cols-1" : "grid-cols-1 md:grid-cols-7"}`}>
+      <div className="admin-cal-grid" data-view={view}>
         {days.map((dateKey) => (
           <DayColumn
             key={dateKey}
@@ -226,38 +220,33 @@ function DayColumn({ dateKey, timezone, bookings, blocked }: { dateKey: string; 
   const isToday = dateKey === new Date().toLocaleDateString("en-CA", { timeZone: timezone });
 
   return (
-    <div className={`rounded-xl border p-2 ${isToday ? "border-neutral-900" : ""}`}>
-      <p className="mb-2 text-xs font-medium text-neutral-500">{label}{isToday ? " · Today" : ""}</p>
-      <div className="space-y-1.5">
+    <section className="admin-cal-day" data-today={isToday} aria-label={`${label}${isToday ? " (today)" : ""}`}>
+      <p className="admin-cal-day-label">
+        <span>{label}</span>
+        {isToday && <span className="admin-cal-today-pill">Today</span>}
+      </p>
+      <div className="admin-cal-items">
         {blocked.map((b) => {
           const scope = classifyBlockedTime({ vehicleId: b.vehicleId, crewId: b.crewId });
           const scopeLabel = scope === "global" ? "Business closed" : scope === "vehicle" ? `Truck: ${b.vehicleName ?? "?"}` : `Crew: ${b.crewName ?? "?"}`;
           return (
-            <Link
-              key={b.id}
-              href="/admin/availability"
-              className="block rounded-lg border border-dashed border-neutral-400 bg-neutral-50 px-2 py-1 text-xs text-neutral-600"
-              title={b.reason}
-            >
-              <span className="font-medium">{scopeLabel}</span>
+            <Link key={b.id} href="/admin/availability" className="admin-cal-blocked" title={b.reason}>
+              <strong>Blocked · {scopeLabel}</strong>
               <br />{fmtTime(b.startsAt, timezone)}–{fmtTime(b.endsAt, timezone)}
             </Link>
           );
         })}
         {bookings.map((b) => (
-          <Link
-            key={b.id}
-            href={`/admin/bookings/${b.id}`}
-            className={`block rounded-lg border px-2 py-1 text-xs ${STATUS_STYLES[b.status] ?? "border-neutral-300"}`}
-          >
-            <span className="font-medium">{fmtTime(b.startsAt, timezone)}</span> {b.customerName ?? "—"}
-            <br />{packageLabel(b.crewSize)}
-            <br />{b.vehicleName ?? "No truck"} · {b.crewName ?? "No crew"}
-            <br /><span className="font-medium">{STATUS_LABELS[b.status] ?? b.status}</span>
+          <Link key={b.id} href={`/admin/bookings/${b.id}`} className="admin-cal-event" data-tone={statusStyle("booking", b.status).tone}>
+            <span className="admin-cal-event-time">{fmtTime(b.startsAt, timezone)}</span>{" "}
+            <span className="admin-cal-event-name">{b.customerName ?? "—"}</span>
+            <span className="admin-cal-event-meta block">{packageLabel(b.crewSize)}</span>
+            <span className="admin-cal-event-meta block">{b.vehicleName ?? "No truck"} · {b.crewName ?? "No crew"}</span>
+            <AdminStatusBadge status={b.status} />
           </Link>
         ))}
-        {bookings.length === 0 && blocked.length === 0 && <p className="text-xs text-neutral-300">—</p>}
+        {bookings.length === 0 && blocked.length === 0 && <p className="admin-cal-empty">No jobs</p>}
       </div>
-    </div>
+    </section>
   );
 }

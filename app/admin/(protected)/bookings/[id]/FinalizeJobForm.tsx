@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { finalizeJobAction } from "./actions.ts";
+import { AdminAlert } from "../../../_components/ui";
 
 export function FinalizeJobForm({ bookingId, bookingStatus }: { bookingId: string; bookingStatus: string }) {
   const [minutes, setMinutes] = useState("");
@@ -10,15 +11,15 @@ export function FinalizeJobForm({ bookingId, bookingStatus }: { bookingId: strin
 
   if (bookingStatus !== "in_progress") {
     return (
-      <p className="text-xs text-neutral-400">
-        Job finalisation is available once the booking is marked &quot;in progress&quot;.
-      </p>
+      <AdminAlert tone="info">
+        Job completion becomes available once the booking is marked &quot;in progress&quot;.
+      </AdminAlert>
     );
   }
 
   return (
     <form
-      className="flex flex-wrap items-end gap-2"
+      className="grid gap-3"
       onSubmit={(e) => {
         e.preventDefault();
         const value = Number(minutes);
@@ -31,17 +32,19 @@ export function FinalizeJobForm({ bookingId, bookingStatus }: { bookingId: strin
         });
       }}
     >
-      <label className="text-sm">
-        Actual job duration (minutes)
-        <input type="number" min={1} value={minutes} onChange={(e) => setMinutes(e.target.value)} required className="mt-1 block w-40 rounded-lg border px-3 py-2" />
-      </label>
-      <button type="submit" disabled={pending} className="rounded-full bg-neutral-900 px-4 py-2 text-sm text-white disabled:opacity-40">
-        {pending ? "Calculating…" : "Complete Job"}
-      </button>
-      {error && <p className="w-full text-xs text-red-600">{error}</p>}
-      <p className="w-full text-xs text-neutral-400">
-        The final price is calculated server-side from this booking&apos;s frozen pricing snapshot — never from live
-        rates, and never from a client-supplied dollar amount.
+      <div className="flex flex-wrap items-end gap-3">
+        <label className="admin-field w-full sm:w-56">
+          <span className="admin-label">Actual service time (minutes)</span>
+          <input type="number" min={1} inputMode="numeric" value={minutes} onChange={(e) => setMinutes(e.target.value)} required className="admin-input" />
+        </label>
+        <button type="submit" disabled={pending} className="admin-btn admin-btn--primary">
+          {pending ? "Calculating…" : "Complete Job"}
+        </button>
+      </div>
+      {error && <AdminAlert tone="error">{error}</AdminAlert>}
+      <p className="admin-help">
+        Enter the actual time on the job only — the 1-hour call-out is added separately. Billable time is never less than the
+        3-hour minimum. The final price is calculated server-side from this booking&apos;s locked pricing snapshot.
       </p>
     </form>
   );

@@ -5,6 +5,9 @@ import { RescheduleForm } from "./RescheduleForm";
 import { CalendarSyncStatus } from "./CalendarSyncStatus";
 import { NoteForm } from "./NoteForm";
 import { FinalizeJobForm } from "./FinalizeJobForm";
+import { AdminCard, AdminDataList, AdminDataRow, AdminPageHeader, formatAdelaide, formatMoney } from "../../../_components/ui";
+import { AdminStatusBadge } from "../../../_components/AdminStatusBadge";
+import { Icon } from "../../../_components/Icon";
 
 export const dynamic = "force-dynamic";
 export const metadata = { robots: { index: false, follow: false } };
@@ -27,147 +30,174 @@ export default async function AdminBookingDetailPage({ params }: { params: Promi
   const crew = Array.isArray(booking.crews) ? booking.crews[0] : booking.crews;
   const pickup = booking.pickup_address as { formattedAddress?: string; addressLine?: string; suburb?: string } | null;
   const destination = booking.destination_address as { formattedAddress?: string; addressLine?: string; suburb?: string } | null;
+  const snapshot = (booking.pricing_snapshot ?? {}) as { package?: string; ratePer30MinCents?: number };
 
   return (
-    <div className="mx-auto max-w-4xl space-y-8">
-      <div>
-        <h1 className="text-2xl font-semibold">{booking.booking_number}</h1>
-        <p className="text-sm text-neutral-500">Created {new Date(booking.created_at).toLocaleString("en-AU", { timeZone: "Australia/Adelaide" })}</p>
+    <div className="mx-auto max-w-6xl">
+      <AdminPageHeader
+        back={{ href: "/admin/bookings", label: "All bookings" }}
+        eyebrow="Booking"
+        title={booking.booking_number}
+        description={`Created ${formatAdelaide(booking.created_at)}`}
+        actions={
+          <div className="flex flex-wrap items-center gap-2">
+            <AdminStatusBadge status={booking.booking_status} />
+            <AdminStatusBadge kind="payment" status={booking.payment_status} />
+          </div>
+        }
+      />
+
+      <div className="grid gap-5 lg:grid-cols-[minmax(0,1.6fr)_minmax(0,1fr)]">
+        <div className="grid content-start gap-5">
+          <AdminCard icon="user" title="Customer">
+            <AdminDataList>
+              <AdminDataRow label="Name" value={customer?.name} tone="strong" />
+              <AdminDataRow label="Email" value={customer?.email ? <a className="admin-link" href={`mailto:${customer.email}`}>{customer.email}</a> : null} />
+              <AdminDataRow label="Phone" value={customer?.phone ? <a className="admin-link" href={`tel:${customer.phone}`}>{customer.phone}</a> : null} />
+            </AdminDataList>
+          </AdminCard>
+
+          <AdminCard icon="mapPin" title="Move details">
+            <AdminDataList>
+              <AdminDataRow label="Service" value={service?.name} />
+              <AdminDataRow label="Pickup" value={pickup?.formattedAddress ?? `${pickup?.addressLine ?? ""} ${pickup?.suburb ?? ""}`.trim()} />
+              <AdminDataRow label="Destination" value={destination?.formattedAddress ?? `${destination?.addressLine ?? ""} ${destination?.suburb ?? ""}`.trim()} />
+              <AdminDataRow label="Crew size" value={String(booking.crew_size)} />
+              <AdminDataRow label="Customer notes" value={booking.customer_notes} />
+            </AdminDataList>
+          </AdminCard>
+
+          <AdminCard icon="calendar" title="Schedule">
+            <AdminDataList>
+              <AdminDataRow label="Start" value={formatAdelaide(booking.starts_at)} tone="strong" />
+              <AdminDataRow label="End" value={formatAdelaide(booking.ends_at)} />
+              <AdminDataRow label="Estimated duration" value={`${booking.estimated_duration_minutes} minutes`} />
+            </AdminDataList>
+            <RescheduleForm bookingId={booking.id} currentStartsAt={booking.starts_at} />
+          </AdminCard>
+
+          <AdminCard
+            icon="dollar"
+            title="Final job billing"
+            description="3-hour minimum service plus a separate 1-hour call-out. The $100 booking confirmation is credited toward the total."
+          >
+            {booking.finalised_at ? (
+              <div>
+                <div className="admin-billing-parts">
+                  <div className="admin-billing-part">
+                    <p className="admin-billing-part-title"><Icon name="clock" size={15} />Service time</p>
+                    <AdminDataList>
+                      <AdminDataRow label="Actual service time" value={`${booking.actual_duration_minutes} min`} />
+                      <AdminDataRow label="Billable service time" value={`${booking.billable_duration_minutes} min`} />
+                      <AdminDataRow label="Service charge" value={formatMoney(booking.service_charge_cents)} tone="strong" />
+                    </AdminDataList>
+                  </div>
+                  <div className="admin-billing-part">
+                    <p className="admin-billing-part-title"><Icon name="truck" size={15} />Call-out</p>
+                    <AdminDataList>
+                      <AdminDataRow label="Call-out (1 hour)" value={formatMoney(booking.callout_fee_cents)} tone="strong" />
+                    </AdminDataList>
+                    <p className="admin-help mt-1">Truck fuel + basic transport included.</p>
+                  </div>
+                </div>
+                <div className="admin-billing-summary">
+                  <AdminDataList>
+                    <AdminDataRow className="admin-billing-total" label="Final total" value={formatMoney(booking.final_total_cents)} />
+                    <AdminDataRow label="Booking confirmation paid" value={`−${formatMoney(booking.deposit_paid_cents)}`} tone="green" />
+                    <AdminDataRow className="admin-billing-balance" label="Balance remaining" value={formatMoney(booking.balance_due_cents)} />
+                  </AdminDataList>
+                </div>
+                <p className="admin-help mt-3">Finalised {formatAdelaide(booking.finalised_at)}</p>
+              </div>
+            ) : (
+              <FinalizeJobForm bookingId={booking.id} bookingStatus={booking.booking_status} />
+            )}
+          </AdminCard>
+        </div>
+
+        <div className="grid content-start gap-5">
+          <AdminCard icon="activity" title="Status" description="Move the booking through its lifecycle.">
+            <div className="flex flex-wrap items-center gap-2">
+              <AdminStatusBadge status={booking.booking_status} />
+            </div>
+            <StatusControls bookingId={booking.id} currentStatus={booking.booking_status} />
+          </AdminCard>
+
+          <AdminCard icon="truck" title="Resources" description="Reassign from the bookings list.">
+            <AdminDataList>
+              <AdminDataRow label="Vehicle" value={vehicle?.name ?? "Unassigned"} tone={vehicle?.name ? "strong" : "ruby"} />
+              <AdminDataRow label="Crew" value={crew?.name ?? "Unassigned"} tone={crew?.name ? "strong" : "ruby"} />
+            </AdminDataList>
+          </AdminCard>
+
+          <AdminCard icon="dollar" title="Payment">
+            <AdminDataList>
+              <AdminDataRow label="Status" value={<AdminStatusBadge kind="payment" status={booking.payment_status} />} />
+              <AdminDataRow label="Confirmation required" value={formatMoney(booking.deposit_required_cents)} />
+              <AdminDataRow label="Confirmation paid" value={formatMoney(booking.deposit_paid_cents)} tone="green" />
+              <AdminDataRow label="Balance due" value={formatMoney(booking.balance_due_cents)} tone={booking.balance_due_cents > 0 ? "ruby" : "strong"} />
+              <AdminDataRow label="Stripe checkout session" value={booking.current_checkout_session_id} tone="mono" />
+            </AdminDataList>
+          </AdminCard>
+
+          <AdminCard icon="pricing" title="Pricing">
+            <AdminDataList>
+              <AdminDataRow label="Package" value={snapshot.package} />
+              <AdminDataRow label="Rate" value={snapshot.ratePer30MinCents ? `${formatMoney(snapshot.ratePer30MinCents, { decimals: 0 })} / 30 min` : null} />
+              <AdminDataRow label="Estimated / final total" value={formatMoney(booking.subtotal_cents)} tone="strong" />
+            </AdminDataList>
+            <p className="admin-help mt-2">Locked at confirmation — later rate changes never affect this booking.</p>
+          </AdminCard>
+
+          <AdminCard icon="sync" title="Calendar sync">
+            <CalendarSyncStatus bookingId={booking.id} status={booking.calendar_sync_status} error={booking.calendar_sync_error} />
+          </AdminCard>
+
+          <AdminCard icon="bell" title="Notifications">
+            {(notifications ?? []).length === 0 ? (
+              <p className="admin-help">No notifications logged yet.</p>
+            ) : (
+              <ul className="admin-list">
+                {(notifications ?? []).map((n) => (
+                  <li key={n.id} className="border-b py-2 last:border-b-0">
+                    <div className="flex flex-wrap items-center justify-between gap-2">
+                      <span className="text-sm font-semibold">{n.template.replace(/_/g, " ")}</span>
+                      <span className="admin-badge" data-tone={n.status === "sent" ? "success" : "danger"}>
+                        <Icon name={n.status === "sent" ? "check" : "alert"} size={13} />
+                        {n.status}
+                      </span>
+                    </div>
+                    <div className="admin-help break-all">{n.recipient}</div>
+                    {n.error && <div className="mt-1 text-xs font-semibold text-[var(--admin-danger)]">{n.error}</div>}
+                  </li>
+                ))}
+              </ul>
+            )}
+          </AdminCard>
+        </div>
       </div>
 
-      <Section title="Status">
-        <div className="flex flex-wrap items-center gap-3">
-          <Badge>{booking.booking_status}</Badge>
-          <Badge>{booking.payment_status}</Badge>
-        </div>
-        <StatusControls bookingId={booking.id} currentStatus={booking.booking_status} />
-      </Section>
+      <div className="mt-5 grid gap-5 lg:grid-cols-2">
+        <AdminCard icon="note" title="Internal notes" description="Staff only — never shown to the customer.">
+          <pre className="admin-note-box">{booking.internal_notes || "No internal notes yet."}</pre>
+          <NoteForm bookingId={booking.id} />
+        </AdminCard>
 
-      <Section title="Customer">
-        <Row label="Name" value={customer?.name ?? "—"} />
-        <Row label="Email" value={customer?.email ?? "—"} />
-        <Row label="Phone" value={customer?.phone ?? "—"} />
-      </Section>
-
-      <Section title="Move">
-        <Row label="Service" value={service?.name ?? "—"} />
-        <Row label="Pickup" value={pickup?.formattedAddress ?? `${pickup?.addressLine ?? ""} ${pickup?.suburb ?? ""}`} />
-        <Row label="Destination" value={destination?.formattedAddress ?? `${destination?.addressLine ?? ""} ${destination?.suburb ?? ""}`} />
-        <Row label="Crew size" value={String(booking.crew_size)} />
-        <Row label="Customer notes" value={booking.customer_notes ?? "—"} />
-      </Section>
-
-      <Section title="Schedule">
-        <Row label="Start" value={new Date(booking.starts_at).toLocaleString("en-AU", { timeZone: "Australia/Adelaide" })} />
-        <Row label="End" value={new Date(booking.ends_at).toLocaleString("en-AU", { timeZone: "Australia/Adelaide" })} />
-        <Row label="Estimated duration" value={`${booking.estimated_duration_minutes} minutes`} />
-        <RescheduleForm bookingId={booking.id} currentStartsAt={booking.starts_at} />
-      </Section>
-
-      <Section title="Resources">
-        <Row label="Vehicle" value={vehicle?.name ?? "Unassigned"} />
-        <Row label="Crew" value={crew?.name ?? "Unassigned"} />
-      </Section>
-
-      <Section title="Payment">
-        <Row label="Estimated / final total" value={`$${(booking.subtotal_cents / 100).toFixed(2)}`} />
-        <Row label="Booking confirmation required" value={`$${(booking.deposit_required_cents / 100).toFixed(2)}`} />
-        <Row label="Booking confirmation paid" value={`$${(booking.deposit_paid_cents / 100).toFixed(2)}`} />
-        <Row label="Balance due" value={`$${(booking.balance_due_cents / 100).toFixed(2)}`} />
-        <Row label="Payment status" value={booking.payment_status} />
-        <Row label="Stripe checkout session" value={booking.current_checkout_session_id ?? "—"} mono />
-      </Section>
-
-      <Section title="Final job billing">
-        {(() => {
-          const snapshot = (booking.pricing_snapshot ?? {}) as { package?: string; ratePer30MinCents?: number };
-          if (booking.finalised_at) {
-            return (
-              <div className="space-y-4 text-sm">
-                <div>
-                  <p className="text-xs uppercase tracking-wide text-neutral-400">Package</p>
-                  <Row label={snapshot.package ?? "—"} value={snapshot.ratePer30MinCents ? `$${(snapshot.ratePer30MinCents / 100).toFixed(0)} / 30 min` : "—"} />
-                </div>
-                <div>
-                  <p className="text-xs uppercase tracking-wide text-neutral-400">Service</p>
-                  <Row label="Actual duration" value={`${booking.actual_duration_minutes} minutes`} />
-                  <Row label="Billable duration" value={`${booking.billable_duration_minutes} minutes`} />
-                  <Row label="Service charge" value={`$${(booking.service_charge_cents / 100).toFixed(2)}`} />
-                </div>
-                <div>
-                  <p className="text-xs uppercase tracking-wide text-neutral-400">Call-out</p>
-                  <Row label="1 hour" value={`$${(booking.callout_fee_cents / 100).toFixed(2)} — truck fuel + basic transport included`} />
-                </div>
-                <div className="rounded-lg bg-neutral-50 p-3">
-                  <p className="text-xs uppercase tracking-wide text-neutral-400">Final billing</p>
-                  <Row label="Final job total" value={`$${(booking.final_total_cents / 100).toFixed(2)}`} />
-                  <Row label="Booking confirmation paid" value={`-$${(booking.deposit_paid_cents / 100).toFixed(2)}`} />
-                  <Row label="Balance due" value={`$${(booking.balance_due_cents / 100).toFixed(2)}`} />
-                  <Row label="Finalised" value={new Date(booking.finalised_at).toLocaleString("en-AU", { timeZone: "Australia/Adelaide" })} />
-                </div>
-              </div>
-            );
-          }
-          return <FinalizeJobForm bookingId={booking.id} bookingStatus={booking.booking_status} />;
-        })()}
-      </Section>
-
-      <Section title="Calendar sync">
-        <CalendarSyncStatus bookingId={booking.id} status={booking.calendar_sync_status} error={booking.calendar_sync_error} />
-      </Section>
-
-      <Section title="Notifications">
-        <ul className="space-y-1 text-sm">
-          {(notifications ?? []).map((n) => (
-            <li key={n.id}>
-              {n.template} → {n.recipient}: <span className={n.status === "sent" ? "text-green-700" : "text-red-600"}>{n.status}</span>
-              {n.error && <span className="text-neutral-400"> ({n.error})</span>}
-            </li>
-          ))}
-          {(notifications ?? []).length === 0 && <li className="text-neutral-400">No notifications logged yet.</li>}
-        </ul>
-      </Section>
-
-      <Section title="Internal notes">
-        <pre className="whitespace-pre-wrap rounded-lg bg-neutral-50 p-3 text-sm">{booking.internal_notes || "No internal notes yet."}</pre>
-        <NoteForm bookingId={booking.id} />
-      </Section>
-
-      <Section title="Activity">
-        <ol className="space-y-2 border-l pl-4 text-sm">
-          {(events ?? []).map((e) => (
-            <li key={e.id}>
-              <div className="font-medium">{e.event.replace(/_/g, " ")}</div>
-              <div className="text-xs text-neutral-400">{new Date(e.created_at).toLocaleString("en-AU", { timeZone: "Australia/Adelaide" })} · {e.actor ?? "system"}</div>
-            </li>
-          ))}
-          {(events ?? []).length === 0 && <li className="text-neutral-400">No events recorded.</li>}
-        </ol>
-      </Section>
-
-      <p className="text-xs text-neutral-400">Vehicle/crew reassignment available from the bookings list.</p>
+        <AdminCard icon="activity" title="Activity">
+          {(events ?? []).length === 0 ? (
+            <p className="admin-help">No events recorded.</p>
+          ) : (
+            <ol className="admin-timeline">
+              {(events ?? []).map((e) => (
+                <li key={e.id}>
+                  <div className="admin-timeline-title">{e.event.replace(/_/g, " ")}</div>
+                  <div className="admin-timeline-meta">{formatAdelaide(e.created_at)} · {e.actor ?? "system"}</div>
+                </li>
+              ))}
+            </ol>
+          )}
+        </AdminCard>
+      </div>
     </div>
   );
-}
-
-function Section({ title, children }: { title: string; children: React.ReactNode }) {
-  return (
-    <section className="rounded-xl border p-4">
-      <h2 className="mb-3 font-medium">{title}</h2>
-      <div className="space-y-2">{children}</div>
-    </section>
-  );
-}
-
-function Row({ label, value, mono }: { label: string; value: string; mono?: boolean }) {
-  return (
-    <div className="flex justify-between gap-4 border-b py-1 text-sm last:border-b-0">
-      <span className="text-neutral-500">{label}</span>
-      <span className={mono ? "font-mono text-xs" : ""}>{value || "—"}</span>
-    </div>
-  );
-}
-
-function Badge({ children }: { children: React.ReactNode }) {
-  return <span className="rounded-full bg-neutral-100 px-3 py-1 text-xs">{children}</span>;
 }

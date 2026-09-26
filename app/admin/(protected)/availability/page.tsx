@@ -1,9 +1,22 @@
 import { getSupabaseAdmin } from "../../../../lib/server/supabase.ts";
-import { createBlockedTimeAction } from "./actions.ts";
 import { DeleteBlockedTimeButton } from "./DeleteBlockedTimeButton";
+import { BlockTimeForm } from "./BlockTimeForm";
+import { AdminCard, AdminEmptyState, AdminPageHeader, formatAdelaide } from "../../_components/ui";
+import type { IconName } from "../../_components/Icon";
 
 export const dynamic = "force-dynamic";
 export const metadata = { robots: { index: false, follow: false } };
+
+interface BlockedRow {
+  id: string;
+  starts_at: string;
+  ends_at: string;
+  reason: string;
+  vehicleId: string | null;
+  crewId: string | null;
+  vehicleName?: string;
+  crewName?: string;
+}
 
 export default async function AdminAvailabilityPage() {
   const supabase = getSupabaseAdmin();
@@ -16,73 +29,72 @@ export default async function AdminAvailabilityPage() {
     supabase.from("crews").select("id, name").eq("active", true),
   ]);
 
+  const rows: BlockedRow[] = (blocked ?? []).map((b) => ({
+    id: b.id,
+    starts_at: b.starts_at,
+    ends_at: b.ends_at,
+    reason: b.reason,
+    vehicleId: b.vehicle_id,
+    crewId: b.crew_id,
+    vehicleName: Array.isArray(b.vehicles) ? b.vehicles[0]?.name : (b.vehicles as { name: string } | null)?.name,
+    crewName: Array.isArray(b.crews) ? b.crews[0]?.name : (b.crews as { name: string } | null)?.name,
+  }));
+  const groups: { title: string; icon: IconName; empty: string; items: BlockedRow[] }[] = [
+    { title: "Entire business", icon: "ban", empty: "The business isn't closed for any period.", items: rows.filter((r) => !r.vehicleId && !r.crewId) },
+    { title: "Vehicles", icon: "truck", empty: "No vehicles are blocked.", items: rows.filter((r) => r.vehicleId) },
+    { title: "Crews", icon: "crew", empty: "No crews are blocked.", items: rows.filter((r) => !r.vehicleId && r.crewId) },
+  ];
+
   return (
-    <div className="mx-auto max-w-3xl">
-      <h1 className="text-2xl font-semibold">Availability</h1>
-      <p className="mt-1 text-sm text-neutral-500">
-        Blocked times immediately affect what customers can select on /book — a block with no vehicle or crew
-        selected closes the entire business for that window.
-      </p>
+    <div className="mx-auto max-w-6xl">
+      <AdminPageHeader
+        title="Availability"
+        description="Blocked times immediately remove slots customers can book online. Closing the entire business blocks every truck and crew."
+        actions={<a href="#block-time" className="admin-btn admin-btn--primary">Block time</a>}
+      />
 
-      <ul className="mt-6 divide-y rounded-xl border">
-        {(blocked ?? []).map((b) => {
-          const vehicleName = Array.isArray(b.vehicles) ? b.vehicles[0]?.name : (b.vehicles as { name: string } | null)?.name;
-          const crewName = Array.isArray(b.crews) ? b.crews[0]?.name : (b.crews as { name: string } | null)?.name;
-          const scope = vehicleName ? `Truck: ${vehicleName}` : crewName ? `Crew: ${crewName}` : "Entire business";
-          return (
-            <li key={b.id} className="flex items-center justify-between px-4 py-3 text-sm">
-              <div>
-                <div className="font-medium">{scope}</div>
-                <div className="text-neutral-500">
-                  {new Date(b.starts_at).toLocaleString("en-AU", { timeZone: "Australia/Adelaide" })} → {new Date(b.ends_at).toLocaleString("en-AU", { timeZone: "Australia/Adelaide" })}
-                </div>
-                <div className="text-neutral-400">{b.reason}</div>
-              </div>
-              <DeleteBlockedTimeButton id={b.id} />
-            </li>
-          );
-        })}
-        {(blocked ?? []).length === 0 && <li className="px-4 py-8 text-center text-neutral-400">No blocked times.</li>}
-      </ul>
-
-      <form action={createBlockedTimeAction} className="mt-8 space-y-3 rounded-xl border p-4">
-        <h2 className="font-medium">Block time</h2>
-        <div className="grid grid-cols-2 gap-3">
-          <label className="block text-sm">
-            Start
-            <input type="datetime-local" name="starts_at" required className="mt-1 w-full rounded-lg border px-3 py-2" />
-          </label>
-          <label className="block text-sm">
-            End
-            <input type="datetime-local" name="ends_at" required className="mt-1 w-full rounded-lg border px-3 py-2" />
-          </label>
+      <div className="grid gap-5 lg:grid-cols-[minmax(0,1.3fr)_minmax(0,1fr)]">
+        <div className="grid content-start gap-5">
+          {rows.length === 0 ? (
+            <AdminCard>
+              <AdminEmptyState
+                icon="availability"
+                title="No blocked times"
+                description="Every active truck and crew is bookable during business hours."
+              />
+            </AdminCard>
+          ) : (
+            groups.map((group) => (
+              <AdminCard key={group.title} icon={group.icon} title={group.title} description={`${group.items.length} blocked period${group.items.length === 1 ? "" : "s"}`} flush>
+                {group.items.length === 0 ? (
+                  <p className="admin-help px-5 py-4">{group.empty}</p>
+                ) : (
+                  <ul className="admin-list">
+                    {group.items.map((b) => (
+                      <li key={b.id} className="admin-list-item admin-blocked-item">
+                        <div className="min-w-0">
+                          <div className="admin-list-title">{b.vehicleId ? `Truck: ${b.vehicleName ?? "Unknown"}` : b.crewId ? `Crew: ${b.crewName ?? "Unknown"}` : "Entire business"}</div>
+                          <div className="admin-list-meta">
+                            <span className="font-semibold text-[var(--admin-text-secondary)]">{formatAdelaide(b.starts_at, { dateStyle: "medium" })}</span>
+                            {" · "}
+                            {formatAdelaide(b.starts_at, { timeStyle: "short" })} → {formatAdelaide(b.ends_at, { dateStyle: "medium", timeStyle: "short" })}
+                          </div>
+                          <div className="admin-list-meta">{b.reason}</div>
+                        </div>
+                        <DeleteBlockedTimeButton id={b.id} />
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </AdminCard>
+            ))
+          )}
         </div>
-        <label className="block text-sm">
-          Scope
-          <select name="scope" className="mt-1 w-full rounded-lg border px-3 py-2">
-            <option value="all">Entire business</option>
-            <option value="vehicle">Specific vehicle</option>
-            <option value="crew">Specific crew</option>
-          </select>
-        </label>
-        <label className="block text-sm">
-          Vehicle or crew (only used if scope above isn&apos;t &quot;Entire business&quot;)
-          <select name="resource_id" className="mt-1 w-full rounded-lg border px-3 py-2">
-            <option value="">—</option>
-            <optgroup label="Vehicles">
-              {(vehicles ?? []).map((v) => <option key={v.id} value={v.id}>{v.name}</option>)}
-            </optgroup>
-            <optgroup label="Crews">
-              {(crews ?? []).map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
-            </optgroup>
-          </select>
-        </label>
-        <label className="block text-sm">
-          Reason (internal only)
-          <input name="reason" required placeholder="e.g. Truck maintenance" className="mt-1 w-full rounded-lg border px-3 py-2" />
-        </label>
-        <button type="submit" className="rounded-full bg-neutral-900 px-5 py-2 text-sm text-white">Block time</button>
-      </form>
+
+        <AdminCard id="block-time" icon="plus" title="Block time" description="Close the business, or take one truck or crew out of service." className="scroll-mt-20 self-start">
+          <BlockTimeForm vehicles={vehicles ?? []} crews={crews ?? []} />
+        </AdminCard>
+      </div>
     </div>
   );
 }

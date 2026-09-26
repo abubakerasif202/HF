@@ -1,5 +1,6 @@
 import { getSupabaseAdmin } from "../../../../lib/server/supabase.ts";
 import { BookingRow } from "./BookingRow";
+import { AdminCard, AdminEmptyState, AdminPageHeader } from "../../_components/ui";
 
 export const dynamic = "force-dynamic";
 export const metadata = { robots: { index: false, follow: false } };
@@ -16,42 +17,51 @@ export default async function AdminBookingsPage() {
     supabase.from("crews").select("id, name").eq("active", true),
   ]);
 
-  return (
-    <div className="mx-auto max-w-6xl">
-      <h1 className="text-2xl font-semibold">Bookings</h1>
+  const rows = bookings ?? [];
 
-      <div className="mt-6 overflow-x-auto">
-        <table className="w-full min-w-[900px] text-left text-sm">
-          <thead>
-            <tr className="border-b text-neutral-500">
-              <th className="py-2">Booking #</th>
-              <th>Date</th>
-              <th>Customer</th>
-              <th>Pickup → Destination</th>
-              <th>Truck</th>
-              <th>Crew</th>
-              <th>Payment</th>
-              <th>Status</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {(bookings ?? []).map((booking) => (
-              <BookingRow
-                key={booking.id}
-                booking={{ ...booking, customers: Array.isArray(booking.customers) ? (booking.customers[0] ?? null) : booking.customers }}
-                vehicles={vehicles ?? []}
-                crews={crews ?? []}
-              />
-            ))}
-            {(bookings ?? []).length === 0 && (
-              <tr>
-                <td colSpan={9} className="py-8 text-center text-neutral-400">No bookings yet.</td>
-              </tr>
-            )}
-          </tbody>
-        </table>
-      </div>
+  return (
+    <div className="mx-auto max-w-7xl">
+      <AdminPageHeader
+        title="Bookings"
+        description="Manage confirmed, pending and completed customer moves. Assign a truck and crew straight from the list."
+      />
+
+      <AdminCard flush>
+        {rows.length === 0 ? (
+          <AdminEmptyState
+            icon="bookings"
+            title="No bookings yet"
+            description="Online bookings appear here as soon as a customer reserves a time."
+          />
+        ) : (
+          <div className="admin-table-wrap">
+            <table className="admin-table admin-table--stack min-[900px]:min-w-[980px]">
+              <thead>
+                <tr>
+                  <th scope="col">Booking #</th>
+                  <th scope="col">Date</th>
+                  <th scope="col">Customer</th>
+                  <th scope="col">Pickup → Destination</th>
+                  <th scope="col">Truck &amp; crew</th>
+                  <th scope="col">Payment</th>
+                  <th scope="col">Status</th>
+                  <th scope="col"><span className="sr-only">Actions</span></th>
+                </tr>
+              </thead>
+              <tbody>
+                {rows.map((booking) => (
+                  <BookingRow
+                    key={booking.id}
+                    booking={{ ...booking, customers: Array.isArray(booking.customers) ? (booking.customers[0] ?? null) : booking.customers }}
+                    vehicles={vehicles ?? []}
+                    crews={crews ?? []}
+                  />
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </AdminCard>
     </div>
   );
 }

@@ -7,24 +7,27 @@ export function CrewToggle({ crewId, active }: { crewId: string; active: boolean
   const [pending, startTransition] = useTransition();
   return (
     <button
+      type="button"
       disabled={pending}
       onClick={() => startTransition(() => setCrewActiveAction(crewId, !active))}
-      className={`rounded-full px-3 py-1 text-xs ${active ? "bg-green-100 text-green-700" : "bg-neutral-100 text-neutral-500"}`}
+      className="admin-btn admin-btn--secondary admin-btn--sm"
     >
-      {active ? "Active" : "Inactive"}
+      {pending ? "Saving…" : active ? "Deactivate crew" : "Activate crew"}
     </button>
   );
 }
 
-export function CrewMemberToggle({ memberId, active }: { memberId: string; active: boolean }) {
+export function CrewMemberToggle({ memberId, active, name }: { memberId: string; active: boolean; name: string }) {
   const [pending, startTransition] = useTransition();
   return (
     <button
+      type="button"
       disabled={pending}
       onClick={() => startTransition(() => setCrewMemberActiveAction(memberId, !active))}
-      className={`text-xs underline ${active ? "text-neutral-500" : "text-neutral-300"}`}
+      className="admin-btn admin-btn--ghost admin-btn--sm"
+      aria-label={`${active ? "Deactivate" : "Activate"} ${name}`}
     >
-      {active ? "active" : "inactive"}
+      {pending ? "Saving…" : active ? "Deactivate" : "Activate"}
     </button>
   );
 }

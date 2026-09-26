@@ -9,7 +9,7 @@ export function NoteForm({ bookingId }: { bookingId: string }) {
 
   return (
     <form
-      className="mt-3 flex gap-2"
+      className="mt-4 grid gap-3"
       onSubmit={(e) => {
         e.preventDefault();
         const note = ref.current?.value.trim();
@@ -20,8 +20,15 @@ export function NoteForm({ bookingId }: { bookingId: string }) {
         });
       }}
     >
-      <textarea ref={ref} rows={2} placeholder="Add an internal note (never shown to the customer)" className="flex-1 rounded-lg border px-3 py-2 text-sm" />
-      <button type="submit" disabled={pending} className="rounded-full border px-4 py-2 text-sm">Add</button>
+      <label className="admin-field">
+        <span className="admin-label">Add a note</span>
+        <textarea ref={ref} rows={3} placeholder="Access details, customer requests, follow-ups…" className="admin-input" />
+      </label>
+      <div>
+        <button type="submit" disabled={pending} className="admin-btn admin-btn--secondary admin-btn--sm">
+          {pending ? "Saving…" : "Add note"}
+        </button>
+      </div>
     </form>
   );
 }

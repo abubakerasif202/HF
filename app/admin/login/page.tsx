@@ -2,17 +2,37 @@ import { redirect } from "next/navigation";
 import { getStaffSession } from "../../../lib/server/supabase-ssr.ts";
 import { isBookingSystemLive } from "../../../lib/server/config.ts";
 import { LoginForm } from "./LoginForm";
+import { Icon } from "../_components/Icon";
 
 export const dynamic = "force-dynamic";
 export const metadata = { robots: { index: false, follow: false } };
 
+function LoginCard({ children }: { children: React.ReactNode }) {
+  return (
+    <main className="admin-shell admin-login">
+      <div className="admin-card admin-login-card">
+        <div className="admin-brand">
+          <span className="admin-brand-mark" aria-hidden="true">HF</span>
+          <span>
+            <span className="admin-brand-name">HF Removals Adelaide</span>
+            <span className="admin-brand-sub">Staff portal</span>
+          </span>
+        </div>
+        {children}
+      </div>
+    </main>
+  );
+}
+
 export default async function AdminLoginPage() {
   if (!isBookingSystemLive()) {
     return (
-      <main className="admin-shell mx-auto max-w-md px-6 py-24 text-center">
-        <h1 className="text-xl font-semibold">Admin is not configured yet</h1>
-        <p className="mt-4 text-neutral-500">Supabase and Stripe must be configured before staff accounts can sign in.</p>
-      </main>
+      <LoginCard>
+        <h1 className="admin-login-title">Staff portal unavailable</h1>
+        <p className="admin-login-text">
+          Staff sign-in hasn&apos;t been switched on for this site yet. Please contact the site administrator.
+        </p>
+      </LoginCard>
     );
   }
 
@@ -20,13 +40,13 @@ export default async function AdminLoginPage() {
   if (session) redirect("/admin/bookings");
 
   return (
-    <main className="admin-shell mx-auto max-w-md px-6 py-24">
-      <h1 className="text-2xl font-semibold">Staff sign in</h1>
-      <p className="mt-2 text-sm text-neutral-500">
-        Public sign-up is disabled. Staff accounts are created directly in Supabase Auth and added to the
-        <code className="mx-1 rounded bg-neutral-100 px-1">staff</code> table by an admin.
+    <LoginCard>
+      <h1 className="admin-login-title">Staff sign in</h1>
+      <p className="admin-login-text">
+        <Icon name="lock" size={14} className="mr-1 inline-block align-[-2px]" />
+        Staff access only. Sign in with your HF Removals administrator account.
       </p>
       <LoginForm />
-    </main>
+    </LoginCard>
   );
 }
