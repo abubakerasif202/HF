@@ -347,6 +347,10 @@ function PricingSection() {
             </article>
           ))}
         </div>
+        <p className="pricing-disclosure">
+          3-hour minimum booking + 1-hour call-out fee. Call-out includes truck fuel and basic transport charges.
+          Final price is calculated upon completion of the job based on actual billable time.
+        </p>
 
         <div className="interstate-table">
           <div className="table-intro">

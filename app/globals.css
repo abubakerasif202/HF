@@ -1633,6 +1633,13 @@ p {
   grid-template-columns: 1fr 1fr;
   gap: 24px;
 }
+.pricing-disclosure {
+  margin-top: 20px;
+  font-size: 0.85rem;
+  line-height: 1.5;
+  color: rgba(255, 255, 255, 0.65);
+  text-align: center;
+}
 .price-card {
   position: relative;
   padding: 36px;
