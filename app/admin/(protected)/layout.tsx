@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
-import { getStaffSession } from "../../lib/server/supabase-ssr.ts";
-import { isBookingSystemLive } from "../../lib/server/config.ts";
+import { getStaffSession } from "../../../lib/server/supabase-ssr.ts";
+import { isBookingSystemLive } from "../../../lib/server/config.ts";
 import { AdminNav } from "./AdminNav";
 
 export const dynamic = "force-dynamic";

@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
-import { signOutAction } from "./actions.ts";
+import { signOutAction } from "../actions.ts";
 
 interface NavItem {
   href: string;

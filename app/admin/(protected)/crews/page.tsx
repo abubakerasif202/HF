@@ -1,4 +1,4 @@
-import { getSupabaseAdmin } from "../../../lib/server/supabase.ts";
+import { getSupabaseAdmin } from "../../../../lib/server/supabase.ts";
 import { createCrewAction, addCrewMemberAction } from "./actions.ts";
 import { CrewToggle, CrewMemberToggle } from "./CrewToggle";
 

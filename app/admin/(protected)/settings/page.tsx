@@ -1,4 +1,4 @@
-import { getSupabaseAdmin } from "../../../lib/server/supabase.ts";
+import { getSupabaseAdmin } from "../../../../lib/server/supabase.ts";
 import { SettingsForm } from "./SettingsForm";
 
 export const dynamic = "force-dynamic";

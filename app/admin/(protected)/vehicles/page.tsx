@@ -1,4 +1,4 @@
-import { getSupabaseAdmin } from "../../../lib/server/supabase.ts";
+import { getSupabaseAdmin } from "../../../../lib/server/supabase.ts";
 import { createVehicleAction } from "./actions.ts";
 import { VehicleToggle } from "./VehicleToggle";
 

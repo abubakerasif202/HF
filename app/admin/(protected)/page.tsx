@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { getSupabaseAdmin } from "../../lib/server/supabase.ts";
+import { getSupabaseAdmin } from "../../../lib/server/supabase.ts";
 
 export const dynamic = "force-dynamic";
 export const metadata = { robots: { index: false, follow: false } };
