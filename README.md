@@ -65,9 +65,26 @@ Every booking freezes this policy into its own `pricing_snapshot` at payment tim
 
 ### 2. Payments (Stripe)
 
-Set `STRIPE_SECRET_KEY` and `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY`. After first deploying, create a webhook endpoint in the Stripe dashboard pointing at `https://<your-domain>/api/stripe/webhook`, subscribed to `checkout.session.completed`, `checkout.session.async_payment_succeeded` and `checkout.session.expired`; copy its signing secret into `STRIPE_WEBHOOK_SECRET`. **The webhook — not the success-page redirect — is what confirms a booking**, so this step is required even in testing.
+Set `STRIPE_SECRET_KEY` and `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY`.
 
-To test locally: `stripe listen --forward-to localhost:3000/api/stripe/webhook` prints a temporary webhook secret to use as `STRIPE_WEBHOOK_SECRET` for local dev.
+**Production webhook endpoint:**
+
+```
+https://<your-production-domain>/api/stripe/webhook
+```
+
+In the Stripe dashboard (live mode), create a webhook endpoint at that URL subscribed to exactly these events:
+
+- `checkout.session.completed`
+- `checkout.session.async_payment_succeeded`
+- `checkout.session.async_payment_failed`
+- `checkout.session.expired`
+
+Copy the endpoint's signing secret into `STRIPE_WEBHOOK_SECRET` (never commit it; set it in your hosting provider's environment variable settings). **The webhook — not the success-page redirect — is what confirms a booking**, so this is required even in testing, and `STRIPE_WEBHOOK_SECRET` is required server-side for the route to accept any event at all.
+
+To test locally: `stripe listen --forward-to localhost:3000/api/stripe/webhook` prints a temporary webhook secret to use as `STRIPE_WEBHOOK_SECRET` for local dev — use Stripe **test mode** keys for this, never a live secret key.
+
+If a Stripe secret key or webhook signing secret was ever pasted into a chat, a document, or any non-`.env.local` location, treat it as compromised and roll it in the Stripe dashboard before using it again.
 
 ### 3. Email (Resend) — optional
 
@@ -90,13 +107,16 @@ Once Supabase + Stripe are configured, staff sign in at `/admin/login`. All rout
 | `/admin` | Dashboard — today/tomorrow jobs, pending payment, confirmed, unassigned truck, outstanding balance, "needs attention" list |
 | `/admin/bookings` | List, filter, assign vehicle/crew, cancel |
 | `/admin/bookings/[id]` | Full detail: customer/move/schedule/resources/payment, reschedule (re-checks availability), status transitions, calendar sync retry, internal notes, event history, **Complete Job** (finalises the real price from actual duration) |
+| `/admin/calendar` | Internal operational calendar — day/week/month, reads from Supabase only (see below) |
 | `/admin/vehicles` | Add/activate/deactivate vehicles |
 | `/admin/crews` | Add/activate/deactivate crews and crew members |
 | `/admin/availability` | Block time (whole business, one vehicle, or one crew) |
 | `/admin/pricing` | Per-crew-size rate CRUD (does not affect already-confirmed bookings — see pricing snapshots above) |
 | `/admin/settings` | Hours, hold/lead/horizon/buffer, booking-number prefix, deposit policy |
 
-No internal day/week/month calendar view exists yet — bookings are managed via the list and detail pages. The Google Calendar Appointment Scheduling widget on `/book` is a separate, supplementary contact/scheduling option (see below); it is not this admin calendar.
+### Internal admin calendar (`/admin/calendar`)
+
+Day/week/month views, queried directly from Supabase for the visible date range only (never the whole `bookings` table) — this works whether or not Google Calendar is configured. Week defaults to the current Mon–Sun week in `Australia/Adelaide`; each day is an agenda column showing time, customer, package, vehicle, crew and status (status is shown as text + border style, never colour alone). Filters: vehicle, crew, status, package. Blocked times render distinctly from bookings and correctly distinguish a global business closure from a vehicle- or crew-only block (a crew-only block never reads as "business closed"). Clicking any booking opens `/admin/bookings/[id]`; clicking a blocked time opens `/admin/availability`. This is a separate integration from both the Google Calendar API sync and the Google Appointment Scheduling widget — see below.
 
 ### Google Calendar — two distinct integrations
 
@@ -105,7 +125,8 @@ No internal day/week/month calendar view exists yet — bookings are managed via
 
 ### What was verified vs. not
 
-- Domain logic (pricing incl. the exact 3hr-minimum/1hr-callout/$100-confirmation formula, availability, Adelaide timezone incl. the DST-boundary bug found and fixed, the booking status state machine) has 31 passing unit tests: `npm test`.
+- Domain logic (pricing incl. the exact 3hr-minimum/1hr-callout/$100-confirmation formula, availability, Adelaide timezone incl. the DST-boundary bug found and fixed, the booking status state machine, webhook decision logic, calendar date-range/timezone math) has 83 passing unit tests: `npm test`.
 - **Database-level verification was actually performed**, twice: once against a local Postgres 17 container (matching Supabase's engine version) with the Supabase standard roles/grants recreated, and again against the real hosted Supabase project this repo is linked to — every migration was applied via the Supabase MCP tool and re-verified with live queries (double-booking rejected for the same vehicle/crew, allowed for a different one, expired holds release their slot, concurrent requests for the same slot leave exactly one winner, RLS denies anon/non-staff and allows staff, RPCs are unreachable by anon/authenticated).
-- A genuine Stripe test-mode checkout end-to-end run was **not completed** in this session (deprioritized mid-session in favor of finishing admin setup) — Stripe test keys are wired into `.env.local` and `stripe listen` was confirmed available, but no live webhook round-trip was captured. Do this once before relying on the payment flow in production.
+- A genuine Stripe test-mode checkout end-to-end run has **still not been completed** — test keys are wired into `.env.local` and `stripe listen` was confirmed available, but no live webhook round-trip was captured in any session so far. The webhook's decision logic (amount/currency validation, stale-session handling, out-of-order events) is unit tested in isolation from Stripe/Supabase, which is not a substitute for one real round trip. Do this once before relying on the payment flow in production.
+- `/admin/calendar` was verified by code review and its underlying date-range/timezone/blocked-time-classification logic (10 unit tests), not by an interactive browser session — no visual/mobile-responsiveness check was performed this pass.
 - The full production build succeeds and all existing site tests still pass with the booking system fully configured (real Supabase project) as well as fully unconfigured (fallback state).

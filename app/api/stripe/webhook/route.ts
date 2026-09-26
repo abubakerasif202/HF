@@ -5,18 +5,42 @@ import { hasProcessedStripeEvent, markStripeEventProcessed, confirmBookingPaymen
 import { getSupabaseAdmin } from "../../../../lib/server/supabase.ts";
 import { sendBookingConfirmedEmail, notifyAdminOfConflict } from "../../../../lib/server/notifications.ts";
 import { syncBookingToCalendar } from "../../../../lib/server/google-calendar.ts";
+import { decideCheckoutSessionCompleted, decideCheckoutSessionExpired } from "../../../../lib/booking/webhook-validation.ts";
 import type Stripe from "stripe";
 
 export const dynamic = "force-dynamic";
+
+function toBookingForValidation(booking: Awaited<ReturnType<typeof getBookingById>>) {
+  if (!booking) return null;
+  return {
+    id: booking.id as string,
+    bookingStatus: booking.booking_status as string,
+    currentCheckoutSessionId: (booking.current_checkout_session_id as string | null) ?? null,
+    depositRequiredCents: booking.deposit_required_cents as number,
+  };
+}
+
+async function logMismatch(bookingId: string, eventId: string, reason: string) {
+  await getSupabaseAdmin().from("booking_events").insert({
+    booking_id: bookingId,
+    event: "payment_amount_mismatch",
+    actor: "stripe_webhook",
+    metadata: { stripe_event_id: eventId, reason },
+  });
+  const booking = await getBookingById(bookingId);
+  if (booking) await notifyAdminOfConflict(booking).catch(() => {});
+}
 
 /**
  * Stripe webhook — the ONLY source of truth for payment confirmation.
  * The /booking/success redirect page never confirms a booking on its own;
  * it only displays whatever state this webhook has already written.
  *
- * Idempotency: every event.id is recorded in `stripe_events` before any
- * side effect, so a retried delivery (Stripe retries on non-2xx or
- * timeout) is a safe no-op.
+ * Idempotency: every event.id is recorded in `stripe_events` ONLY after
+ * its side effects complete successfully, so a retried delivery (Stripe
+ * retries on non-2xx or timeout) safely re-runs to completion rather than
+ * being silently skipped mid-way (see markStripeEventProcessed usage
+ * below — never called before the try block finishes).
  */
 export async function POST(request: NextRequest) {
   if (!isBookingSystemLive() || !stripeConfig.isWebhookConfigured()) {
@@ -26,13 +50,16 @@ export async function POST(request: NextRequest) {
   const signature = request.headers.get("stripe-signature");
   if (!signature) return NextResponse.json({ error: "Missing signature" }, { status: 400 });
 
-  // Signature verification requires the raw, unparsed body.
+  // Signature verification requires the raw, unparsed body — never JSON.parse
+  // (or otherwise transform) the body before this call.
   const rawBody = await request.text();
 
   let event: Stripe.Event;
   try {
     event = getStripe().webhooks.constructEvent(rawBody, signature, stripeConfig.webhookSecret());
   } catch (error) {
+    // Never log the signature, the webhook secret, or the raw body here —
+    // only the (safe, non-secret) verification failure message.
     return NextResponse.json({ error: `Invalid signature: ${(error as Error).message}` }, { status: 400 });
   }
 
@@ -44,29 +71,44 @@ export async function POST(request: NextRequest) {
     if (event.type === "checkout.session.completed" || event.type === "checkout.session.async_payment_succeeded") {
       const session = event.data.object as Stripe.Checkout.Session;
       const bookingId = session.metadata?.booking_id;
-      if (!bookingId) return NextResponse.json({ received: true, warning: "no booking_id in metadata" });
+      const booking = bookingId ? await getBookingById(bookingId) : null;
 
-      if (session.payment_status !== "paid") {
-        // e.g. a delayed payment method still pending — nothing to confirm yet.
+      const decision = decideCheckoutSessionCompleted(
+        {
+          sessionId: session.id,
+          sessionMetadataBookingId: bookingId,
+          paymentStatus: session.payment_status,
+          amountTotalCents: session.amount_total,
+          currency: session.currency,
+        },
+        toBookingForValidation(booking),
+      );
+
+      if (decision.action === "no_booking_id") {
+        return NextResponse.json({ received: true, warning: "no matching booking" });
+      }
+      if (decision.action === "ignore_stale_session" || decision.action === "ignore_not_yet_paid") {
         await markStripeEventProcessed(event.id, event.type);
-        return NextResponse.json({ received: true, note: "payment not yet paid" });
+        return NextResponse.json({ received: true, note: decision.reason });
+      }
+      if (decision.action === "reject_mismatch") {
+        // Never confirm on an amount/currency we didn't expect. This is a
+        // final decision (not a transient failure), so mark the event
+        // processed to avoid an endless Stripe retry loop, and surface it
+        // to a human instead of silently accepting the payment.
+        await logMismatch(bookingId!, event.id, decision.reason);
+        await markStripeEventProcessed(event.id, event.type);
+        return NextResponse.json({ received: true, warning: decision.reason }, { status: 200 });
       }
 
-      const booking = await getBookingById(bookingId);
-      if (booking && booking.current_checkout_session_id && booking.current_checkout_session_id !== session.id) {
-        // This event belongs to a superseded session (the customer
-        // retried and got a newer one). The newer session is what
-        // actually owns the booking now; ignore this stale event rather
-        // than risk re-confirming or double-recording a payment.
-        await markStripeEventProcessed(event.id, event.type);
-        return NextResponse.json({ received: true, note: "stale checkout session, ignored" });
-      }
-
+      // decision.action === "confirm" — bookingId and booking are non-null here.
       const amountPaid = session.amount_total ?? 0;
       const paymentIntentId = typeof session.payment_intent === "string" ? session.payment_intent : (session.payment_intent?.id ?? null);
 
+      // Payment record + booking status flip are the authoritative DB
+      // confirmation; both happen before any external side effect below.
       await recordPayment({
-        bookingId,
+        bookingId: bookingId!,
         checkoutSessionId: session.id,
         paymentIntentId,
         amountCents: amountPaid,
@@ -74,7 +116,7 @@ export async function POST(request: NextRequest) {
         status: "paid",
       });
 
-      const confirmed = await confirmBookingPayment(bookingId, amountPaid);
+      const confirmed = await confirmBookingPayment(bookingId!, amountPaid);
 
       if (confirmed.booking_status !== "confirmed") {
         // The slot was released (hold/session expired, or the booking was
@@ -88,27 +130,52 @@ export async function POST(request: NextRequest) {
         });
         await notifyAdminOfConflict(confirmed).catch(() => {});
       } else {
+        // External side effects run AFTER the authoritative DB write, and
+        // their failure never un-confirms the booking (each is caught
+        // independently and logged via its own notifications/booking
+        // fields for retry).
         await sendBookingConfirmedEmail(confirmed).catch(() => {});
         await syncBookingToCalendar(confirmed).catch(() => {});
+      }
+    } else if (event.type === "checkout.session.async_payment_failed") {
+      const session = event.data.object as Stripe.Checkout.Session;
+      const bookingId = session.metadata?.booking_id;
+      if (bookingId) {
+        const paymentIntentId = typeof session.payment_intent === "string" ? session.payment_intent : (session.payment_intent?.id ?? null);
+        await recordPayment({
+          bookingId,
+          checkoutSessionId: session.id,
+          paymentIntentId,
+          amountCents: session.amount_total ?? 0,
+          currency: session.currency ?? "aud",
+          status: "failed",
+        });
+        await getSupabaseAdmin().from("booking_events").insert({
+          booking_id: bookingId,
+          event: "payment_failed",
+          actor: "stripe_webhook",
+          metadata: { stripe_event_id: event.id, checkout_session_id: session.id },
+        });
+        // Booking stays `pending_payment` — the customer can retry via
+        // /booking/cancel's "Retry payment", which creates a fresh session.
       }
     } else if (event.type === "checkout.session.expired") {
       const session = event.data.object as Stripe.Checkout.Session;
       const bookingId = session.metadata?.booking_id;
-      if (bookingId) {
-        const booking = await getBookingById(bookingId);
-        // Only expire the booking if THIS session is still its current
-        // one — a superseded session's expiry must not cancel a booking
-        // that has since been retried under a newer session.
-        if (booking && booking.booking_status === "pending_payment" && booking.current_checkout_session_id === session.id) {
-          await getSupabaseAdmin().from("bookings").update({ booking_status: "expired" }).eq("id", bookingId).eq("booking_status", "pending_payment");
-          await getSupabaseAdmin().from("booking_events").insert({ booking_id: bookingId, event: "hold_expired", actor: "stripe_webhook" });
-        }
+      const booking = bookingId ? await getBookingById(bookingId) : null;
+      const { shouldExpire } = decideCheckoutSessionExpired(
+        { sessionId: session.id, sessionMetadataBookingId: bookingId, paymentStatus: session.payment_status, amountTotalCents: session.amount_total, currency: session.currency },
+        toBookingForValidation(booking),
+      );
+      if (shouldExpire && bookingId) {
+        await getSupabaseAdmin().from("bookings").update({ booking_status: "expired" }).eq("id", bookingId).eq("booking_status", "pending_payment");
+        await getSupabaseAdmin().from("booking_events").insert({ booking_id: bookingId, event: "hold_expired", actor: "stripe_webhook" });
       }
     }
   } catch (error) {
     // Do NOT mark the event processed — Stripe will retry, and the next
     // attempt must re-run these side effects, not skip them.
-    console.error("stripe webhook handling failed", event.id, event.type, error);
+    console.error("stripe webhook handling failed", event.id, event.type, (error as Error).message);
     return NextResponse.json({ error: "Internal error processing webhook" }, { status: 500 });
   }
 
