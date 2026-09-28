@@ -283,6 +283,7 @@ export function BookingWizard() {
                 <button
                   key={slot.startsAt}
                   disabled={isUnavailable}
+                  aria-pressed={isSelected}
                   onClick={() => setSelectedSlot(slot)}
                   title={slot.reason}
                   className={`rounded-lg border px-2 py-2 text-sm ${isUnavailable ? "cursor-not-allowed border-neutral-100 text-neutral-300" : isSelected ? "border-neutral-900 bg-neutral-900 text-white" : slot.state === "limited" ? "border-amber-400" : "border-neutral-300"}`}

@@ -48,12 +48,12 @@
   --text-primary: var(--hf-ivory);
   --text-secondary: var(--hf-text-muted);
   --text-muted: rgba(163, 184, 175, 0.72);
-  --border-default: rgba(163, 184, 175, 0.28);
-  --border-strong: rgba(163, 184, 175, 0.5);
+  --border-default: rgba(163, 184, 175, 0.6);
+  --border-strong: rgba(163, 184, 175, 0.72);
   --booking-input-surface: rgba(255, 255, 255, 0.05);
   --booking-bg: var(--hf-green-950);
   --surface-elevated: rgba(255, 255, 255, 0.07);
-  --ruby-hover: var(--hf-ruby-500);
+  --ruby-hover: var(--hf-ruby-700);
   --danger: var(--hf-ruby-400);
   --success: #34d399;
   --ease-premium: cubic-bezier(0.16, 1, 0.3, 1);
@@ -414,12 +414,18 @@ p {
 .button:disabled,
 .button[aria-disabled="true"] {
   cursor: not-allowed;
-  opacity: 0.58;
+  opacity: 1;
   transform: none;
   box-shadow: none;
 }
+.button-ruby:disabled,
+.button-ruby[aria-disabled="true"] {
+  border-color: var(--hf-ruby-700);
+  background: var(--hf-ruby-800);
+  color: var(--hf-white);
+}
 .button-ruby {
-  background: linear-gradient(120deg, var(--ruby-dark) 0%, var(--ruby) 38%, var(--hf-ruby-500) 52%, var(--ruby-dark) 100%);
+  background: linear-gradient(120deg, var(--ruby-dark) 0%, var(--ruby) 38%, var(--hf-ruby-600) 52%, var(--ruby-dark) 100%);
   background-size: 220% 100%;
   color: var(--hf-white);
   border-color: rgba(255, 151, 166, 0.4);
@@ -3803,9 +3809,9 @@ p {
 .booking-shell .text-neutral-500 { color: var(--text-muted) !important; }
 /* text-neutral-300 is deliberately used only for disabled/unavailable
    controls (e.g. an already-booked time slot) — WCAG's contrast minimums
-   don't apply to disabled content, so this stays visibly dim rather than
-   being boosted to the muted token, which would make it read as active. */
-.booking-shell .text-neutral-300 { color: rgba(247, 245, 239, 0.38) !important; }
+   don't apply to disabled content, but it must remain readable. Keep it
+   distinct through the disabled surface and cursor rather than transparency. */
+.booking-shell .text-neutral-300 { color: var(--text-muted) !important; }
 
 /* Danger / destructive text (Cancel links, error copy) directly on the
    dark background needs a brighter red than Tailwind's red-600/700. */
@@ -3852,11 +3858,33 @@ p {
   color: var(--text-primary);
   border-color: var(--border-default);
 }
+.booking-shell select option {
+  background: var(--hf-paper);
+  color: var(--hf-text-dark);
+}
+.booking-shell select option:hover {
+  background: var(--hf-ivory);
+  color: var(--hf-text-dark);
+}
+.booking-shell select option:checked {
+  background: var(--ruby);
+  color: var(--hf-white);
+}
 .booking-shell input::placeholder, .booking-shell textarea::placeholder { color: var(--text-muted); }
-.booking-shell input:hover, .booking-shell select:hover, .booking-shell textarea:hover { border-color: var(--border-strong); }
+.booking-shell input:hover, .booking-shell select:hover, .booking-shell textarea:hover { border-color: var(--border-strong) !important; }
 .booking-shell input:disabled, .booking-shell select:disabled, .booking-shell textarea:disabled, .booking-shell button:disabled {
-  opacity: 0.55;
+  opacity: 1;
   cursor: not-allowed;
+}
+.booking-shell button:disabled {
+  background-color: var(--surface-elevated);
+  border-color: var(--border-default);
+  color: var(--text-muted);
+}
+.booking-shell button:disabled.bg-neutral-900 {
+  background: var(--surface-elevated) !important;
+  border-color: var(--border-default) !important;
+  color: var(--text-muted) !important;
 }
 .booking-shell input:focus-visible, .booking-shell select:focus-visible, .booking-shell textarea:focus-visible,
 .booking-shell button:focus-visible, .booking-shell a:focus-visible {
@@ -3881,6 +3909,7 @@ p {
 .job-section-heading .eyebrow { margin-bottom: 8px; color: var(--ruby-dark); }
 .job-section-number { display: grid; place-items: center; width: 42px; height: 42px; flex: 0 0 auto; border-radius: 50%; background: var(--ruby); color: white; font: 700 .8rem var(--font-ui); box-shadow: 0 8px 18px rgba(201, 29, 59, .23); }
 .job-form-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px 20px; }
+.job-form-container :focus-visible { outline: 3px solid var(--ruby-dark); outline-offset: 2px; }
 .job-field { display: flex; flex-direction: column; gap: 8px; min-width: 0; color: var(--hf-text-dark); font-size: .8rem; font-weight: 850; letter-spacing: .035em; }
 .job-field > span, .job-field-heading > span { text-transform: none; }
 .job-field b, .job-field-heading b { color: var(--ruby); }
@@ -3908,7 +3937,7 @@ p {
 .job-field-heading { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 8px; color: var(--hf-text-dark); font-size: .8rem; font-weight: 850; }
 .job-clear { min-height: 40px; padding: 8px 14px; border: 1px solid rgba(5,20,13,.24); border-radius: 7px; background: white; color: var(--hf-green-900); font-size: .78rem; font-weight: 800; cursor: pointer; }
 .job-clear:hover:not(:disabled) { border-color: var(--ruby); color: var(--ruby-dark); }
-.job-clear:disabled { cursor: not-allowed; opacity: .45; }
+.job-clear:disabled { cursor: not-allowed; opacity: 1; color: var(--hf-text-dark); background: var(--hf-ivory); border-color: #7a8b80; }
 .signature-canvas { display: block; width: 100%; height: 220px; margin-top: 14px; border: 1px dashed var(--ruby); border-radius: 10px; background: linear-gradient(135deg, var(--hf-green-950), #0b2f20); touch-action: none; cursor: crosshair; }
 .job-output { display: flex; align-items: center; background: #f8f5ed; font-weight: 750; }
 .job-signing-details { display: grid; align-content: start; gap: 20px; }
@@ -3916,7 +3945,7 @@ p {
 .job-status { min-height: 24px; color: #53615a; font-size: .86rem; font-weight: 700; }
 .job-status.error { color: #9b132b; }.job-status.success { color: #087044; }
 .job-action-buttons { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 12px; }
-.job-action-buttons .button { min-height: 50px; cursor: pointer; }.job-action-buttons .button:disabled { cursor: wait; opacity: .65; }
+.job-action-buttons .button { min-height: 50px; cursor: pointer; }.job-action-buttons .button:disabled { cursor: wait; opacity: 1; }
 .job-success { padding: 28px; border: 1px solid #82c5a5; border-radius: 14px; background: #edf9f1; color: #123d29; }
 .job-success .eyebrow { margin-bottom: 8px; color: #087044; }.job-success h2 { margin: 0 0 8px; color: #123d29; font-size: 2rem; }.job-success p:last-child { margin: 0; line-height: 1.6; }
 @media (max-width: 700px) { .job-form-grid, .job-signature-grid, .job-totals { grid-template-columns: 1fr; }.job-actions { align-items: stretch; flex-direction: column; }.job-action-buttons { justify-content: stretch; }.job-action-buttons .button { flex: 1 1 100%; }.job-hero { padding-top: 38px; }.job-form-container { width: calc(100% - 28px); padding-top: 14px; }.job-form-card { border-radius: 12px; padding: 20px 16px; }.terms-panel { max-height: 340px; padding-left: 34px; }.signature-canvas { height: 190px; } }
