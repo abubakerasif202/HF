@@ -71,7 +71,7 @@ test("renders the premium HF homepage without placeholder claims", async () => {
   assert.match(html, /\$79/);
   assert.match(html, /\$119\.43/);
   assert.match(html, /5\.0 Google rating/i);
-  assert.match(html, /442(?:<!-- -->)? reviews/i);
+  assert.match(html, /451(?:<!-- -->)? reviews/i);
   assert.match(html, /7:00 am–8:00 pm daily/i);
   assert.doesNotMatch(html, /24\/7|24h Enquiries/i);
   assert.match(html, /25–45 m³/i);
@@ -178,7 +178,7 @@ test("keeps verified rates, coverage wording and canonical route inventory centr
   assert.match(data, /per m³/);
   assert.match(data, /Up to \$1,000,000 Public Liability & Transit Insurance/);
   assert.match(data, /rating: 5\.0/);
-  assert.match(data, /reviewCount: 442/);
+  assert.match(data, /reviewCount: 451/);
   assert.match(data, /verifiedAt: "2026-09-20"/);
   assert.match(data, /hoursVerifiedAt: "2026-08-27"/);
   assert.doesNotMatch(data, /adelaide-(?:western-sydney|smithfield|brisbane|canberra)/);
