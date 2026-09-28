@@ -14,7 +14,10 @@ export type BookingStatus =
   | "cancelled"
   | "expired";
 
-export type PaymentStatus = "pending" | "deposit_paid" | "paid" | "failed" | "refunded" | "partially_refunded";
+/** `not_required` = no advance payment was required or collected (every
+ * booking made after the advance payment was retired). `deposit_paid` /
+ * `paid` only ever describe money that was genuinely received. */
+export type PaymentStatus = "pending" | "not_required" | "deposit_paid" | "paid" | "failed" | "refunded" | "partially_refunded";
 
 export interface PricingRule {
   crewSize: number;
@@ -43,6 +46,9 @@ export interface BusinessSettings {
    * job's price (truck fuel + basic transport), billed at the same
    * per-30-minute rate as the job itself — never a separate flat fee. */
   calloutMinutes: number;
+  /** Legacy deposit configuration. No longer read when pricing new
+   * bookings — no advance payment is required. Kept only so historical
+   * settings rows still map cleanly. */
   depositType: "fixed" | "percentage" | null;
   depositFixedAmountCents: number | null;
   depositPercentage: number | null;
@@ -71,18 +77,43 @@ export interface QuoteResult {
   /** serviceChargeCents + calloutFeeCents, after any weekend/holiday multiplier. */
   finalTotalCents: number;
   multiplier: number;
-  /** Always the fixed $100 booking-confirmation amount — never derived
-   * from finalTotalCents, and never charged twice. */
-  bookingConfirmationCents: number;
-  /** finalTotalCents - bookingConfirmationCents, floored at 0. This is an
-   * ESTIMATE at booking time (actual duration isn't known yet) and a
-   * REAL figure once staff finalise the job (see finalizeJob logic). */
+  /** Amount payable before the move. Always 0: no advance payment is
+   * required for online bookings. */
+  advancePaymentCents: 0;
+  /** Equal to finalTotalCents — nothing is paid up-front, so the whole
+   * (estimated) total is the balance. An ESTIMATE at booking time; the
+   * real figure is computed when staff finalise the job. */
   estimatedBalanceCents: number;
   currency: "aud";
   /** True only when every input needed to produce a real quote is configured. */
   isFullyConfigured: boolean;
   /** Human-readable reasons a figure is an estimate rather than final. */
   caveats: string[];
+}
+
+/** Frozen at confirmation time so later rate/policy changes never alter
+ * a booking's price. Historical (Stripe-era) snapshots carry
+ * `bookingConfirmationCents`; new ones carry `advancePaymentCents: 0`. */
+export interface PricingSnapshot {
+  package?: string;
+  ratePer30MinCents?: number;
+  minimumBookingMinutes?: number;
+  calloutMinutes?: number;
+  advancePaymentRequired?: boolean;
+  advancePaymentCents?: number;
+  /** Legacy: the $100 confirmation amount on historical bookings. */
+  bookingConfirmationCents?: number;
+}
+
+export interface FinalBilling {
+  billableDurationMinutes: number;
+  serviceChargeCents: number;
+  calloutFeeCents: number;
+  finalTotalCents: number;
+  /** Money genuinely received before the job (0 for no-payment bookings). */
+  amountPaidCents: number;
+  balanceDueCents: number;
+  paymentStatus: PaymentStatus;
 }
 
 export interface BusyInterval {

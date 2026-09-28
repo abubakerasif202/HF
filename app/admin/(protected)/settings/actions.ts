@@ -31,9 +31,9 @@ export async function updateBusinessSettingsAction(formData: FormData): Promise<
       throw new Error("Closing time must be after opening time.");
     }
 
-    // Stripe Checkout's expires_at floor is 30 minutes; the hold must
-    // never be shorter than the Checkout session it backs (see the
-    // migration comment on business_settings.booking_hold_minutes).
+    // The DB check constraint floors the hold at 30 minutes (originally
+    // for Stripe Checkout, which is no longer used). Kept as-is: the
+    // customer still needs time to review and confirm.
     const bookingHoldMinutes = toIntOrThrow(formData.get("booking_hold_minutes"), "Hold duration", 30);
     const minBookingLeadHours = toIntOrThrow(formData.get("min_booking_lead_hours"), "Minimum lead time", 0);
     const maxBookingHorizonDays = toIntOrThrow(formData.get("max_booking_horizon_days"), "Maximum booking horizon", 1);
@@ -41,32 +41,9 @@ export async function updateBusinessSettingsAction(formData: FormData): Promise<
     const schedulingBufferMinutes = toIntOrThrow(formData.get("scheduling_buffer_minutes"), "Scheduling buffer", 0);
     const bookingNumberPrefix = String(formData.get("booking_number_prefix") ?? "").trim() || "HF";
 
-    const depositEnabled = formData.get("deposit_enabled") === "on";
-    const depositType = depositEnabled ? String(formData.get("deposit_type") ?? "") : null;
-    let depositFixedAmountCents: number | null = null;
-    let depositPercentage: number | null = null;
-    let minDepositAmountCents: number | null = null;
-
-    if (depositEnabled) {
-      if (depositType !== "fixed" && depositType !== "percentage") {
-        throw new Error("Choose a deposit type.");
-      }
-      if (depositType === "fixed") {
-        const dollars = Number(formData.get("deposit_fixed_amount"));
-        if (!Number.isFinite(dollars) || dollars <= 0) throw new Error("Fixed deposit must be a positive amount.");
-        depositFixedAmountCents = Math.round(dollars * 100);
-      } else {
-        const pct = Number(formData.get("deposit_percentage"));
-        if (!Number.isFinite(pct) || pct <= 0 || pct > 100) throw new Error("Deposit percentage must be between 0 and 100.");
-        depositPercentage = pct;
-      }
-      const minDollars = formData.get("min_deposit_amount");
-      if (minDollars && String(minDollars).trim() !== "") {
-        const n = Number(minDollars);
-        if (!Number.isFinite(n) || n < 0) throw new Error("Minimum deposit cannot be negative.");
-        minDepositAmountCents = Math.round(n * 100);
-      }
-    }
+    // Deposit settings are no longer edited here: online bookings take no
+    // advance payment. The legacy deposit_* columns are deliberately left
+    // out of this update so saving settings never rewrites them.
 
     const businessAdminEmail = String(formData.get("booking_admin_email") ?? "").trim() || null;
     if (businessAdminEmail && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(businessAdminEmail)) {
@@ -84,10 +61,6 @@ export async function updateBusinessSettingsAction(formData: FormData): Promise<
         default_estimated_duration_minutes: defaultEstimatedDurationMinutes,
         scheduling_buffer_minutes: schedulingBufferMinutes,
         booking_number_prefix: bookingNumberPrefix,
-        deposit_type: depositType,
-        deposit_fixed_amount_cents: depositFixedAmountCents,
-        deposit_percentage: depositPercentage,
-        min_deposit_amount_cents: minDepositAmountCents,
         booking_admin_email: businessAdminEmail,
       })
       .eq("id", true);

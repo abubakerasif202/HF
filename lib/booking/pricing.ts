@@ -1,4 +1,4 @@
-import type { BusinessSettings, PricingRule, QuoteInput, QuoteResult } from "./types.ts";
+import type { BusinessSettings, FinalBilling, PaymentStatus, PricingRule, PricingSnapshot, QuoteInput, QuoteResult } from "./types.ts";
 import { instantToZonedParts } from "./timezone.ts";
 
 /** Confirmed HF Removals Adelaide package names, derived from crew size —
@@ -9,6 +9,10 @@ export function packageNameForCrewSize(crewSize: number): string {
   if (crewSize === 3) return "3 Men + Truck";
   return `${crewSize} Men + Truck`;
 }
+
+/** Customer-facing pricing policy line, shown alongside every quote. */
+export const PRICING_POLICY_NOTE =
+  "No advance payment required. 3-hour minimum service + 1-hour call-out fee. The call-out covers truck fuel and basic transport charges. Additional service time is billed in 30-minute increments at your selected package rate. Your final price is calculated after your move is completed.";
 
 /**
  * Server-authoritative price calculation for the confirmed HF Removals
@@ -22,9 +26,10 @@ export function packageNameForCrewSize(crewSize: number): string {
  *   - A 1-hour call-out (truck fuel + basic transport) is added to every
  *     job, billed at the SAME per-30-minute rate as the job — not a
  *     separate flat fee, so it never drifts from the canonical rate.
- *   - finalTotal = serviceCharge + calloutFee. The $100 booking
- *     confirmation is a fixed amount, always credited toward this total,
- *     never added on top.
+ *   - finalTotal = serviceCharge + calloutFee.
+ *   - No advance payment: nothing is collected before the move, so the
+ *     balance is the whole total. The legacy deposit settings are
+ *     deliberately never read here.
  *
  * All money math is integer cents throughout; no floating-point.
  */
@@ -34,9 +39,7 @@ export function calculateQuote(
   settings: BusinessSettings,
   timeZone: string,
 ): QuoteResult {
-  const caveats: string[] = [
-    "3-hour minimum service + 1-hour call-out fee. The call-out covers truck fuel and basic transport charges. Additional service time is billed in 30-minute increments at your selected package rate. Your final price is calculated when the job is completed. The $100 booking confirmation payment is credited toward your final balance.",
-  ];
+  const caveats: string[] = [PRICING_POLICY_NOTE];
 
   if (!rule) {
     return {
@@ -49,7 +52,7 @@ export function calculateQuote(
       calloutFeeCents: 0,
       finalTotalCents: 0,
       multiplier: 1,
-      bookingConfirmationCents: 0,
+      advancePaymentCents: 0,
       estimatedBalanceCents: 0,
       currency: "aud",
       isFullyConfigured: false,
@@ -58,15 +61,9 @@ export function calculateQuote(
   }
 
   // Integer-cent, 30-minute-unit arithmetic throughout — no floating point.
-  const billableServiceMinutes = Math.max(
-    Math.ceil(input.actualDurationMinutes / 30) * 30,
-    settings.minimumBookingMinutes,
-  );
-  const serviceUnits = billableServiceMinutes / 30;
-  const serviceChargeCentsBase = serviceUnits * rule.ratePer30MinCents;
-
-  const calloutUnits = settings.calloutMinutes / 30;
-  const calloutFeeCentsBase = calloutUnits * rule.ratePer30MinCents;
+  const billableServiceMinutes = billableMinutes(input.actualDurationMinutes, settings.minimumBookingMinutes);
+  const serviceChargeCentsBase = (billableServiceMinutes / 30) * rule.ratePer30MinCents;
+  const calloutFeeCentsBase = (settings.calloutMinutes / 30) * rule.ratePer30MinCents;
 
   const { weekday } = instantToZonedParts(input.startsAt, timeZone);
   const isWeekend = weekday === 0 || weekday === 6;
@@ -83,22 +80,6 @@ export function calculateQuote(
   const calloutFeeCents = Math.round(calloutFeeCentsBase * multiplier);
   const finalTotalCents = serviceChargeCents + calloutFeeCents;
 
-  let bookingConfirmationCents = 0;
-  let isFullyConfigured = true;
-
-  if (settings.depositType === "fixed" && settings.depositFixedAmountCents) {
-    bookingConfirmationCents = settings.depositFixedAmountCents;
-  } else if (settings.depositType === "percentage" && settings.depositPercentage) {
-    bookingConfirmationCents = Math.round((finalTotalCents * settings.depositPercentage) / 100);
-  } else {
-    isFullyConfigured = false;
-    caveats.unshift("Booking confirmation payment is not configured yet — this booking cannot take a payment until an admin sets it.");
-  }
-
-  if (settings.minDepositAmountCents && bookingConfirmationCents < settings.minDepositAmountCents) {
-    bookingConfirmationCents = settings.minDepositAmountCents;
-  }
-
   return {
     packageName: packageNameForCrewSize(input.crewSize),
     ratePer30MinCents: rule.ratePer30MinCents,
@@ -109,11 +90,71 @@ export function calculateQuote(
     calloutFeeCents,
     finalTotalCents,
     multiplier,
-    bookingConfirmationCents,
-    // Deliberately never negative: floor(0), never finalTotal + confirmation.
-    estimatedBalanceCents: Math.max(finalTotalCents - bookingConfirmationCents, 0),
+    advancePaymentCents: 0,
+    estimatedBalanceCents: finalTotalCents,
     currency: "aud",
-    isFullyConfigured,
+    isFullyConfigured: true,
     caveats,
   };
+}
+
+/** max(actual rounded UP to a 30-minute unit, minimum). */
+function billableMinutes(actualDurationMinutes: number, minimumBookingMinutes: number): number {
+  return Math.max(Math.ceil(actualDurationMinutes / 30) * 30, minimumBookingMinutes);
+}
+
+/**
+ * The policy frozen onto a booking when it is confirmed. Finalisation
+ * reads only this snapshot, never live pricing_rules, so a later rate
+ * change can't rewrite a booking's price.
+ */
+export function buildPricingSnapshot(quote: QuoteResult): PricingSnapshot {
+  return {
+    package: quote.packageName,
+    ratePer30MinCents: quote.ratePer30MinCents,
+    minimumBookingMinutes: quote.minimumBookingMinutes,
+    calloutMinutes: quote.calloutMinutes,
+    advancePaymentRequired: false,
+    advancePaymentCents: 0,
+  };
+}
+
+/**
+ * Final job billing from the staff-entered ACTUAL duration, against the
+ * booking's frozen pricing snapshot.
+ *
+ * `amountPaidCents` must be the money genuinely recorded against the
+ * booking (bookings.deposit_paid_cents): 10000 for a historical booking
+ * that paid the old $100 confirmation, 0 for every no-payment booking.
+ * It is deducted exactly once — nothing here assumes a global "$100 was
+ * paid" rule.
+ */
+export function computeFinalBilling(
+  snapshot: PricingSnapshot,
+  actualDurationMinutes: number,
+  amountPaidCents: number,
+  currentPaymentStatus: PaymentStatus,
+): FinalBilling {
+  if (!Number.isInteger(actualDurationMinutes) || actualDurationMinutes <= 0) {
+    throw new Error("Actual duration must be a positive whole number of minutes.");
+  }
+  const ratePer30MinCents = snapshot.ratePer30MinCents;
+  if (!ratePer30MinCents) {
+    throw new Error("This booking has no pricing snapshot to finalise against.");
+  }
+  const minimumBookingMinutes = snapshot.minimumBookingMinutes ?? 180;
+  const calloutMinutes = snapshot.calloutMinutes ?? 60;
+  const paid = Math.max(amountPaidCents, 0);
+
+  const billableDurationMinutes = billableMinutes(actualDurationMinutes, minimumBookingMinutes);
+  const serviceChargeCents = (billableDurationMinutes / 30) * ratePer30MinCents;
+  const calloutFeeCents = (calloutMinutes / 30) * ratePer30MinCents;
+  const finalTotalCents = serviceChargeCents + calloutFeeCents;
+  const balanceDueCents = Math.max(finalTotalCents - paid, 0);
+
+  // Never claim money was received when it wasn't: a booking that paid
+  // nothing up-front keeps its existing status (normally not_required).
+  const paymentStatus: PaymentStatus = paid > 0 ? (balanceDueCents > 0 ? "deposit_paid" : "paid") : currentPaymentStatus;
+
+  return { billableDurationMinutes, serviceChargeCents, calloutFeeCents, finalTotalCents, amountPaidCents: paid, balanceDueCents, paymentStatus };
 }

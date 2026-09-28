@@ -45,11 +45,15 @@ These are the real, verified HF Removals Adelaide policy, encoded server-side (`
 - **3 Men + Truck:** $99 / 30 min ($198/hr)
 - **Minimum booking:** 3 hours (180 min), enforced regardless of actual job length
 - **Call-out:** 1 hour, billed at the job's own per-30-minute rate (never a separate flat fee) — includes truck fuel and basic transport charges
-- **Booking confirmation:** a fixed $100 payment via Stripe Checkout, always credited toward the final job total, never added on top
+- **No advance payment:** customers confirm their booking online without paying anything up-front — no deposit, no card, no Stripe. The final balance of a new booking is the full final job total
 - **Final price** is only known once the job is complete — the online booking total is always an estimate until staff finalise it in `/admin/bookings/[id]` ("Complete Job")
 - **Booking hours:** earliest booking start 5am, last booking start 6pm (a job may run later than 6pm — this bounds when a job can *start*, not when the truck must be back)
 
-Every booking freezes this policy into its own `pricing_snapshot` at payment time, so a later rate change never rewrites a historical booking's total.
+Every booking freezes this policy into its own `pricing_snapshot` when it is confirmed, so a later rate change never rewrites a booking's total.
+
+**Booking flow:** Move Details → Pickup & Destination → Date & Availability → Your Details (creates a temporary server-side hold) → Review & Confirm → **Confirm Booking** (`POST /api/booking/confirm`) → `/booking/success`. Confirmation is done by the service-role-only RPC `confirm_booking_without_payment` (migration `0011`), which checks the booking's access token, `held` status and hold expiry in one atomic update, sets `payment_status = 'not_required'`, and is idempotent — a double-click confirms once and sends one email / one calendar sync.
+
+**Historical bookings:** bookings made while the old $100 booking-confirmation payment was in place keep their real recorded payment (`deposit_paid_cents`, `payments`, `stripe_events`). Final billing always deducts the amount actually recorded on that booking — $100 for those, $0 for every new booking.
 
 ### 1. Database (Supabase)
 
@@ -61,30 +65,15 @@ Every booking freezes this policy into its own `pricing_snapshot` at payment tim
    ```
 3. Create at least one **staff** account: create the user in Supabase Auth (dashboard → Authentication → Users, or the Admin API), then insert a matching row in the `staff` table with that user's `id`. Public sign-up is intentionally not wired up — staff accounts are provisioned this way only.
 4. Add at least one row to `vehicles` (`active = true`) — with none, availability always reports "unavailable" and holds are refused with a clear 503.
-5. `business_settings` and `pricing_rules` already seed the confirmed policy above (rates, 3-hour minimum, 1-hour call-out, $100 fixed booking confirmation, 5am–6pm hours). Adjust only if the real business policy changes.
+5. `business_settings` and `pricing_rules` already seed the confirmed policy above (rates, 3-hour minimum, 1-hour call-out, 5am–6pm hours). The `deposit_*` columns are legacy and are no longer read for new bookings. Adjust only if the real business policy changes.
 
-### 2. Payments (Stripe)
+### 2. Stripe — legacy / optional, not required for booking
 
-Set `STRIPE_SECRET_KEY` and `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY`.
+Online booking takes **no advance payment**, so `STRIPE_SECRET_KEY`, `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY` and `STRIPE_WEBHOOK_SECRET` are **not required** — the booking system goes live with Supabase alone. No new booking ever enters Stripe Checkout (`/api/booking/checkout` returns `410 Gone`).
 
-**Production webhook endpoint:**
+`/api/stripe/webhook` is kept **dormant** for historical compatibility only: if all three Stripe variables are set, it still processes late events for genuine historical Checkout sessions, but it ignores any event whose session id doesn't match the booking's recorded `current_checkout_session_id` — which is always null for no-payment bookings — so it can never transition a new booking. If you no longer need it, leave the Stripe variables unset (the route then answers 503) and remove the endpoint from the Stripe dashboard. The `payments` and `stripe_events` tables and the old payment columns are intentionally kept so historical records stay readable.
 
-```
-https://<your-production-domain>/api/stripe/webhook
-```
-
-In the Stripe dashboard (live mode), create a webhook endpoint at that URL subscribed to exactly these events:
-
-- `checkout.session.completed`
-- `checkout.session.async_payment_succeeded`
-- `checkout.session.async_payment_failed`
-- `checkout.session.expired`
-
-Copy the endpoint's signing secret into `STRIPE_WEBHOOK_SECRET` (never commit it; set it in your hosting provider's environment variable settings). **The webhook — not the success-page redirect — is what confirms a booking**, so this is required even in testing, and `STRIPE_WEBHOOK_SECRET` is required server-side for the route to accept any event at all.
-
-To test locally: `stripe listen --forward-to localhost:3000/api/stripe/webhook` prints a temporary webhook secret to use as `STRIPE_WEBHOOK_SECRET` for local dev — use Stripe **test mode** keys for this, never a live secret key.
-
-If a Stripe secret key or webhook signing secret was ever pasted into a chat, a document, or any non-`.env.local` location, treat it as compromised and roll it in the Stripe dashboard before using it again.
+If a Stripe secret key or webhook signing secret was ever pasted into a chat, a document, or any non-`.env.local` location, treat it as compromised and roll it in the Stripe dashboard.
 
 ### 3. Email (Resend) — optional
 
@@ -96,15 +85,15 @@ Set `GOOGLE_CALENDAR_ID`, `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `GOOGLE_RE
 
 ### 5. Scheduled hold expiry
 
-Set `CRON_SECRET` and add a Vercel Cron entry (`vercel.json`) hitting `/api/cron/expire-holds` every few minutes with that secret as a Bearer token. This is a backstop — holds also expire inline whenever the next customer tries to book the same vehicle/time — but without the cron job an abandoned hold can squat on a slot until someone else attempts that exact slot again.
+Holds are still required — they reserve the truck while the customer reviews and confirms (default 30 minutes, `business_settings.booking_hold_minutes`). Set `CRON_SECRET` and add a Vercel Cron entry (`vercel.json`) hitting `/api/cron/expire-holds` every few minutes with that secret as a Bearer token. This is a backstop — holds also expire inline whenever the next customer tries to book the same vehicle/time — but without the cron job an abandoned hold can squat on a slot until someone else attempts that exact slot again.
 
 ### Admin dashboard
 
-Once Supabase + Stripe are configured, staff sign in at `/admin/login`. All routes are `noindex` and excluded from `robots.txt`:
+Once Supabase is configured, staff sign in at `/admin/login`. All routes are `noindex` and excluded from `robots.txt`:
 
 | Route | Purpose |
 | --- | --- |
-| `/admin` | Dashboard — today/tomorrow jobs, pending payment, confirmed, unassigned truck, outstanding balance, "needs attention" list |
+| `/admin` | Dashboard — today/tomorrow jobs, awaiting confirmation (live holds), confirmed, unassigned truck, outstanding final balance, "needs attention" list |
 | `/admin/bookings` | List, filter, assign vehicle/crew, cancel |
 | `/admin/bookings/[id]` | Full detail: customer/move/schedule/resources/payment, reschedule (re-checks availability), status transitions, calendar sync retry, internal notes, event history, **Complete Job** (finalises the real price from actual duration) |
 | `/admin/calendar` | Internal operational calendar — day/week/month, reads from Supabase only (see below) |
@@ -112,7 +101,7 @@ Once Supabase + Stripe are configured, staff sign in at `/admin/login`. All rout
 | `/admin/crews` | Add/activate/deactivate crews and crew members |
 | `/admin/availability` | Block time (whole business, one vehicle, or one crew) |
 | `/admin/pricing` | Per-crew-size rate CRUD (does not affect already-confirmed bookings — see pricing snapshots above) |
-| `/admin/settings` | Hours, hold/lead/horizon/buffer, booking-number prefix, deposit policy |
+| `/admin/settings` | Hours, hold/lead/horizon/buffer, booking-number prefix (no deposit settings — advance payment is not required) |
 
 ### Internal admin calendar (`/admin/calendar`)
 
@@ -125,8 +114,8 @@ Day/week/month views, queried directly from Supabase for the visible date range 
 
 ### What was verified vs. not
 
-- Domain logic (pricing incl. the exact 3hr-minimum/1hr-callout/$100-confirmation formula, availability, Adelaide timezone incl. the DST-boundary bug found and fixed, the booking status state machine, webhook decision logic, calendar date-range/timezone math) has 83 passing unit tests: `npm test`.
+- Domain logic (pricing incl. the exact 3hr-minimum/1hr-callout formula, no-advance-payment confirmation, final billing for new vs historical $100 bookings, availability, Adelaide timezone incl. the DST-boundary bug found and fixed, the booking status state machine, webhook decision logic, calendar date-range/timezone math) is covered by unit tests: `npm test`.
 - **Database-level verification was actually performed**, twice: once against a local Postgres 17 container (matching Supabase's engine version) with the Supabase standard roles/grants recreated, and again against the real hosted Supabase project this repo is linked to — every migration was applied via the Supabase MCP tool and re-verified with live queries (double-booking rejected for the same vehicle/crew, allowed for a different one, expired holds release their slot, concurrent requests for the same slot leave exactly one winner, RLS denies anon/non-staff and allows staff, RPCs are unreachable by anon/authenticated).
-- A genuine Stripe test-mode checkout end-to-end run has **still not been completed** — test keys are wired into `.env.local` and `stripe listen` was confirmed available, but no live webhook round-trip was captured in any session so far. The webhook's decision logic (amount/currency validation, stale-session handling, out-of-order events) is unit tested in isolation from Stripe/Supabase, which is not a substitute for one real round trip. Do this once before relying on the payment flow in production.
+- The Stripe payment flow has been retired from booking; the dormant webhook's decision logic (including "never touch a booking without a recorded Checkout session") is unit tested.
 - `/admin/calendar` was verified by code review and its underlying date-range/timezone/blocked-time-classification logic (10 unit tests), not by an interactive browser session — no visual/mobile-responsiveness check was performed this pass.
 - The full production build succeeds and all existing site tests still pass with the booking system fully configured (real Supabase project) as well as fully unconfigured (fallback state).

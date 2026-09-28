@@ -93,7 +93,7 @@ export function BookingRow({ booking, vehicles, crews }: { booking: Booking; veh
         <div>
           <AdminStatusBadge kind="payment" status={booking.payment_status} />
           <div className="admin-cell-sub whitespace-nowrap">
-            {formatMoney(booking.deposit_paid_cents, { decimals: 0 })} paid ·{" "}
+            {booking.deposit_paid_cents > 0 ? `${formatMoney(booking.deposit_paid_cents, { decimals: 0 })} paid` : "No advance payment"} ·{" "}
             <span className={booking.balance_due_cents > 0 ? "font-bold text-[var(--admin-ruby-text)]" : undefined}>
               {formatMoney(booking.balance_due_cents, { decimals: 0 })} due
             </span>

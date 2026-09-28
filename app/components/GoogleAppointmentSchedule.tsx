@@ -9,8 +9,8 @@ const APPOINTMENT_SRC =
  * Google Calendar Appointment Scheduling widget. This is a SUPPLEMENTARY
  * scheduling/contact option, never the booking system of record — the
  * Supabase-backed /book wizard remains the only thing that creates a
- * database hold, locks a vehicle/crew, or takes the $100 booking
- * confirmation payment. Nothing here writes to `bookings`.
+ * database hold, locks a vehicle/crew, or confirms a booking. Nothing
+ * here writes to `bookings`.
  *
  * Lazy: the iframe only mounts after the person opts in, so it never
  * costs the page a network request or third-party cookie unless used.

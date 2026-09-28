@@ -28,14 +28,16 @@ export default async function AdminDashboardPage() {
   const [
     { count: todayCount },
     { count: tomorrowCount },
-    { count: pendingCount },
+    { count: awaitingCount },
     { count: confirmedCount },
     { data: unassigned },
     { data: attentionRows },
   ] = await Promise.all([
     supabase.from("bookings").select("id", { count: "exact", head: true }).gte("starts_at", today.start).lt("starts_at", today.end).not("booking_status", "in", "(cancelled,expired)"),
     supabase.from("bookings").select("id", { count: "exact", head: true }).gte("starts_at", tomorrow.start).lt("starts_at", tomorrow.end).not("booking_status", "in", "(cancelled,expired)"),
-    supabase.from("bookings").select("id", { count: "exact", head: true }).eq("booking_status", "pending_payment"),
+    // Customers mid-wizard: a live hold they haven't confirmed yet (plus
+    // any legacy Stripe-era pending_payment row).
+    supabase.from("bookings").select("id", { count: "exact", head: true }).in("booking_status", ["held", "pending_payment"]),
     supabase.from("bookings").select("id", { count: "exact", head: true }).in("booking_status", ["confirmed", "assigned"]),
     supabase.from("bookings").select("id").eq("booking_status", "confirmed").is("vehicle_id", null),
     supabase
@@ -64,7 +66,7 @@ export default async function AdminDashboardPage() {
       <AdminPageHeader
         eyebrow="Operations"
         title="Dashboard"
-        description="Today's workload, payments to chase and jobs that still need a truck or crew."
+        description="Today's workload, balances to collect and jobs that still need a truck or crew."
         actions={
           <>
             <Link href="/admin/calendar" className="admin-btn admin-btn--secondary">
@@ -82,17 +84,17 @@ export default async function AdminDashboardPage() {
       <div className="admin-kpi-grid">
         <Kpi icon="calendar" label="Today's bookings" value={todayCount ?? 0} hint="Moves scheduled today" />
         <Kpi icon="clock" label="Tomorrow" value={tomorrowCount ?? 0} hint="Moves scheduled tomorrow" />
-        <Kpi icon="dollar" label="Pending payments" value={pendingCount ?? 0} hint="Awaiting $100 confirmation" tone={(pendingCount ?? 0) > 0 ? "amber" : "neutral"} />
+        <Kpi icon="clock" label="Awaiting confirmation" value={awaitingCount ?? 0} hint="Time held, customer still confirming" tone={(awaitingCount ?? 0) > 0 ? "amber" : "neutral"} />
         <Kpi icon="check" label="Confirmed bookings" value={confirmedCount ?? 0} hint="Confirmed or assigned" />
         <Kpi icon="truck" label="Unassigned jobs" value={unassignedCount} hint="Confirmed, no truck yet" tone={unassignedCount > 0 ? "ruby" : "neutral"} />
-        <Kpi icon="dollar" label="Outstanding balance" value={formatMoney(outstandingCents, { decimals: 0 })} hint="Still to collect" tone={outstandingCents > 0 ? "ruby" : "neutral"} />
+        <Kpi icon="dollar" label="Outstanding final balance" value={formatMoney(outstandingCents, { decimals: 0 })} hint="Estimated until each job is finalised" tone={outstandingCents > 0 ? "ruby" : "neutral"} />
       </div>
 
       <AdminCard
         className="mt-8"
         icon="alert"
         title="Needs attention"
-        description="Upcoming bookings missing a truck or crew, awaiting payment, or with a failed calendar sync."
+        description="Upcoming bookings missing a truck or crew, legacy bookings stuck awaiting payment, or with a failed calendar sync."
         flush
       >
         {attention.length === 0 ? (
@@ -121,7 +123,7 @@ export default async function AdminDashboardPage() {
                         {[
                           !b.vehicle_id && b.booking_status === "confirmed" && "No truck assigned",
                           !b.crew_id && b.booking_status === "confirmed" && b.vehicle_id && "No crew assigned",
-                          b.booking_status === "pending_payment" && "Payment pending",
+                          b.booking_status === "pending_payment" && "Legacy payment pending",
                           b.calendar_sync_status === "failed" && "Calendar sync failed",
                         ]
                           .filter(Boolean)

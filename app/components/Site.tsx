@@ -310,8 +310,8 @@ function BookingHowItWorksSection() {
   const steps = [
     ["Tell us about your move", "Enter your pickup and destination, move details and the service you need."],
     ["Choose an available time", "See available booking times and choose the one that works for you."],
-    ["Secure your booking", "Pay the $100 booking confirmation payment securely online."],
-    ["We handle your move", "Your booking is confirmed and our team prepares for your move. Your final price is calculated when the job is completed."],
+    ["Review your booking", "Check your move details, selected service and booking time."],
+    ["Confirm your move", "Confirm your booking online. No advance payment is required — your final price is calculated after your move is completed."],
   ] as const;
   return (
     <section className="section booking-steps-section">
@@ -377,7 +377,7 @@ function PricingSection() {
                 </BookNowButton>
                 <a className="package-quote-link" href="/#quote">Not ready? Get a Quote instead</a>
               </div>
-              <p className="package-trust-line">$100 secures your booking · credited to your final balance</p>
+              <p className="package-trust-line">No advance payment required · final price calculated after completion</p>
             </article>
           ))}
         </div>
@@ -388,8 +388,8 @@ function PricingSection() {
         </p>
 
         <div className="payment-info-panel">
-          <h3>$100 Booking Confirmation</h3>
-          <p>Secure your booking online with a $100 payment. This is credited toward your final balance — it is not an extra charge.</p>
+          <h3>No Advance Payment Required</h3>
+          <p>Book online without an advance payment — choose your time, review your booking and confirm it.</p>
           <p>Your final price is calculated once your move is completed, based on the 3-hour minimum service plus the separate 1-hour call-out fee.</p>
         </div>
 
@@ -715,7 +715,7 @@ function QuoteStrip({ quotePrimary = false }: { quotePrimary?: boolean } = {}) {
         <div>
           <p className="eyebrow">Ready To Move?</p>
           <h2>Book Your Adelaide Move Today</h2>
-          <p className="quote-strip-lead">Choose your move details, select an available time and secure your booking online.</p>
+          <p className="quote-strip-lead">Choose your move details, select an available time and confirm your booking online.</p>
         </div>
         <div className="quote-strip-actions">
           <BookNowButton location="final_cta">Book Now <span>→</span></BookNowButton>
@@ -846,7 +846,7 @@ export function HomePage() {
             <p className="hero-lead">
               HF is an Adelaide moving company for home, apartment, office and interstate moves, with published reference rates. Coverage includes {business.insurance}, subject to applicable policy terms.
             </p>
-            <p className="hero-book-line">Book your move online in minutes — choose your date, secure your booking, and we take it from there.</p>
+            <p className="hero-book-line">Book your move online in minutes — choose your date, confirm your booking, and we take it from there.</p>
             <div className="hero-actions">
               <BookNowButton location="hero">
                 Book Now <span>→</span>
@@ -1211,7 +1211,7 @@ export function DetailPage({ page }: { page: ContentPage }) {
                 <>
                   <p className="eyebrow">Ready to move?</p>
                   <h3>Book online in minutes</h3>
-                  <p>Choose your move details, select an available time and secure your booking online.</p>
+                  <p>Choose your move details, select an available time and confirm your booking online.</p>
                   <BookNowButton location="detail_sidebar">
                     Book Now <span>→</span>
                   </BookNowButton>

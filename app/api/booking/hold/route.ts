@@ -50,14 +50,18 @@ const bodySchema = z.object({
 });
 
 const MAX_ACTIVE_HOLDS_PER_EMAIL = 3;
+// Generous enough for a genuine customer booking a couple of moves, low
+// enough that a scripted form-filler can't fill the calendar in a day.
+const MAX_RECENT_CONFIRMED_PER_EMAIL = 3;
 
 /**
  * POST /api/booking/hold
  *
  * Creates a temporary `held` booking (server/DB-enforced, not just a
- * frontend check) so no other customer can confirm the same
- * vehicle/time window while this customer completes payment. The hold
- * expires automatically after `business_settings.booking_hold_minutes`.
+ * frontend check) so no other customer can take the same vehicle/time
+ * window while this customer reviews and confirms their booking (no
+ * advance payment — see POST /api/booking/confirm). The hold expires
+ * automatically after `business_settings.booking_hold_minutes`.
  */
 export async function POST(request: NextRequest) {
   return withBookingSystemGuard(async () => {
@@ -71,11 +75,11 @@ export async function POST(request: NextRequest) {
       return jsonError(429, "Too many requests.");
     }
 
-    // Cheap anti-spam cap: without this, one email could hold every
-    // available slot for the day. This does not stop a determined
-    // attacker rotating emails/IPs — a proper per-IP rate limiter (e.g.
-    // Upstash Redis or Vercel's edge rate limiting) is the real fix and
-    // is not wired up here; this is a floor, not a ceiling.
+    // Cheap anti-spam caps. With no payment friction any more, these are
+    // the floor that stops one email from squatting on (or confirming)
+    // every slot. They do not stop a determined attacker rotating
+    // emails/IPs — a proper per-IP rate limiter (e.g. Upstash Redis or
+    // Vercel's edge rate limiting) is the real fix and is not wired up here.
     const normalizedEmail = input.customer.email.trim().toLowerCase();
     const { count: activeHoldCount } = await getSupabaseAdmin()
       .from("bookings")
@@ -83,7 +87,18 @@ export async function POST(request: NextRequest) {
       .in("booking_status", ["held", "pending_payment"])
       .eq("customers.email", normalizedEmail);
     if ((activeHoldCount ?? 0) >= MAX_ACTIVE_HOLDS_PER_EMAIL) {
-      return jsonError(429, "You already have pending bookings awaiting payment. Please complete or wait for one to expire before starting another.");
+      return jsonError(429, "You already have bookings in progress. Please finish confirming one, or wait a few minutes for it to lapse, before starting another.");
+    }
+
+    const since = new Date(Date.now() - 24 * 60 * 60_000).toISOString();
+    const { count: recentConfirmedCount } = await getSupabaseAdmin()
+      .from("bookings")
+      .select("id, customers!inner(email)", { count: "exact", head: true })
+      .in("booking_status", ["confirmed", "assigned"])
+      .gte("created_at", since)
+      .eq("customers.email", normalizedEmail);
+    if ((recentConfirmedCount ?? 0) >= MAX_RECENT_CONFIRMED_PER_EMAIL) {
+      return jsonError(429, "You've made several online bookings today. Please call us to add another move so we can make sure everything is right.");
     }
 
     const { data: service, error: serviceError } = await getSupabaseAdmin()
@@ -109,6 +124,20 @@ export async function POST(request: NextRequest) {
 
     const window = withinBookingWindow(startsAt, new Date(), settings);
     if (!window.ok) return jsonError(400, window.reason ?? "Requested time is outside the booking window.");
+
+    // Duplicate-submission guard: the same customer already holds or has
+    // confirmed a live booking overlapping this exact window (e.g. a
+    // resubmitted wizard). Don't take a second truck for the same move.
+    const { count: duplicateCount } = await getSupabaseAdmin()
+      .from("bookings")
+      .select("id, customers!inner(email)", { count: "exact", head: true })
+      .in("booking_status", ["held", "confirmed", "assigned", "in_progress"])
+      .lt("starts_at", endsAt.toISOString())
+      .gt("ends_at", startsAt.toISOString())
+      .eq("customers.email", normalizedEmail);
+    if ((duplicateCount ?? 0) > 0) {
+      return jsonError(409, "You already have a booking at this time. Check your email for the confirmation, or choose a different time.", { code: "duplicate_booking" });
+    }
 
     const [vehicleIds, busy, blocked] = await Promise.all([
       getActiveVehicleIds(),

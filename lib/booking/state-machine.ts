@@ -9,7 +9,10 @@ import type { BookingStatus } from "./types.ts";
  */
 const ALLOWED_TRANSITIONS: Record<BookingStatus, BookingStatus[]> = {
   draft: ["held", "cancelled", "expired"],
-  held: ["pending_payment", "cancelled", "expired"],
+  // held -> confirmed is the no-advance-payment confirmation (the
+  // customer clicks Confirm Booking). held -> pending_payment is the
+  // retired Stripe Checkout path, kept only for historical rows.
+  held: ["confirmed", "pending_payment", "cancelled", "expired"],
   pending_payment: ["confirmed", "cancelled", "expired"],
   confirmed: ["assigned", "cancelled"],
   assigned: ["in_progress", "cancelled"],

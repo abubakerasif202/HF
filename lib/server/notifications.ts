@@ -4,13 +4,7 @@ import { getResend } from "./resend.ts";
 import { getSupabaseAdmin } from "./supabase.ts";
 import { business } from "../site-data.ts";
 
-interface PricingSnapshot {
-  package?: string;
-  ratePer30MinCents?: number;
-  minimumBookingMinutes?: number;
-  calloutMinutes?: number;
-  bookingConfirmationCents?: number;
-}
+import type { PricingSnapshot } from "../booking/types.ts";
 
 interface Address {
   formattedAddress?: string;
@@ -32,9 +26,14 @@ interface BookingRow {
   booking_status: string;
 }
 
+function escapeHtml(value: string): string {
+  return value.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#39;");
+}
+
+/** Customer-typed address, HTML-escaped for safe interpolation into email bodies. */
 function addressLine(address: Address | null): string {
   if (!address) return "(not provided)";
-  return address.formattedAddress ?? `${address.addressLine ?? ""} ${address.suburb ?? ""}`.trim();
+  return escapeHtml(address.formattedAddress ?? `${address.addressLine ?? ""} ${address.suburb ?? ""}`.trim());
 }
 
 async function logNotification(input: {
@@ -66,9 +65,10 @@ async function getCustomerEmail(customerId: string | null): Promise<string | nul
 /**
  * Sends the "booking confirmed" email to the customer and a copy to the
  * business admin address. Failures are logged to `notifications` rather
- * than thrown — an email outage must never un-confirm a booking that
- * Stripe has already been paid for (per AGENTS: "Do not silently lose
- * confirmed bookings because an email... API failed").
+ * than thrown — an email outage must never un-confirm a booking (per
+ * AGENTS: "Do not silently lose confirmed bookings because an email...
+ * API failed"). Callers invoke this only when the booking has just
+ * transitioned to confirmed, so it is sent once per booking.
  */
 export async function sendBookingConfirmedEmail(booking: BookingRow): Promise<void> {
   if (!resendConfig.isConfigured()) {
@@ -84,9 +84,13 @@ export async function sendBookingConfirmedEmail(booking: BookingRow): Promise<vo
     const rateLine = snapshot.ratePer30MinCents
       ? `$${(snapshot.ratePer30MinCents / 100).toFixed(0)} / 30 min ($${((snapshot.ratePer30MinCents * 2) / 100).toFixed(0)}/hr)`
       : "—";
+    // Read what was genuinely recorded; historical Stripe-era bookings
+    // paid a confirmation amount, new bookings pay nothing up-front.
+    const paidCents = booking.deposit_paid_cents ?? 0;
+    const paymentLine = paidCents > 0 ? `Booking confirmation paid: $${(paidCents / 100).toFixed(2)}` : "Advance payment: not required";
     const html = `
       <p>Hi,</p>
-      <p>Your move with ${business.name} is confirmed.</p>
+      <p>Booking confirmed — your move with ${business.name} has been received and confirmed.</p>
       <ul>
         <li>Booking reference: ${booking.booking_number}</li>
         <li>Move date/time: ${new Date(booking.starts_at).toLocaleString("en-AU", { timeZone: "Australia/Adelaide" })}</li>
@@ -96,12 +100,11 @@ export async function sendBookingConfirmedEmail(booking: BookingRow): Promise<vo
         <li>Rate per 30 minutes: ${rateLine}</li>
         <li>Minimum service: ${snapshot.minimumBookingMinutes ? snapshot.minimumBookingMinutes / 60 : 3} hours</li>
         <li>Call-out: ${snapshot.calloutMinutes ? snapshot.calloutMinutes / 60 : 1} hour${snapshot.ratePer30MinCents && snapshot.calloutMinutes ? ` — $${((snapshot.ratePer30MinCents * (snapshot.calloutMinutes / 30)) / 100).toFixed(0)}` : ""} — includes truck fuel and basic transport charges</li>
-        <li>$100 booking confirmation received</li>
         <li>Estimated minimum: $${((booking.subtotal_cents ?? 0) / 100).toFixed(2)}</li>
-        <li>Estimated minimum balance after booking payment: $${((booking.balance_due_cents ?? 0) / 100).toFixed(2)}</li>
+        <li>${paymentLine}</li>
       </ul>
-      <p>Your $100 booking confirmation has been received and credited toward your final balance.</p>
-      <p>3-hour minimum service + 1-hour call-out fee. The call-out covers truck fuel and basic transport charges. Additional service time is billed in 30-minute increments at your selected package rate. Your final price is calculated when the job is completed.</p>
+      <p>No advance payment is required. Your final price is calculated after your move is completed.</p>
+      <p>3-hour minimum service + 1-hour call-out fee. The call-out covers truck fuel and basic transport charges. Additional service time is billed in 30-minute increments at your selected package rate.</p>
       <p>Questions? Reply to this email or call ${business.phones[0].display}.</p>
     `;
     const result = await getResend().emails.send({
@@ -118,7 +121,7 @@ export async function sendBookingConfirmedEmail(booking: BookingRow): Promise<vo
         from: resendConfig.from(),
         to: adminEmail,
         subject: `New confirmed booking — ${booking.booking_number}`,
-        html: `<p>New confirmed booking ${booking.booking_number} for ${new Date(booking.starts_at).toLocaleString("en-AU", { timeZone: "Australia/Adelaide" })}.</p>`,
+        html: `<p>New confirmed booking ${booking.booking_number} for ${new Date(booking.starts_at).toLocaleString("en-AU", { timeZone: "Australia/Adelaide" })}. ${paymentLine}.</p>`,
       });
     }
   } catch (error) {

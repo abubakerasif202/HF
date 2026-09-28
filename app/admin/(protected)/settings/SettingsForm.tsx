@@ -20,10 +20,6 @@ interface Settings {
   default_estimated_duration_minutes: number;
   scheduling_buffer_minutes: number;
   booking_number_prefix: string;
-  deposit_type: "fixed" | "percentage" | null;
-  deposit_fixed_amount_cents: number | null;
-  deposit_percentage: number | null;
-  min_deposit_amount_cents: number | null;
   booking_admin_email: string | null;
 }
 
@@ -67,34 +63,12 @@ export function SettingsForm({ settings }: { settings: Settings }) {
           </div>
         </Section>
 
-        <Section icon="dollar" title="Payment" description="The booking confirmation payment customers make online.">
-          <div className="grid gap-4">
-            <label className="admin-check">
-              <input type="checkbox" name="deposit_enabled" defaultChecked={Boolean(settings.deposit_type)} />
-              <span>
-                Booking confirmation payment enabled
-                <span className="admin-help block font-medium">Online bookings can&apos;t be paid for while this is off.</span>
-              </span>
-            </label>
-            <Field label="Type">
-              <select name="deposit_type" defaultValue={settings.deposit_type ?? ""} className="admin-input">
-                <option value="">—</option>
-                <option value="fixed">Fixed amount</option>
-                <option value="percentage">Percentage of subtotal</option>
-              </select>
-            </Field>
-            <div className="admin-form-grid admin-form-grid--2">
-              <Field label="Fixed amount ($)">
-                <input type="number" step="0.01" min="0" name="deposit_fixed_amount" defaultValue={settings.deposit_fixed_amount_cents ? (settings.deposit_fixed_amount_cents / 100).toFixed(2) : ""} className="admin-input" />
-              </Field>
-              <Field label="Percentage (%)">
-                <input type="number" step="0.01" min="0" max="100" name="deposit_percentage" defaultValue={settings.deposit_percentage ?? ""} className="admin-input" />
-              </Field>
-            </div>
-            <Field label="Minimum amount ($)" help="Optional floor for percentage payments.">
-              <input type="number" step="0.01" min="0" name="min_deposit_amount" defaultValue={settings.min_deposit_amount_cents ? (settings.min_deposit_amount_cents / 100).toFixed(2) : ""} className="admin-input" />
-            </Field>
-          </div>
+        <Section icon="dollar" title="Payment" description="How online bookings are paid for.">
+          <p className="admin-help">
+            No advance payment is required for online bookings. Customers confirm their booking online and the final
+            price is calculated when the job is completed. (The old booking-confirmation deposit settings are no longer
+            used for new bookings.)
+          </p>
         </Section>
 
         <Section icon="bell" title="Notifications" description="Where new-booking alerts are sent.">

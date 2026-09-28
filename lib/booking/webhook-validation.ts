@@ -51,7 +51,13 @@ export function decideCheckoutSessionCompleted(
   if (!event.sessionMetadataBookingId) return { action: "no_booking_id" };
   if (!booking) return { action: "no_booking_id" };
 
-  if (booking.currentCheckoutSessionId && booking.currentCheckoutSessionId !== event.sessionId) {
+  // Strict match: a booking with NO recorded Checkout session is a
+  // no-advance-payment booking that never entered Stripe, so no Stripe
+  // event may ever touch it.
+  if (!booking.currentCheckoutSessionId) {
+    return { action: "ignore_stale_session", reason: "Booking has no Stripe Checkout session (no-advance-payment booking); ignoring." };
+  }
+  if (booking.currentCheckoutSessionId !== event.sessionId) {
     return { action: "ignore_stale_session", reason: "Event belongs to a superseded Checkout session for this booking." };
   }
 

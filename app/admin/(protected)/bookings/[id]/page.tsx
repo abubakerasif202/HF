@@ -31,6 +31,10 @@ export default async function AdminBookingDetailPage({ params }: { params: Promi
   const pickup = booking.pickup_address as { formattedAddress?: string; addressLine?: string; suburb?: string } | null;
   const destination = booking.destination_address as { formattedAddress?: string; addressLine?: string; suburb?: string } | null;
   const snapshot = (booking.pricing_snapshot ?? {}) as { package?: string; ratePer30MinCents?: number };
+  // Money genuinely received before the job. Historical Stripe-era
+  // bookings recorded a real $100; every no-advance-payment booking is 0.
+  const paidBeforeJobCents: number = booking.deposit_paid_cents ?? 0;
+  const hadAdvancePayment = paidBeforeJobCents > 0 || booking.deposit_required_cents > 0;
 
   return (
     <div className="mx-auto max-w-6xl">
@@ -79,7 +83,11 @@ export default async function AdminBookingDetailPage({ params }: { params: Promi
           <AdminCard
             icon="dollar"
             title="Final job billing"
-            description="3-hour minimum service plus a separate 1-hour call-out. The $100 booking confirmation is credited toward the total."
+            description={
+              hadAdvancePayment
+                ? "3-hour minimum service plus a separate 1-hour call-out. The booking confirmation this customer actually paid is deducted once from the total."
+                : "3-hour minimum service plus a separate 1-hour call-out. No advance payment was taken, so the balance is the full final total."
+            }
           >
             {booking.finalised_at ? (
               <div>
@@ -103,7 +111,11 @@ export default async function AdminBookingDetailPage({ params }: { params: Promi
                 <div className="admin-billing-summary">
                   <AdminDataList>
                     <AdminDataRow className="admin-billing-total" label="Final total" value={formatMoney(booking.final_total_cents)} />
-                    <AdminDataRow label="Booking confirmation paid" value={`−${formatMoney(booking.deposit_paid_cents)}`} tone="green" />
+                    {paidBeforeJobCents > 0 ? (
+                      <AdminDataRow label="Booking confirmation paid" value={`−${formatMoney(paidBeforeJobCents)}`} tone="green" />
+                    ) : (
+                      <AdminDataRow label="Paid before move" value={`${formatMoney(0)} — advance payment not required`} />
+                    )}
                     <AdminDataRow className="admin-billing-balance" label="Balance remaining" value={formatMoney(booking.balance_due_cents)} />
                   </AdminDataList>
                 </div>
@@ -133,10 +145,22 @@ export default async function AdminBookingDetailPage({ params }: { params: Promi
           <AdminCard icon="dollar" title="Payment">
             <AdminDataList>
               <AdminDataRow label="Status" value={<AdminStatusBadge kind="payment" status={booking.payment_status} />} />
-              <AdminDataRow label="Confirmation required" value={formatMoney(booking.deposit_required_cents)} />
-              <AdminDataRow label="Confirmation paid" value={formatMoney(booking.deposit_paid_cents)} tone="green" />
-              <AdminDataRow label="Balance due" value={formatMoney(booking.balance_due_cents)} tone={booking.balance_due_cents > 0 ? "ruby" : "strong"} />
-              <AdminDataRow label="Stripe checkout session" value={booking.current_checkout_session_id} tone="mono" />
+              {hadAdvancePayment ? (
+                <>
+                  <AdminDataRow label="Confirmation required (legacy)" value={formatMoney(booking.deposit_required_cents)} />
+                  <AdminDataRow label="Confirmation paid" value={formatMoney(paidBeforeJobCents)} tone="green" />
+                </>
+              ) : (
+                <AdminDataRow label="Advance payment" value="Not required" />
+              )}
+              <AdminDataRow
+                label={booking.finalised_at ? "Balance due" : "Estimated balance"}
+                value={formatMoney(booking.balance_due_cents)}
+                tone={booking.balance_due_cents > 0 ? "ruby" : "strong"}
+              />
+              {booking.current_checkout_session_id && (
+                <AdminDataRow label="Stripe checkout session (legacy)" value={booking.current_checkout_session_id} tone="mono" />
+              )}
             </AdminDataList>
           </AdminCard>
 

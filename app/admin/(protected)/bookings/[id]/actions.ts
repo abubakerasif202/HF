@@ -7,7 +7,8 @@ import { canTransition } from "../../../../../lib/booking/state-machine.ts";
 import { pickFreeVehicle } from "../../../../../lib/booking/availability.ts";
 import { getActiveVehicleIds, getBusyIntervals, getBlockedIntervals } from "../../../../../lib/server/booking-repo.ts";
 import { syncBookingToCalendar } from "../../../../../lib/server/google-calendar.ts";
-import type { BookingStatus } from "../../../../../lib/booking/types.ts";
+import { computeFinalBilling } from "../../../../../lib/booking/pricing.ts";
+import type { BookingStatus, PaymentStatus, PricingSnapshot } from "../../../../../lib/booking/types.ts";
 
 async function requireStaff() {
   const session = await getStaffSession();
@@ -22,6 +23,12 @@ export async function transitionBookingStatusAction(bookingId: string, toStatus:
     if (!booking) throw new Error("Booking not found.");
     if (!canTransition(booking.booking_status as BookingStatus, toStatus)) {
       throw new Error(`Cannot move a booking from "${booking.booking_status}" to "${toStatus}".`);
+    }
+    // held/pending_payment -> confirmed is reserved for the customer's
+    // own confirmation (POST /api/booking/confirm), which freezes the
+    // pricing snapshot and sends the confirmation exactly once.
+    if (toStatus === "confirmed") {
+      throw new Error("Bookings are confirmed by the customer online, not from the admin.");
     }
 
     const patch: Record<string, unknown> = { booking_status: toStatus };
@@ -92,33 +99,25 @@ export async function rescheduleBookingAction(bookingId: string, newStartsAtIso:
   }
 }
 
-interface PricingSnapshot {
-  package?: string;
-  ratePer30MinCents?: number;
-  minimumBookingMinutes?: number;
-  calloutMinutes?: number;
-  bookingConfirmationCents?: number;
-}
-
 /**
  * Finalises a job's real price from the ACTUAL duration staff enter here.
  * Deliberately takes only `actualDurationMinutes` as input — never a
  * client-computed monetary total — and recomputes every dollar figure
- * server-side from the booking's own `pricing_snapshot` (the policy that
- * was in effect when the booking was made), not from the current, possibly
- * since-changed, pricing_rules/business_settings. This is what makes
- * historical pricing immutable even after a rate change.
+ * server-side (lib/booking/pricing.ts computeFinalBilling) from the
+ * booking's own `pricing_snapshot` (the policy in effect when it was
+ * booked), not from current pricing_rules/business_settings.
+ *
+ * The amount deducted is the money genuinely recorded against THIS
+ * booking (deposit_paid_cents): $100 for a historical booking that paid
+ * the old confirmation, $0 for every no-advance-payment booking — so the
+ * final balance of a new booking equals its full final total.
  */
 export async function finalizeJobAction(bookingId: string, actualDurationMinutes: number): Promise<{ error?: string }> {
   const staff = await requireStaff();
   try {
-    if (!Number.isFinite(actualDurationMinutes) || !Number.isInteger(actualDurationMinutes) || actualDurationMinutes <= 0) {
-      throw new Error("Actual duration must be a positive whole number of minutes.");
-    }
-
     const { data: booking } = await getSupabaseAdmin()
       .from("bookings")
-      .select("booking_status, pricing_snapshot, deposit_paid_cents")
+      .select("booking_status, payment_status, pricing_snapshot, deposit_paid_cents")
       .eq("id", bookingId)
       .single();
     if (!booking) throw new Error("Booking not found.");
@@ -126,36 +125,25 @@ export async function finalizeJobAction(bookingId: string, actualDurationMinutes
       throw new Error(`Cannot finalise a booking from status "${booking.booking_status}". It must be "in_progress" first.`);
     }
 
-    const snapshot = (booking.pricing_snapshot ?? {}) as PricingSnapshot;
-    const ratePer30MinCents = snapshot.ratePer30MinCents;
-    const minimumBookingMinutes = snapshot.minimumBookingMinutes ?? 180;
-    const calloutMinutes = snapshot.calloutMinutes ?? 60;
-    if (!ratePer30MinCents) {
-      throw new Error("This booking has no pricing snapshot to finalise against (was it ever paid?).");
-    }
-
-    // Integer-cent, 30-minute-unit arithmetic — mirrors lib/booking/pricing.ts
-    // exactly, but against the FROZEN snapshot rather than live pricing_rules.
-    const billableDurationMinutes = Math.max(Math.ceil(actualDurationMinutes / 30) * 30, minimumBookingMinutes);
-    const serviceChargeCents = (billableDurationMinutes / 30) * ratePer30MinCents;
-    const calloutFeeCents = (calloutMinutes / 30) * ratePer30MinCents;
-    const finalTotalCents = serviceChargeCents + calloutFeeCents;
-    const depositPaidCents = booking.deposit_paid_cents ?? 0;
-    const balanceDueCents = Math.max(finalTotalCents - depositPaidCents, 0);
-    const paymentStatus = balanceDueCents > 0 ? "deposit_paid" : "paid";
+    const bill = computeFinalBilling(
+      (booking.pricing_snapshot ?? {}) as PricingSnapshot,
+      actualDurationMinutes,
+      booking.deposit_paid_cents ?? 0,
+      booking.payment_status as PaymentStatus,
+    );
 
     const { error } = await getSupabaseAdmin()
       .from("bookings")
       .update({
         booking_status: "completed",
-        payment_status: paymentStatus,
+        payment_status: bill.paymentStatus,
         actual_duration_minutes: actualDurationMinutes,
-        billable_duration_minutes: billableDurationMinutes,
-        service_charge_cents: serviceChargeCents,
-        callout_fee_cents: calloutFeeCents,
-        final_total_cents: finalTotalCents,
-        subtotal_cents: finalTotalCents,
-        balance_due_cents: balanceDueCents,
+        billable_duration_minutes: bill.billableDurationMinutes,
+        service_charge_cents: bill.serviceChargeCents,
+        callout_fee_cents: bill.calloutFeeCents,
+        final_total_cents: bill.finalTotalCents,
+        subtotal_cents: bill.finalTotalCents,
+        balance_due_cents: bill.balanceDueCents,
         finalised_at: new Date().toISOString(),
         finalised_by: staff.userId,
       })
@@ -167,7 +155,13 @@ export async function finalizeJobAction(bookingId: string, actualDurationMinutes
       booking_id: bookingId,
       event: "job_finalised",
       actor: staff.userId,
-      metadata: { actualDurationMinutes, billableDurationMinutes, finalTotalCents, balanceDueCents },
+      metadata: {
+        actualDurationMinutes,
+        billableDurationMinutes: bill.billableDurationMinutes,
+        finalTotalCents: bill.finalTotalCents,
+        amountPaidBeforeJobCents: bill.amountPaidCents,
+        balanceDueCents: bill.balanceDueCents,
+      },
     });
 
     revalidatePath(`/admin/bookings/${bookingId}`);

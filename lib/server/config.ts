@@ -8,8 +8,13 @@
 // remain required."
 
 export class NotConfiguredError extends Error {
-  constructor(public readonly missing: string[]) {
+  // Declared explicitly (not as a constructor parameter property) so this
+  // module stays importable by Node's type-stripping test runner.
+  readonly missing: string[];
+
+  constructor(missing: string[]) {
     super(`Not configured: missing ${missing.join(", ")}`);
+    this.missing = missing;
     this.name = "NotConfiguredError";
   }
 }
@@ -27,6 +32,9 @@ export const supabaseConfig = {
   anonKey: () => required("NEXT_PUBLIC_SUPABASE_ANON_KEY"),
 };
 
+/** Optional / legacy. Stripe is no longer part of the booking path; this
+ * is read only by the dormant /api/stripe/webhook handler, which keeps
+ * historical Stripe-era bookings consistent. */
 export const stripeConfig = {
   isConfigured: () => Boolean(process.env.STRIPE_SECRET_KEY),
   isWebhookConfigured: () => Boolean(process.env.STRIPE_WEBHOOK_SECRET),
@@ -62,12 +70,12 @@ export const cronConfig = {
 };
 
 /**
- * Whether the public booking system should be exposed at all. Gated on
- * the minimum needed to safely take a real payment: Supabase (the
- * database of record) and Stripe (the deposit). Without both, the
- * "Book Your Move" CTA stays hidden and /book redirects to the existing
- * "Get a Quote" flow, per AGENTS: "add graceful disabled states."
+ * Whether the public booking system should be exposed at all. No advance
+ * payment is taken, so Supabase (the database of record) is the only
+ * requirement — Stripe is deliberately NOT consulted. Resend, Google
+ * Calendar and cron are optional add-ons. Without Supabase, /book shows
+ * the "Get a Quote" fallback, per AGENTS: "add graceful disabled states."
  */
 export function isBookingSystemLive(): boolean {
-  return supabaseConfig.isConfigured() && stripeConfig.isConfigured();
+  return supabaseConfig.isConfigured();
 }

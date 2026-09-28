@@ -16,7 +16,8 @@ interface StatusStyle {
 export const BOOKING_STATUS: Record<string, StatusStyle> = {
   draft: { label: "Draft", tone: "neutral", icon: "note" },
   held: { label: "Held", tone: "warning", icon: "clock" },
-  pending_payment: { label: "Pending payment", tone: "ruby", icon: "dollar" },
+  // Legacy Stripe-era state; no new booking enters it.
+  pending_payment: { label: "Pending payment (legacy)", tone: "ruby", icon: "dollar" },
   confirmed: { label: "Confirmed", tone: "success", icon: "check" },
   assigned: { label: "Assigned", tone: "info", icon: "truck" },
   in_progress: { label: "In progress", tone: "warning", icon: "activity" },
@@ -27,6 +28,7 @@ export const BOOKING_STATUS: Record<string, StatusStyle> = {
 
 export const PAYMENT_STATUS: Record<string, StatusStyle> = {
   pending: { label: "Payment pending", tone: "ruby", icon: "clock" },
+  not_required: { label: "No advance payment", tone: "neutral", icon: "check" },
   deposit_paid: { label: "Confirmation paid", tone: "success", icon: "check" },
   paid: { label: "Paid in full", tone: "solid-green", icon: "check" },
   failed: { label: "Payment failed", tone: "danger", icon: "alert" },

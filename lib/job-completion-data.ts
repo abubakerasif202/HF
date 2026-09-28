@@ -1,5 +1,5 @@
 export const jobCompletionTerms = [
-  "Your deposit is to secure your booking and goes toward your final payment upon completion of your move. The deposit is non-refundable under any circumstances.",
+  "No advance payment is required to book. Where a deposit has been paid on a booking, it goes toward your final payment upon completion of your move, and that deposit is non-refundable under any circumstances.",
   "Our hourly price starts from the moment the removalist(s) reach your doorstep and finishes at the completion of the service.",
   "It is the customer’s responsibility to secure parking for the truck at both pick-up and delivery locations. Additional fees may apply if a close loading or unloading spot is not secured or is not possible.",
   "Truck size is determined by the information provided at the time of booking. Please advise how many items and boxes you roughly have so an appropriate truck size can be provided. You will be advised if more than one truck or multiple trips are required.",

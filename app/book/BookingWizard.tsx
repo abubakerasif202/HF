@@ -1,7 +1,8 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useSearchParams } from "next/navigation";
+import { trackBookingEvent } from "../../lib/booking-analytics";
 
 type Step = "details" | "locations" | "schedule" | "customer" | "review";
 
@@ -33,7 +34,7 @@ const STEPS: { key: Step; label: string }[] = [
   { key: "locations", label: "Pickup & Destination" },
   { key: "schedule", label: "Date & Availability" },
   { key: "customer", label: "Your Details" },
-  { key: "review", label: "Review & Pay" },
+  { key: "review", label: "Review & Confirm" },
 ];
 
 export function BookingWizard() {
@@ -70,11 +71,19 @@ export function BookingWizard() {
     serviceChargeCents: number;
     calloutFeeCents: number;
     finalTotalCents: number;
-    bookingConfirmationCents: number;
-    estimatedBalanceCents: number;
   }
 
-  const [hold, setHold] = useState<{ bookingId: string; accessToken: string; quote: Quote } | null>(null);
+  // The slot the current hold was created for, so going Back and then
+  // Continue again never creates a second hold for the same choice.
+  const [hold, setHold] = useState<{ bookingId: string; accessToken: string; quote: Quote; startsAt: string } | null>(null);
+  // Synchronous double-submit guard: React state updates are async, so a
+  // fast double-click could otherwise fire two confirm requests. (The
+  // server is idempotent regardless — this just avoids the wasted call.)
+  const confirmInFlight = useRef(false);
+
+  useEffect(() => {
+    trackBookingEvent("booking_started");
+  }, []);
 
   const stepIndex = STEPS.findIndex((s) => s.key === step);
 
@@ -92,6 +101,9 @@ export function BookingWizard() {
       const data = await res.json();
       if (!res.ok) throw new Error(data.error ?? "Could not load availability");
       setSlots(data.slots);
+      trackBookingEvent("availability_checked", {
+        slots_available: (data.slots as Slot[]).filter((s) => s.state !== "unavailable").length,
+      });
     } catch (err) {
       setError((err as Error).message);
       setSlots([]);
@@ -102,6 +114,10 @@ export function BookingWizard() {
 
   async function submitHold() {
     if (!selectedSlot) return;
+    if (hold && hold.startsAt === selectedSlot.startsAt) {
+      trackBookingEvent("booking_reviewed", { package: crewSize });
+      return;
+    }
     setSubmitting(true);
     setError(null);
     try {
@@ -122,6 +138,7 @@ export function BookingWizard() {
       });
       const data = await res.json();
       if (!res.ok) {
+        trackBookingEvent("booking_failed", { step: "hold", code: data.code ?? res.status });
         if (data.code === "slot_unavailable") {
           setError("That time slot was just taken — please pick another time.");
           setStep("schedule");
@@ -130,7 +147,9 @@ export function BookingWizard() {
         }
         throw new Error(data.error ?? "Could not hold this booking");
       }
-      setHold({ bookingId: data.bookingId, accessToken: data.accessToken, quote: data.quote });
+      setHold({ bookingId: data.bookingId, accessToken: data.accessToken, quote: data.quote, startsAt: selectedSlot.startsAt });
+      trackBookingEvent("booking_hold_created", { package: crewSize, service: serviceSlug });
+      trackBookingEvent("booking_reviewed", { package: crewSize });
     } catch (err) {
       setError((err as Error).message);
     } finally {
@@ -138,21 +157,39 @@ export function BookingWizard() {
     }
   }
 
-  async function payDeposit() {
-    if (!hold) return;
+  async function confirmBooking() {
+    if (!hold || confirmInFlight.current) return;
+    confirmInFlight.current = true;
     setSubmitting(true);
     setError(null);
     try {
-      const res = await fetch("/api/booking/checkout", {
+      const res = await fetch("/api/booking/confirm", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ bookingId: hold.bookingId, accessToken: hold.accessToken }),
       });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error ?? "Could not start payment");
-      window.location.href = data.checkoutUrl;
+      if (!res.ok) {
+        trackBookingEvent("booking_failed", { step: "confirm", code: data.code ?? res.status });
+        if (data.code === "hold_expired") {
+          // Never silently re-create the booking — send the customer back
+          // to pick a currently-available time.
+          setHold(null);
+          setSelectedSlot(null);
+          setStep("schedule");
+          confirmInFlight.current = false;
+          setSubmitting(false);
+          if (date) await loadSlots(date).catch(() => {});
+          setError(data.error ?? "Your selected time is no longer being held. Please choose an available time again.");
+          return;
+        }
+        throw new Error(data.error ?? "Could not confirm your booking");
+      }
+      trackBookingEvent("booking_confirmed", { package: crewSize, service: serviceSlug });
+      window.location.href = data.successUrl;
     } catch (err) {
       setError((err as Error).message);
+      confirmInFlight.current = false;
       setSubmitting(false);
     }
   }
@@ -312,7 +349,10 @@ export function BookingWizard() {
             <Row label="Service" value={SERVICES.find((s) => s.slug === serviceSlug)?.label ?? ""} />
           </dl>
 
-          {!hold && !submitting && <p>Preparing your reservation…</p>}
+          {!hold && !submitting && !error && <p>Preparing your reservation…</p>}
+          {!hold && !submitting && error && (
+            <button className="rounded-full border px-6 py-3" onClick={() => setStep("customer")}>Back</button>
+          )}
           {submitting && !hold && <p>Holding your time slot…</p>}
 
           {hold && (
@@ -324,21 +364,19 @@ export function BookingWizard() {
                 <Row label="Minimum service" value={`${hold.quote.minimumBookingMinutes / 60} hours`} />
                 <Row label="Call-out" value={`1 hour — $${(hold.quote.calloutFeeCents / 100).toFixed(0)}`} />
                 <Row label="Estimated minimum" value={`$${(hold.quote.finalTotalCents / 100).toFixed(2)}`} />
-                <Row label="Booking confirmation" value={`$${(hold.quote.bookingConfirmationCents / 100).toFixed(2)} payable now`} />
-                <Row label="Estimated minimum balance after booking payment" value={`$${(hold.quote.estimatedBalanceCents / 100).toFixed(2)}`} />
+                <Row label="Advance payment" value="Not required" />
               </dl>
               <p className="mt-4 text-xs text-neutral-500">
-                3-hour minimum service + 1-hour call-out fee. The call-out covers truck fuel and basic transport
-                charges. Additional service time is billed in 30-minute increments at your selected package rate.
-                Your final price is calculated when the job is completed. The $100 booking confirmation payment is
-                credited toward your final balance.
+                No advance payment required. 3-hour minimum service + 1-hour call-out fee. The call-out covers truck
+                fuel and basic transport charges. Additional service time is billed in 30-minute increments at your
+                selected package rate. Your final price is calculated after your move is completed.
               </p>
             </div>
           )}
 
           {hold && (
-            <button disabled={submitting} className="rounded-full bg-neutral-900 px-6 py-3 text-white disabled:opacity-40" onClick={payDeposit}>
-              {submitting ? "Redirecting to secure payment…" : "Pay $100 Booking Confirmation & Reserve My Move"}
+            <button disabled={submitting} aria-busy={submitting} className="rounded-full bg-neutral-900 px-6 py-3 text-white disabled:opacity-40" onClick={confirmBooking}>
+              {submitting ? "Confirming your booking…" : "Confirm Booking"}
             </button>
           )}
         </section>

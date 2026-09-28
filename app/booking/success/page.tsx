@@ -1,23 +1,26 @@
 import Link from "next/link";
 import { isBookingSystemLive } from "../../../lib/server/config.ts";
 import { getBookingByAccessToken } from "../../../lib/server/booking-repo.ts";
+import type { PricingSnapshot } from "../../../lib/booking/types.ts";
 
 export const dynamic = "force-dynamic";
 export const metadata = { robots: { index: false, follow: false } };
 
-interface PricingSnapshot {
-  package?: string;
-  ratePer30MinCents?: number;
-  minimumBookingMinutes?: number;
-  calloutMinutes?: number;
-  bookingConfirmationCents?: number;
+const CONFIRMED_STATUSES = new Set(["confirmed", "assigned", "in_progress", "completed"]);
+
+function money(cents: number): string {
+  return `$${(cents / 100).toFixed(2)}`;
+}
+
+function addressLabel(address: { formattedAddress?: string; addressLine?: string; suburb?: string } | null): string {
+  if (!address) return "—";
+  return address.formattedAddress ?? `${address.addressLine ?? ""} ${address.suburb ?? ""}`.trim();
 }
 
 /**
- * This page NEVER confirms a booking itself — it only displays whatever
- * state the Stripe webhook has already written to the database. Because
- * webhook delivery can lag the browser redirect by a few seconds, a
- * `pending_payment` status here is normal and just means "processing."
+ * Displays whatever state the database already holds — this page never
+ * confirms a booking itself. New bookings are confirmed by
+ * POST /api/booking/confirm before the customer is sent here.
  */
 export default async function BookingSuccessPage({ searchParams }: { searchParams: Promise<{ token?: string }> }) {
   const { token } = await searchParams;
@@ -29,32 +32,39 @@ export default async function BookingSuccessPage({ searchParams }: { searchParam
   const booking = await getBookingByAccessToken(token).catch(() => null);
   if (!booking) return <Fallback message="Booking not found." />;
 
-  const isConfirmed = booking.booking_status === "confirmed" || booking.booking_status === "assigned" || booking.booking_status === "completed";
+  if (!CONFIRMED_STATUSES.has(booking.booking_status)) {
+    return (
+      <Fallback
+        message="This booking isn't confirmed"
+        detail="Your selected time is no longer being held. Please choose an available time again."
+        href="/book"
+        cta="Start a new booking"
+      />
+    );
+  }
+
   const snapshot = (booking.pricing_snapshot ?? {}) as PricingSnapshot;
-  const pickup = booking.pickup_address as { formattedAddress?: string; addressLine?: string; suburb?: string } | null;
-  const destination = booking.destination_address as { formattedAddress?: string; addressLine?: string; suburb?: string } | null;
+  // Historical (Stripe-era) bookings genuinely paid a confirmation
+  // amount; everything since pays nothing up-front. Read what was
+  // actually recorded — never assume either way.
+  const amountPaidCents: number = booking.deposit_paid_cents ?? 0;
+  const customer = Array.isArray(booking.customers) ? booking.customers[0] : booking.customers;
 
   return (
     <main className="booking-shell mx-auto max-w-2xl px-6 py-24 text-center">
-      <h1 className="text-3xl font-semibold">{isConfirmed ? "✓ Booking Confirmed" : "Payment received — confirming…"}</h1>
-      <p className="mt-4 text-neutral-600">
-        {isConfirmed
-          ? "Your move has been successfully reserved."
-          : "We're finalising your booking. Refresh this page in a moment if it doesn't update automatically."}
-      </p>
-      {isConfirmed && (
-        <p className="mt-2 font-medium text-green-700">
-          $100 booking confirmation received. This has been credited toward your final job balance.
-        </p>
-      )}
+      <h1 className="text-3xl font-semibold">✓ Booking Confirmed</h1>
+      <p className="mt-4 text-neutral-600">Your booking has been received and confirmed.</p>
+      {amountPaidCents === 0 && <p className="mt-2 font-medium text-green-700">No advance payment required.</p>}
 
       <dl className="mt-8 space-y-2 text-left">
         <Row label="Booking reference" value={booking.booking_number} />
+        <Row label="Move date & time" value={new Date(booking.starts_at).toLocaleString("en-AU", { timeZone: "Australia/Adelaide", dateStyle: "full", timeStyle: "short" })} />
         <Row label="Package" value={snapshot.package ?? "—"} />
         <Row label="Package rate" value={snapshot.ratePer30MinCents ? `$${(snapshot.ratePer30MinCents / 100).toFixed(0)} / 30 min ($${((snapshot.ratePer30MinCents * 2) / 100).toFixed(0)}/hr)` : "—"} />
-        <Row label="Move date" value={new Date(booking.starts_at).toLocaleString("en-AU", { timeZone: "Australia/Adelaide" })} />
-        <Row label="Pickup" value={pickup?.formattedAddress ?? `${pickup?.addressLine ?? ""} ${pickup?.suburb ?? ""}`} />
-        <Row label="Destination" value={destination?.formattedAddress ?? `${destination?.addressLine ?? ""} ${destination?.suburb ?? ""}`} />
+        <Row label="Pickup" value={addressLabel(booking.pickup_address)} />
+        <Row label="Destination" value={addressLabel(booking.destination_address)} />
+        {customer?.name && <Row label="Booked by" value={customer.name} />}
+        {customer?.email && <Row label="Confirmation sent to" value={customer.email} />}
         <Row label="Minimum service" value={snapshot.minimumBookingMinutes ? `${snapshot.minimumBookingMinutes / 60} hours` : "—"} />
         <Row
           label="Call-out"
@@ -64,16 +74,18 @@ export default async function BookingSuccessPage({ searchParams }: { searchParam
               : "—"
           }
         />
-        <Row label="Estimated minimum" value={`$${(booking.subtotal_cents / 100).toFixed(2)}`} />
-        <Row label="Booking confirmation" value={`$${(booking.deposit_paid_cents / 100).toFixed(2)} paid`} />
-        <Row label="Estimated minimum balance after booking payment" value={`$${(booking.balance_due_cents / 100).toFixed(2)}`} />
+        <Row label="Estimated minimum" value={money(booking.subtotal_cents)} />
+        {amountPaidCents > 0 ? (
+          <Row label="Booking confirmation paid" value={money(amountPaidCents)} />
+        ) : (
+          <Row label="Advance payment" value="Not required" />
+        )}
       </dl>
 
       <p className="mt-6 text-xs text-neutral-500">
-        3-hour minimum service + 1-hour call-out fee. The call-out covers truck fuel and basic transport charges.
-        Additional service time is billed in 30-minute increments at your selected package rate. Your final price is
-        calculated when the job is completed. The $100 booking confirmation payment is credited toward your final
-        balance.
+        Your final price is calculated after your move is completed. 3-hour minimum service + 1-hour call-out fee.
+        The call-out covers truck fuel and basic transport charges. Additional service time is billed in 30-minute
+        increments at your selected package rate.
       </p>
 
       <Link href="/" className="mt-10 inline-block rounded-full bg-neutral-900 px-6 py-3 text-white">Return home</Link>
@@ -83,18 +95,19 @@ export default async function BookingSuccessPage({ searchParams }: { searchParam
 
 function Row({ label, value }: { label: string; value: string }) {
   return (
-    <div className="flex justify-between border-b py-2">
+    <div className="flex justify-between gap-4 border-b py-2">
       <dt className="text-neutral-500">{label}</dt>
-      <dd className="font-medium">{value}</dd>
+      <dd className="text-right font-medium">{value}</dd>
     </div>
   );
 }
 
-function Fallback({ message }: { message: string }) {
+function Fallback({ message, detail, href = "/", cta = "Return home" }: { message: string; detail?: string; href?: string; cta?: string }) {
   return (
     <main className="booking-shell mx-auto max-w-2xl px-6 py-24 text-center">
       <h1 className="text-2xl font-semibold">{message}</h1>
-      <Link href="/" className="mt-8 inline-block rounded-full bg-neutral-900 px-6 py-3 text-white">Return home</Link>
+      {detail && <p className="mt-4 text-neutral-600">{detail}</p>}
+      <Link href={href} className="mt-8 inline-block rounded-full bg-neutral-900 px-6 py-3 text-white">{cta}</Link>
     </main>
   );
 }

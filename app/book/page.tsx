@@ -36,12 +36,13 @@ export default function BookPage() {
         <ol className="mx-auto mt-6 grid max-w-xl grid-cols-1 gap-2 text-left text-sm text-neutral-600 sm:grid-cols-2">
           <li>1. Enter your move details</li>
           <li>2. Choose an available time</li>
-          <li>3. Pay $100 to secure the booking</li>
-          <li>4. Receive your booking confirmation</li>
+          <li>3. Review your booking</li>
+          <li>4. Confirm your move</li>
         </ol>
-        <p className="mx-auto mt-6 max-w-xl text-xs text-neutral-500">
-          Your $100 booking confirmation payment is credited toward your final balance. Final pricing is calculated
-          after your move is completed. A 3-hour minimum service and a separate 1-hour call-out fee apply.
+        <p className="mx-auto mt-6 max-w-xl text-sm font-medium text-neutral-700">No advance payment required.</p>
+        <p className="mx-auto mt-2 max-w-xl text-xs text-neutral-500">
+          Your final price is calculated once your move is completed. 3-hour minimum service + separate 1-hour
+          call-out fee applies.
         </p>
       </div>
       <BookingWizard />

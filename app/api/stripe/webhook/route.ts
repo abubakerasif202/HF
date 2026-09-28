@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { stripeConfig, isBookingSystemLive } from "../../../../lib/server/config.ts";
+import { stripeConfig, supabaseConfig } from "../../../../lib/server/config.ts";
 import { getStripe } from "../../../../lib/server/stripe.ts";
 import { hasProcessedStripeEvent, markStripeEventProcessed, confirmBookingPayment, recordPayment, getBookingById } from "../../../../lib/server/booking-repo.ts";
 import { getSupabaseAdmin } from "../../../../lib/server/supabase.ts";
@@ -32,9 +32,16 @@ async function logMismatch(bookingId: string, eventId: string, reason: string) {
 }
 
 /**
- * Stripe webhook — the ONLY source of truth for payment confirmation.
- * The /booking/success redirect page never confirms a booking on its own;
- * it only displays whatever state this webhook has already written.
+ * DORMANT — historical compatibility only.
+ *
+ * Online bookings no longer take an advance payment, and no new booking
+ * ever enters Stripe Checkout (/api/booking/checkout returns 410). New
+ * bookings are confirmed by POST /api/booking/confirm. This handler is
+ * kept solely so a late event for a GENUINE historical Checkout session
+ * is still processed consistently. It can never transition a
+ * no-payment booking: every branch requires the event's session id to
+ * equal the booking's recorded current_checkout_session_id, which is
+ * always null for no-payment bookings.
  *
  * Idempotency: every event.id is recorded in `stripe_events` ONLY after
  * its side effects complete successfully, so a retried delivery (Stripe
@@ -43,7 +50,7 @@ async function logMismatch(bookingId: string, eventId: string, reason: string) {
  * below — never called before the try block finishes).
  */
 export async function POST(request: NextRequest) {
-  if (!isBookingSystemLive() || !stripeConfig.isWebhookConfigured()) {
+  if (!supabaseConfig.isConfigured() || !stripeConfig.isConfigured() || !stripeConfig.isWebhookConfigured()) {
     return NextResponse.json({ error: "Webhook not configured" }, { status: 503 });
   }
 
@@ -140,7 +147,9 @@ export async function POST(request: NextRequest) {
     } else if (event.type === "checkout.session.async_payment_failed") {
       const session = event.data.object as Stripe.Checkout.Session;
       const bookingId = session.metadata?.booking_id;
-      if (bookingId) {
+      const booking = bookingId ? await getBookingById(bookingId) : null;
+      // Only a genuine historical session for this exact booking may record anything.
+      if (bookingId && booking && booking.current_checkout_session_id === session.id) {
         const paymentIntentId = typeof session.payment_intent === "string" ? session.payment_intent : (session.payment_intent?.id ?? null);
         await recordPayment({
           bookingId,

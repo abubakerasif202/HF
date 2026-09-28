@@ -25,6 +25,11 @@ test("webhook: valid $100 AUD payment for the current session confirms exactly o
   assert.deepEqual(decision, { action: "confirm" });
 });
 
+test("webhook: a booking with no recorded Checkout session (no-advance-payment) is never confirmed by a Stripe event", () => {
+  const decision = decideCheckoutSessionCompleted(eventBase(), { ...bookingBase, bookingStatus: "held", currentCheckoutSessionId: null, depositRequiredCents: 0 });
+  assert.equal(decision.action, "ignore_stale_session");
+});
+
 test("webhook: missing booking_id metadata is ignored, not confirmed", () => {
   const decision = decideCheckoutSessionCompleted(eventBase({ sessionMetadataBookingId: undefined }), bookingBase);
   assert.equal(decision.action, "no_booking_id");

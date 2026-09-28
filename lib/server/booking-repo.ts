@@ -1,7 +1,28 @@
 import "server-only";
 import { getSupabaseAdmin } from "./supabase.ts";
-import type { BusinessSettings, BusyInterval, PricingRule } from "../booking/types.ts";
+import type { BusinessSettings, BusyInterval, PricingRule, PricingSnapshot } from "../booking/types.ts";
+import type { ConfirmRpcResult } from "../booking/confirmation.ts";
 import { LIVE_STATUSES } from "../booking/state-machine.ts";
+
+type Address = { formattedAddress?: string; addressLine?: string; suburb?: string } | null;
+
+/** The bookings columns the confirmation flow reads (from to_jsonb(bookings)). */
+export interface ConfirmedBookingRow {
+  id: string;
+  booking_number: string;
+  access_token: string;
+  booking_status: string;
+  customer_id: string | null;
+  starts_at: string;
+  ends_at: string;
+  pickup_address: Address;
+  destination_address: Address;
+  google_calendar_event_id: string | null;
+  deposit_paid_cents: number;
+  subtotal_cents: number;
+  balance_due_cents: number;
+  pricing_snapshot: PricingSnapshot | null;
+}
 
 export async function getBusinessSettings(): Promise<BusinessSettings> {
   const { data, error } = await getSupabaseAdmin().from("business_settings").select("*").eq("id", true).single();
@@ -168,34 +189,32 @@ export async function getBookingById(id: string) {
 }
 
 export async function getBookingByAccessToken(token: string) {
-  const { data, error } = await getSupabaseAdmin().from("bookings").select("*").eq("access_token", token).maybeSingle();
+  const { data, error } = await getSupabaseAdmin().from("bookings").select("*, customers(name, email)").eq("access_token", token).maybeSingle();
   if (error) throw error;
   return data;
 }
 
 /**
- * Moves a booking to `pending_payment` and — critically — extends
- * `hold_expires_at` to match the Stripe session's real expiry (plus a
- * small buffer). The session must never outlive the hold, but the hold
- * DID previously expire before a 30-minute-minimum Stripe session could,
- * which risked releasing the slot out from under a customer still on the
- * payment page.
+ * Confirms a held booking WITHOUT any payment via the service-role-only
+ * `confirm_booking_without_payment` RPC (migration 0011), which checks
+ * the access token, `held` state and hold expiry atomically. The pricing
+ * snapshot/subtotal are computed server-side by the caller — never taken
+ * from the browser.
  */
-export async function setBookingPendingPayment(bookingId: string, checkoutSessionId: string, sessionExpiresAt: Date) {
-  const bufferedExpiry = new Date(sessionExpiresAt.getTime() + 2 * 60_000);
-  const { error } = await getSupabaseAdmin()
-    .from("bookings")
-    .update({ booking_status: "pending_payment", current_checkout_session_id: checkoutSessionId, hold_expires_at: bufferedExpiry.toISOString() })
-    .eq("id", bookingId)
-    .in("booking_status", ["held", "pending_payment"]);
-  if (error) throw error;
-
-  await getSupabaseAdmin().from("booking_events").insert({
-    booking_id: bookingId,
-    event: "payment_started",
-    actor: "system",
-    metadata: { stripe_checkout_session_id: checkoutSessionId },
+export async function confirmBookingWithoutPayment(input: {
+  bookingId: string;
+  accessToken: string;
+  pricingSnapshot: PricingSnapshot;
+  subtotalCents: number;
+}): Promise<ConfirmRpcResult<ConfirmedBookingRow>> {
+  const { data, error } = await getSupabaseAdmin().rpc("confirm_booking_without_payment", {
+    p_booking_id: input.bookingId,
+    p_access_token: input.accessToken,
+    p_pricing_snapshot: input.pricingSnapshot,
+    p_subtotal_cents: input.subtotalCents,
   });
+  if (error) throw error;
+  return data as ConfirmRpcResult<ConfirmedBookingRow>;
 }
 
 /**

@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { calculateQuote, packageNameForCrewSize } from "../lib/booking/pricing.ts";
+import { calculateQuote, packageNameForCrewSize, buildPricingSnapshot, computeFinalBilling } from "../lib/booking/pricing.ts";
 import {
   generateCandidateSlots,
   resolveSlotState,
@@ -30,6 +30,8 @@ const settings = {
   minDepositAmountCents: null,
 };
 
+// The legacy $100 deposit is still present in the hosted settings row; it
+// must have NO effect on new quotes any more.
 const configuredSettings = { ...settings, depositType: "fixed", depositFixedAmountCents: 10000 };
 
 // Confirmed canonical rates: $79/30min (2 movers), $99/30min (3 movers).
@@ -190,63 +192,63 @@ test("pricing: changing package changes the call-out automatically, with no sepa
   assert.notEqual(twoMen.calloutFeeCents, threeMen.calloutFeeCents);
 });
 
-test("pricing worked example: 2 Men + Truck minimum job totals $632, balance $532 after the $100 confirmation", () => {
-  const quote = calculateQuote({ crewSize: 2, actualDurationMinutes: 180, startsAt: new Date("2026-03-10T00:00:00Z") }, rule2, configuredSettings, TZ);
+const at = new Date("2026-03-10T00:00:00Z");
+
+test("pricing worked example: 2 Men + Truck minimum job totals $632, and the whole $632 is the balance (no advance payment)", () => {
+  const quote = calculateQuote({ crewSize: 2, actualDurationMinutes: 180, startsAt: at }, rule2, configuredSettings, TZ);
   assert.equal(quote.serviceChargeCents, 47400); // 6 x $79
   assert.equal(quote.calloutFeeCents, 15800); // 2 x $79
   assert.equal(quote.finalTotalCents, 63200); // $632
-  assert.equal(quote.estimatedBalanceCents, 53200); // $532
+  assert.equal(quote.estimatedBalanceCents, 63200);
 });
 
-test("pricing worked example: 3 Men + Truck minimum job totals $792, balance $692 after the $100 confirmation", () => {
-  const quote = calculateQuote({ crewSize: 3, actualDurationMinutes: 180, startsAt: new Date("2026-03-10T00:00:00Z") }, rule3, configuredSettings, TZ);
+test("pricing worked example: 3 Men + Truck minimum job totals $792, balance $792", () => {
+  const quote = calculateQuote({ crewSize: 3, actualDurationMinutes: 180, startsAt: at }, rule3, configuredSettings, TZ);
   assert.equal(quote.serviceChargeCents, 59400); // 6 x $99
   assert.equal(quote.calloutFeeCents, 19800); // 2 x $99
   assert.equal(quote.finalTotalCents, 79200); // $792
-  assert.equal(quote.estimatedBalanceCents, 69200); // $692
+  assert.equal(quote.estimatedBalanceCents, 79200);
 });
 
-test("pricing worked example: a 4-hour 2 Men job totals $790, balance $690", () => {
-  const quote = calculateQuote({ crewSize: 2, actualDurationMinutes: 240, startsAt: new Date("2026-03-10T00:00:00Z") }, rule2, configuredSettings, TZ);
+test("pricing worked example: a 4-hour 2 Men job totals $790", () => {
+  const quote = calculateQuote({ crewSize: 2, actualDurationMinutes: 240, startsAt: at }, rule2, configuredSettings, TZ);
   assert.equal(quote.billableServiceMinutes, 240);
   assert.equal(quote.serviceChargeCents, 63200); // 8 x $79
   assert.equal(quote.finalTotalCents, 79000); // $790
-  assert.equal(quote.estimatedBalanceCents, 69000); // $690
 });
 
 test("pricing worked example: 4h15m (255 min) rounds up to 4h30m billable, totalling $869", () => {
-  const quote = calculateQuote({ crewSize: 2, actualDurationMinutes: 255, startsAt: new Date("2026-03-10T00:00:00Z") }, rule2, configuredSettings, TZ);
+  const quote = calculateQuote({ crewSize: 2, actualDurationMinutes: 255, startsAt: at }, rule2, configuredSettings, TZ);
   assert.equal(quote.billableServiceMinutes, 270); // 4.5 hours, never truncated to 4h
   assert.equal(quote.serviceChargeCents, 71100); // 9 x $79
   assert.equal(quote.finalTotalCents, 86900); // $869
-  assert.equal(quote.estimatedBalanceCents, 76900); // $769
 });
 
 test("pricing: final total is service charge plus call-out, nothing else", () => {
-  const quote = calculateQuote({ crewSize: 2, actualDurationMinutes: 180, startsAt: new Date("2026-03-10T00:00:00Z") }, rule2, configuredSettings, TZ);
+  const quote = calculateQuote({ crewSize: 2, actualDurationMinutes: 180, startsAt: at }, rule2, configuredSettings, TZ);
   assert.equal(quote.finalTotalCents, quote.serviceChargeCents + quote.calloutFeeCents);
   assert.equal(quote.finalTotalCents, 63200); // 47400 + 15800
 });
 
-test("pricing: $100 booking confirmation is fixed and independent of the final total", () => {
-  const smallJob = calculateQuote({ crewSize: 2, actualDurationMinutes: 90, startsAt: new Date("2026-03-10T00:00:00Z") }, rule2, configuredSettings, TZ);
-  const bigJob = calculateQuote({ crewSize: 2, actualDurationMinutes: 600, startsAt: new Date("2026-03-10T00:00:00Z") }, rule2, configuredSettings, TZ);
-  assert.equal(smallJob.bookingConfirmationCents, 10000);
-  assert.equal(bigJob.bookingConfirmationCents, 10000);
+test("pricing: no advance payment — advancePaymentCents is 0 and nothing is subtracted, even with the legacy $100 deposit still configured", () => {
+  const quote = calculateQuote({ crewSize: 2, actualDurationMinutes: 180, startsAt: at }, rule2, configuredSettings, TZ);
+  assert.equal(quote.advancePaymentCents, 0);
+  assert.equal(quote.estimatedBalanceCents, quote.finalTotalCents);
+  assert.equal("bookingConfirmationCents" in quote, false);
 });
 
-test("pricing: the $100 confirmation is deducted from the final balance, never added on top", () => {
-  const quote = calculateQuote({ crewSize: 2, actualDurationMinutes: 180, startsAt: new Date("2026-03-10T00:00:00Z") }, rule2, configuredSettings, TZ);
-  assert.equal(quote.estimatedBalanceCents, quote.finalTotalCents - quote.bookingConfirmationCents);
-  assert.equal(quote.estimatedBalanceCents, 53200); // 63200 - 10000
-  assert.notEqual(quote.estimatedBalanceCents, quote.finalTotalCents + quote.bookingConfirmationCents);
+test("pricing: a quote is fully configured from the pricing rule alone — no deposit policy needed", () => {
+  const quote = calculateQuote({ crewSize: 2, actualDurationMinutes: 180, startsAt: at }, rule2, settings, TZ);
+  assert.equal(quote.isFullyConfigured, true);
+  assert.equal(quote.estimatedBalanceCents, 63200);
 });
 
-test("pricing: the $100 booking confirmation is deducted exactly once, regardless of job length", () => {
-  const short = calculateQuote({ crewSize: 2, actualDurationMinutes: 180, startsAt: new Date("2026-03-10T00:00:00Z") }, rule2, configuredSettings, TZ);
-  const long = calculateQuote({ crewSize: 2, actualDurationMinutes: 480, startsAt: new Date("2026-03-10T00:00:00Z") }, rule2, configuredSettings, TZ);
-  assert.equal(short.finalTotalCents - short.estimatedBalanceCents, 10000);
-  assert.equal(long.finalTotalCents - long.estimatedBalanceCents, 10000);
+test("pricing: customer-facing caveat says no advance payment and never mentions $100", () => {
+  const quote = calculateQuote({ crewSize: 2, actualDurationMinutes: 180, startsAt: at }, rule2, configuredSettings, TZ);
+  const text = quote.caveats.join(" ");
+  assert.match(text, /No advance payment required/);
+  assert.match(text, /final price is calculated after your move is completed/);
+  assert.doesNotMatch(text, /\$100|deposit|credited/i);
 });
 
 test("scheduling: the 1-hour call-out is a billing charge only and never extends truck/crew occupancy", () => {
@@ -262,62 +264,97 @@ test("scheduling: the 1-hour call-out is a billing charge only and never extends
   assert.notEqual(schedulingDurationMinutes, minimumBookingMinutes + calloutMinutes);
 });
 
-test("pricing: estimated balance never goes negative even if confirmation exceeded the total", () => {
-  const tinySettings = { ...configuredSettings, depositFixedAmountCents: 999_999_00 };
-  const quote = calculateQuote({ crewSize: 2, actualDurationMinutes: 180, startsAt: new Date("2026-03-10T00:00:00Z") }, rule2, tinySettings, TZ);
-  assert.equal(quote.estimatedBalanceCents, 0);
-});
-
 test("pricing: all monetary fields are integers (integer-cent arithmetic only)", () => {
-  const quote = calculateQuote({ crewSize: 3, actualDurationMinutes: 217, startsAt: new Date("2026-03-10T00:00:00Z") }, rule3, configuredSettings, TZ);
-  for (const value of [quote.serviceChargeCents, quote.calloutFeeCents, quote.finalTotalCents, quote.bookingConfirmationCents, quote.estimatedBalanceCents]) {
+  const quote = calculateQuote({ crewSize: 3, actualDurationMinutes: 217, startsAt: at }, rule3, configuredSettings, TZ);
+  for (const value of [quote.serviceChargeCents, quote.calloutFeeCents, quote.finalTotalCents, quote.advancePaymentCents, quote.estimatedBalanceCents]) {
     assert.equal(Number.isInteger(value), true);
   }
 });
 
 test("pricing: missing pricing rule surfaces a caveat instead of a fabricated price", () => {
-  const quote = calculateQuote(
-    { crewSize: 5, actualDurationMinutes: 60, startsAt: new Date("2026-03-10T00:00:00Z") },
-    undefined,
-    settings,
-    TZ,
-  );
+  const quote = calculateQuote({ crewSize: 5, actualDurationMinutes: 60, startsAt: at }, undefined, settings, TZ);
   assert.equal(quote.finalTotalCents, 0);
   assert.equal(quote.isFullyConfigured, false);
   assert.match(quote.caveats[0], /No pricing rule configured/);
 });
 
-test("pricing: booking confirmation not configured surfaces a caveat and blocks payment", () => {
-  const quote = calculateQuote({ crewSize: 2, actualDurationMinutes: 180, startsAt: new Date("2026-03-10T00:00:00Z") }, rule2, settings, TZ);
-  assert.equal(quote.isFullyConfigured, false);
-  assert.match(quote.caveats[0], /not configured/);
-});
-
-test("pricing: percentage-based deposit still supported (not the confirmed policy, but must not break)", () => {
-  const configured = { ...settings, depositType: "percentage", depositPercentage: 20, minDepositAmountCents: 5000 };
-  const quote = calculateQuote({ crewSize: 2, actualDurationMinutes: 180, startsAt: new Date("2026-03-10T00:00:00Z") }, rule2, configured, TZ);
-  assert.equal(quote.bookingConfirmationCents, Math.round((quote.finalTotalCents * 20) / 100));
-  assert.equal(quote.isFullyConfigured, true);
+test("pricing snapshot: freezes package, rate, minimum and call-out policy with advance payment marked not required", () => {
+  const quote = calculateQuote({ crewSize: 3, actualDurationMinutes: 180, startsAt: at }, rule3, configuredSettings, TZ);
+  assert.deepEqual(buildPricingSnapshot(quote), {
+    package: "3 Men + Truck",
+    ratePer30MinCents: 9900,
+    minimumBookingMinutes: 180,
+    calloutMinutes: 60,
+    advancePaymentRequired: false,
+    advancePaymentCents: 0,
+  });
 });
 
 test("pricing snapshot: preserves the policy at booking time, unaffected by later rate changes", () => {
-  const originalQuote = calculateQuote({ crewSize: 2, actualDurationMinutes: 180, startsAt: new Date("2026-03-10T00:00:00Z") }, rule2, configuredSettings, TZ);
-  const snapshot = {
-    package: originalQuote.packageName,
-    ratePer30MinCents: originalQuote.ratePer30MinCents,
-    minimumBookingMinutes: originalQuote.minimumBookingMinutes,
-    calloutMinutes: originalQuote.calloutMinutes,
-    bookingConfirmationCents: originalQuote.bookingConfirmationCents,
-  };
-
-  // Simulate the business raising its rate afterward.
+  const snapshot = buildPricingSnapshot(calculateQuote({ crewSize: 2, actualDurationMinutes: 180, startsAt: at }, rule2, configuredSettings, TZ));
   const raisedRule2 = { ...rule2, ratePer30MinCents: 8900 };
   const laterQuote = calculateQuote({ crewSize: 2, actualDurationMinutes: 180, startsAt: new Date("2026-06-10T00:00:00Z") }, raisedRule2, configuredSettings, TZ);
-
-  assert.equal(snapshot.ratePer30MinCents, 7900);
   assert.notEqual(laterQuote.ratePer30MinCents, snapshot.ratePer30MinCents);
-  // The historical snapshot's numbers must never be recalculated from the new rate.
-  assert.equal(snapshot.ratePer30MinCents, 7900);
+  // Finalising against the frozen snapshot still uses the original rate.
+  const bill = computeFinalBilling(snapshot, 180, 0, "not_required");
+  assert.equal(bill.finalTotalCents, 63200);
+});
+
+// --- Final billing: new no-payment vs historical $100 bookings -------------
+
+const newSnapshot2 = { package: "2 Men + Truck", ratePer30MinCents: 7900, minimumBookingMinutes: 180, calloutMinutes: 60, advancePaymentRequired: false, advancePaymentCents: 0 };
+const historicalSnapshot2 = { package: "2 Men + Truck", ratePer30MinCents: 7900, minimumBookingMinutes: 180, calloutMinutes: 60, bookingConfirmationCents: 10000 };
+
+test("final billing: a new no-payment booking pays $0 before the job, so balance = full final total", () => {
+  const bill = computeFinalBilling(newSnapshot2, 180, 0, "not_required");
+  assert.equal(bill.amountPaidCents, 0);
+  assert.equal(bill.finalTotalCents, 63200);
+  assert.equal(bill.balanceDueCents, 63200);
+});
+
+test("final billing: a no-payment booking keeps payment_status not_required — never marked deposit_paid/paid", () => {
+  const bill = computeFinalBilling(newSnapshot2, 255, 0, "not_required");
+  assert.equal(bill.paymentStatus, "not_required");
+  assert.equal(bill.balanceDueCents, 86900);
+});
+
+test("final billing: a historical booking that really paid $100 still deducts exactly $100", () => {
+  const bill = computeFinalBilling(historicalSnapshot2, 180, 10000, "deposit_paid");
+  assert.equal(bill.finalTotalCents, 63200);
+  assert.equal(bill.balanceDueCents, 53200);
+  assert.equal(bill.paymentStatus, "deposit_paid");
+});
+
+test("final billing: the historical $100 is deducted once regardless of job length", () => {
+  for (const minutes of [60, 180, 240, 480]) {
+    const bill = computeFinalBilling(historicalSnapshot2, minutes, 10000, "deposit_paid");
+    assert.equal(bill.finalTotalCents - bill.balanceDueCents, 10000);
+  }
+});
+
+test("final billing: the deduction is the RECORDED amount, not a global $100 assumption", () => {
+  // A snapshot that mentions $100 but a booking row that recorded $0
+  // paid must not deduct anything.
+  const bill = computeFinalBilling(historicalSnapshot2, 180, 0, "pending");
+  assert.equal(bill.balanceDueCents, 63200);
+});
+
+test("final billing: balance is never negative and becomes 'paid' when the recorded payment covers it", () => {
+  const bill = computeFinalBilling(newSnapshot2, 180, 999_999_00, "deposit_paid");
+  assert.equal(bill.balanceDueCents, 0);
+  assert.equal(bill.paymentStatus, "paid");
+});
+
+test("final billing: rejects a missing snapshot or a non-positive duration", () => {
+  assert.throws(() => computeFinalBilling({}, 180, 0, "not_required"), /pricing snapshot/);
+  assert.throws(() => computeFinalBilling(newSnapshot2, 0, 0, "not_required"), /positive whole number/);
+  assert.throws(() => computeFinalBilling(newSnapshot2, 90.5, 0, "not_required"), /positive whole number/);
+});
+
+test("state machine: a held booking can be confirmed directly, without a payment step", () => {
+  assert.equal(canTransition("held", "confirmed"), true);
+  assert.equal(canTransition("expired", "confirmed"), false);
+  assert.equal(canTransition("cancelled", "confirmed"), false);
 });
 
 test("state machine: rejects invalid transitions like completed -> pending_payment", () => {
