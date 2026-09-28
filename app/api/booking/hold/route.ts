@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { withBookingSystemGuard, jsonError } from "../../../../lib/server/api-helpers.ts";
+import { enforceRateLimit } from "../../../../lib/server/rate-limit.ts";
 import {
   getBusinessSettings,
   getActiveVehicleIds,
@@ -65,6 +66,10 @@ const MAX_RECENT_CONFIRMED_PER_EMAIL = 3;
  */
 export async function POST(request: NextRequest) {
   return withBookingSystemGuard(async () => {
+    // Per-IP limit first, before any other DB work, so junk requests count too.
+    const limited = await enforceRateLimit(request, "hold");
+    if (limited) return limited;
+
     const body = bodySchema.safeParse(await request.json().catch(() => null));
     if (!body.success) return jsonError(400, "Invalid booking request", { issues: body.error.issues });
     const input = body.data;

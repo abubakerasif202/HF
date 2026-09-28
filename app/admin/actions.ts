@@ -5,7 +5,7 @@ import { revalidatePath } from "next/cache";
 import { getSupabaseForServerAction } from "../../lib/server/supabase-ssr.ts";
 import { getSupabaseAdmin } from "../../lib/server/supabase.ts";
 import { getStaffSession } from "../../lib/server/supabase-ssr.ts";
-import { removeBookingFromCalendar } from "../../lib/server/google-calendar.ts";
+import { reconcileBookingCalendar } from "../../lib/server/google-calendar.ts";
 
 export async function signInAction(formData: FormData): Promise<{ error?: string }> {
   const email = String(formData.get("email") ?? "");
@@ -42,6 +42,7 @@ export async function assignVehicleAction(bookingId: string, vehicleId: string):
   const { error } = await getSupabaseAdmin().from("bookings").update({ vehicle_id: vehicleId }).eq("id", bookingId);
   if (error) throw error;
   await getSupabaseAdmin().from("booking_events").insert({ booking_id: bookingId, event: "vehicle_assigned", actor: staff.userId, metadata: { vehicle_id: vehicleId } });
+  await reconcileBookingCalendar(bookingId).catch(() => {});
   revalidatePath("/admin/bookings");
 }
 
@@ -50,6 +51,7 @@ export async function assignCrewAction(bookingId: string, crewId: string): Promi
   const { error } = await getSupabaseAdmin().from("bookings").update({ crew_id: crewId, booking_status: "assigned" }).eq("id", bookingId).eq("booking_status", "confirmed");
   if (error) throw error;
   await getSupabaseAdmin().from("booking_events").insert({ booking_id: bookingId, event: "crew_assigned", actor: staff.userId, metadata: { crew_id: crewId } });
+  await reconcileBookingCalendar(bookingId).catch(() => {});
   revalidatePath("/admin/bookings");
 }
 
@@ -71,12 +73,11 @@ export async function cancelBookingAction(bookingId: string): Promise<void> {
     .update({ booking_status: "cancelled", cancelled_at: new Date().toISOString() })
     .eq("id", bookingId)
     .in("booking_status", ["held", "pending_payment", "confirmed", "assigned"])
-    .select("id, google_calendar_event_id")
+    .select("id")
     .maybeSingle();
   if (error) throw error;
   await getSupabaseAdmin().from("booking_events").insert({ booking_id: bookingId, event: "booking_cancelled", actor: staff.userId });
-  if (booking?.google_calendar_event_id) {
-    await removeBookingFromCalendar(booking).catch(() => {});
-  }
+  // Removes the mirrored Google event (records a retryable failure if Google is down).
+  if (booking) await reconcileBookingCalendar(bookingId).catch(() => {});
   revalidatePath("/admin/bookings");
 }

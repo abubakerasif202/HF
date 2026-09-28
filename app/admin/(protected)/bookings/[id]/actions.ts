@@ -6,7 +6,7 @@ import { getSupabaseAdmin } from "../../../../../lib/server/supabase.ts";
 import { canTransition } from "../../../../../lib/booking/state-machine.ts";
 import { pickFreeVehicle } from "../../../../../lib/booking/availability.ts";
 import { getActiveVehicleIds, getBusyIntervals, getBlockedIntervals } from "../../../../../lib/server/booking-repo.ts";
-import { syncBookingToCalendar } from "../../../../../lib/server/google-calendar.ts";
+import { reconcileBookingCalendar } from "../../../../../lib/server/google-calendar.ts";
 import { computeFinalBilling } from "../../../../../lib/booking/pricing.ts";
 import type { BookingStatus, PaymentStatus, PricingSnapshot } from "../../../../../lib/booking/types.ts";
 
@@ -43,6 +43,9 @@ export async function transitionBookingStatusAction(bookingId: string, toStatus:
       actor: staff.userId,
       metadata: { from: booking.booking_status, to: toStatus },
     });
+    // Mirror the new status to Google (cancel removes the event). Never
+    // blocks or undoes the status change.
+    await reconcileBookingCalendar(bookingId).catch(() => {});
     revalidatePath(`/admin/bookings/${bookingId}`);
     revalidatePath("/admin/bookings");
     return {};
@@ -88,8 +91,8 @@ export async function rescheduleBookingAction(bookingId: string, newStartsAtIso:
       metadata: { from: booking.starts_at, to: newStartsAt.toISOString() },
     });
 
-    const { data: updated } = await getSupabaseAdmin().from("bookings").select("*").eq("id", bookingId).single();
-    if (updated) await syncBookingToCalendar(updated).catch(() => {});
+    // Updates the SAME Google event's start/end — never a second event.
+    await reconcileBookingCalendar(bookingId).catch(() => {});
 
     revalidatePath(`/admin/bookings/${bookingId}`);
     revalidatePath("/admin/bookings");
@@ -163,6 +166,7 @@ export async function finalizeJobAction(bookingId: string, actualDurationMinutes
         balanceDueCents: bill.balanceDueCents,
       },
     });
+    await reconcileBookingCalendar(bookingId).catch(() => {});
 
     revalidatePath(`/admin/bookings/${bookingId}`);
     revalidatePath("/admin/bookings");
@@ -174,7 +178,6 @@ export async function finalizeJobAction(bookingId: string, actualDurationMinutes
 
 export async function retryCalendarSyncAction(bookingId: string): Promise<void> {
   await requireStaff();
-  const { data: booking } = await getSupabaseAdmin().from("bookings").select("*").eq("id", bookingId).single();
-  if (booking) await syncBookingToCalendar(booking);
+  await reconcileBookingCalendar(bookingId).catch(() => {});
   revalidatePath(`/admin/bookings/${bookingId}`);
 }

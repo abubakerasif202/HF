@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { withBookingSystemGuard, jsonError } from "../../../../lib/server/api-helpers.ts";
+import { enforceRateLimit } from "../../../../lib/server/rate-limit.ts";
 import {
   getBusinessSettings,
   getPricingRule,
@@ -34,10 +35,24 @@ const bodySchema = z.object({
 export async function POST(request: NextRequest) {
   return withBookingSystemGuard(async () => {
     const body = bodySchema.safeParse(await request.json().catch(() => null));
-    if (!body.success) return jsonError(400, "Invalid request", { issues: body.error.issues });
+    const limited = await enforceRateLimit(request, "confirm");
+    if (!body.success) return limited ?? jsonError(400, "Invalid request", { issues: body.error.issues });
 
     const booking = await getBookingById(body.data.bookingId);
-    if (!booking || booking.access_token !== body.data.accessToken) {
+    const ownsBooking = Boolean(booking && booking.access_token === body.data.accessToken);
+
+    // Idempotency beats rate limiting: a customer re-submitting (e.g. a
+    // double click) for a booking that is ALREADY confirmed always gets
+    // the existing confirmed result, never an alarming 429. Only new
+    // confirmation attempts are limited.
+    if (limited) {
+      if (booking && ownsBooking && CONFIRMED_STATUSES.has(booking.booking_status)) {
+        return confirmedResponse(booking, true);
+      }
+      return limited;
+    }
+
+    if (!booking || !ownsBooking) {
       return jsonError(404, "Booking not found.");
     }
     if (booking.booking_status === "expired") {
@@ -75,11 +90,17 @@ export async function POST(request: NextRequest) {
       return jsonError(outcome.httpStatus, outcome.message ?? "Could not confirm this booking.", { code: outcome.reason });
     }
 
-    return NextResponse.json({
-      confirmed: true,
-      alreadyConfirmed: outcome.reason === "already_confirmed",
-      bookingNumber: outcome.booking.booking_number,
-      successUrl: `/booking/success?token=${outcome.booking.access_token}`,
-    });
+    return confirmedResponse(outcome.booking, outcome.reason === "already_confirmed");
+  });
+}
+
+const CONFIRMED_STATUSES = new Set(["confirmed", "assigned", "in_progress", "completed"]);
+
+function confirmedResponse(booking: { booking_number: string; access_token: string }, alreadyConfirmed: boolean) {
+  return NextResponse.json({
+    confirmed: true,
+    alreadyConfirmed,
+    bookingNumber: booking.booking_number,
+    successUrl: `/booking/success?token=${booking.access_token}`,
   });
 }

@@ -8,6 +8,7 @@ import { FinalizeJobForm } from "./FinalizeJobForm";
 import { AdminCard, AdminDataList, AdminDataRow, AdminPageHeader, formatAdelaide, formatMoney } from "../../../_components/ui";
 import { AdminStatusBadge } from "../../../_components/AdminStatusBadge";
 import { Icon } from "../../../_components/Icon";
+import { googleCalendarEventLink } from "../../../../../lib/server/google-calendar.ts";
 
 export const dynamic = "force-dynamic";
 export const metadata = { robots: { index: false, follow: false } };
@@ -173,8 +174,14 @@ export default async function AdminBookingDetailPage({ params }: { params: Promi
             <div className="admin-help mt-2">Locked at confirmation — later rate changes never affect this booking.</div>
           </AdminCard>
 
-          <AdminCard icon="sync" title="Calendar sync">
-            <CalendarSyncStatus bookingId={booking.id} status={booking.calendar_sync_status} error={booking.calendar_sync_error} />
+          <AdminCard icon="sync" title="Google Calendar" description="Optional mirror — this booking system stays the source of truth.">
+            <CalendarSyncStatus
+              bookingId={booking.id}
+              status={booking.calendar_sync_status}
+              error={booking.calendar_sync_error}
+              canSync={["confirmed", "assigned", "in_progress", "completed", "cancelled"].includes(booking.booking_status)}
+              eventLink={booking.calendar_sync_status === "synced" && booking.booking_status !== "cancelled" ? googleCalendarEventLink(booking.google_calendar_event_id) : null}
+            />
           </AdminCard>
 
           <AdminCard icon="bell" title="Notifications">

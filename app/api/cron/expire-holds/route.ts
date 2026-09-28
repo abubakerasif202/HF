@@ -30,5 +30,11 @@ export async function GET(request: NextRequest) {
   const { data, error } = await getSupabaseAdmin().rpc("expire_stale_holds");
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
 
-  return NextResponse.json({ expired: data });
+  // Housekeeping: purge expired per-IP rate-limit windows (migration 0012).
+  // Independent of hold expiry — a failure here is reported but never
+  // fails the sweep. (Each limiter call also deletes its own expired
+  // windows, so the table stays bounded even if this cron is infrequent.)
+  const purge = await getSupabaseAdmin().rpc("purge_expired_booking_rate_limits");
+
+  return NextResponse.json({ expired: data, rateLimitRowsPurged: purge.error ? null : purge.data });
 }

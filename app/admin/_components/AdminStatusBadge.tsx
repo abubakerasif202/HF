@@ -38,9 +38,9 @@ export const PAYMENT_STATUS: Record<string, StatusStyle> = {
 
 export const SYNC_STATUS: Record<string, StatusStyle> = {
   synced: { label: "Synced", tone: "success", icon: "check" },
-  pending: { label: "Sync pending", tone: "warning", icon: "clock" },
-  failed: { label: "Sync failed", tone: "danger", icon: "alert" },
-  not_applicable: { label: "Calendar sync off", tone: "neutral", icon: "ban" },
+  pending: { label: "Pending", tone: "warning", icon: "clock" },
+  failed: { label: "Failed", tone: "danger", icon: "alert" },
+  not_applicable: { label: "Disabled", tone: "neutral", icon: "ban" },
 };
 
 const MAPS = { booking: BOOKING_STATUS, payment: PAYMENT_STATUS, sync: SYNC_STATUS } as const;

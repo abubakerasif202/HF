@@ -64,6 +64,13 @@ export const googleCalendarConfig = {
   refreshToken: () => required("GOOGLE_REFRESH_TOKEN"),
 };
 
+/** Server-only HMAC key for per-IP booking rate limiting. When unset the
+ * limiter is skipped (fails open) and the other anti-abuse layers apply. */
+export const rateLimitConfig = {
+  isConfigured: () => Boolean(process.env.RATE_LIMIT_SECRET),
+  secret: (): string | null => process.env.RATE_LIMIT_SECRET || null,
+};
+
 export const cronConfig = {
   isConfigured: () => Boolean(process.env.CRON_SECRET),
   secret: () => required("CRON_SECRET"),

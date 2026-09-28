@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { withBookingSystemGuard, jsonError } from "../../../../lib/server/api-helpers.ts";
+import { enforceRateLimit } from "../../../../lib/server/rate-limit.ts";
 import { getBusinessSettings, getPricingRule, getActiveVehicleIds, getBusyIntervals, getBlockedIntervals } from "../../../../lib/server/booking-repo.ts";
 import { generateCandidateSlots, resolveSlotState, withinBookingWindow } from "../../../../lib/booking/availability.ts";
 import { zonedWallTimeToInstant } from "../../../../lib/booking/timezone.ts";
@@ -23,6 +24,9 @@ const querySchema = z.object({
  */
 export async function GET(request: NextRequest) {
   return withBookingSystemGuard(async () => {
+    const limited = await enforceRateLimit(request, "availability");
+    if (limited) return limited;
+
     const parsed = querySchema.safeParse(Object.fromEntries(request.nextUrl.searchParams));
     if (!parsed.success) {
       return jsonError(400, "Invalid query", { issues: parsed.error.issues });
