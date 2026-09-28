@@ -39,7 +39,7 @@ export default function BookPage() {
           <li>3. Review your booking</li>
           <li>4. Confirm your move</li>
         </ol>
-        <p className="mx-auto mt-6 max-w-xl text-sm font-medium text-neutral-700">No advance payment required.</p>
+        <p className="mx-auto mt-6 max-w-xl text-sm font-medium text-green-700">No advance payment required.</p>
         <p className="mx-auto mt-2 max-w-xl text-xs text-neutral-500">
           Your final price is calculated once your move is completed. 3-hour minimum service + separate 1-hour
           call-out fee applies.

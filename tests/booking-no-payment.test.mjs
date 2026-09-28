@@ -266,6 +266,7 @@ const CUSTOMER_FACING = [
   "app/booking/success/page.tsx",
   "app/booking/cancel/page.tsx",
   "app/components/Site.tsx",
+  "app/components/GoogleAppointmentSchedule.tsx",
   "lib/site-data.ts",
   "lib/booking/pricing.ts",
 ];
@@ -284,6 +285,7 @@ const BANNED = [
   /Payment successful/i,
   /Deposit received/i,
   /Redirecting to secure payment/i,
+  /paid reservation/i,
 ];
 
 test("copy: customer-facing booking UI contains no active advance-payment wording", async () => {

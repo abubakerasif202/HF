@@ -25,7 +25,7 @@ export function GoogleAppointmentSchedule() {
       </h2>
       <p className="mt-1 text-sm text-neutral-500">
         You can also book a time directly on our calendar to talk through your move. This is a scheduling option
-        only — for an instant, paid reservation, use Book Your Move above.
+        only — to confirm a booking instantly (no advance payment required), use Book Your Move above.
       </p>
 
       {!expanded ? (
