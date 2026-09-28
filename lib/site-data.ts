@@ -63,7 +63,7 @@ export const business = {
     "Coverage and eligibility depend on the applicable policy terms and the scope of the move. Ask us about the details relevant to your move.",
   googleBusiness: {
     rating: 5.0,
-    reviewCount: 442,
+    reviewCount: 451,
     hoursLabel: "7:00 am–8:00 pm daily",
     hoursShort: "7am–8pm",
     hoursVerifiedAt: "2026-08-27",
