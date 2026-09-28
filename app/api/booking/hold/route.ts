@@ -125,13 +125,14 @@ export async function POST(request: NextRequest) {
     const window = withinBookingWindow(startsAt, new Date(), settings);
     if (!window.ok) return jsonError(400, window.reason ?? "Requested time is outside the booking window.");
 
-    // Duplicate-submission guard: the same customer already holds or has
-    // confirmed a live booking overlapping this exact window (e.g. a
-    // resubmitted wizard). Don't take a second truck for the same move.
+    // Duplicate-submission guard: the same customer already has a
+    // CONFIRMED booking overlapping this window (e.g. a resubmitted
+    // wizard). Don't take a second truck for the same move. Unconfirmed
+    // holds are covered by the active-hold cap above and simply lapse.
     const { count: duplicateCount } = await getSupabaseAdmin()
       .from("bookings")
       .select("id, customers!inner(email)", { count: "exact", head: true })
-      .in("booking_status", ["held", "confirmed", "assigned", "in_progress"])
+      .in("booking_status", ["confirmed", "assigned", "in_progress"])
       .lt("starts_at", endsAt.toISOString())
       .gt("ends_at", startsAt.toISOString())
       .eq("customers.email", normalizedEmail);
