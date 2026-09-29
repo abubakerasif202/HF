@@ -27,12 +27,12 @@ function contentTitle(page: NonNullable<ReturnType<typeof findContentPage>>) {
   if (page.kind === "area") return `${page.eyebrow.replace(/ removals| moving support/i, "")} Removalists`;
   if (page.kind === "service") {
     const titles: Record<string, string> = {
-      "residential-removals": "House Removalists Adelaide | Residential Movers | HF Removals",
-      "furniture-removals": "Furniture Removalists Adelaide | Furniture Movers",
-      "office-commercial-removals": "Office Removalists Adelaide | Commercial Movers",
-      "interstate-removals": "Interstate Removalists Adelaide | Movers & Routes",
-      backloading: "Backloading Services Adelaide",
-      "packing-unpacking": "Packing Services Adelaide | Packing & Unpacking",
+      "residential-removals": "House Removalists Adelaide | HF Removals Adelaide",
+      "furniture-removals": "Furniture Movers Adelaide | HF Removals Adelaide",
+      "office-commercial-removals": "Office Removals Adelaide | HF Removals Adelaide",
+      "interstate-removals": "Interstate Removalists Adelaide | HF Removals Adelaide",
+      backloading: "Backloading Adelaide | HF Removals Adelaide",
+      "packing-unpacking": "Packing Services Adelaide | HF Removals Adelaide",
     };
     return titles[page.slug] ?? `${page.eyebrow} Adelaide`;
   }
@@ -88,7 +88,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   if (slug.length === 1 && staticPages[slug[0]]) {
     const page = staticPages[slug[0]];
     const title = page.type === "adelaide" ? { absolute: page.title } : page.title;
-    return { title, description: page.description, alternates: { canonical: canonical(path) }, ...socialMetadata(page.title, page.description, path) };
+    const metadataTitle = page.type === "contact" ? { absolute: page.title } : title;
+    return { title: metadataTitle, description: page.description, alternates: { canonical: canonical(path) }, ...socialMetadata(page.title, page.description, path) };
   }
   if (slug.length === 1 && listingPages[slug[0]]) {
     const page = listingPages[slug[0]];
@@ -97,7 +98,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const page = findContentPage(slug);
   if (!page) return {};
   const title = contentTitle(page);
-  return { title: page.slug === "residential-removals" ? { absolute: title } : title, description: page.description, alternates: { canonical: canonical(path) }, ...socialMetadata(title, page.description, path) };
+  return { title: page.kind === "service" ? { absolute: title } : title, description: page.description, alternates: { canonical: canonical(path) }, ...socialMetadata(title, page.description, path) };
 }
 
 export function generateStaticParams() {

@@ -123,13 +123,16 @@ export function MotionExperience() {
       ".footer-grid > div",
     ].join(",");
     const targets = Array.from(document.querySelectorAll<HTMLElement>(selector));
+    const shouldAnimate = !reducedMotion && typeof window.IntersectionObserver === "function";
 
-    targets.forEach((target, index) => {
-      target.classList.add("reveal-item");
-      target.style.setProperty("--reveal-delay", `${(index % 5) * 55}ms`);
-    });
+    if (shouldAnimate) {
+      targets.forEach((target, index) => {
+        target.classList.add("reveal-item");
+        target.style.setProperty("--reveal-delay", `${(index % 5) * 55}ms`);
+      });
+    }
 
-    const observer = reducedMotion
+    const observer = !shouldAnimate
       ? null
       : new IntersectionObserver(
           (entries) => {
@@ -143,7 +146,7 @@ export function MotionExperience() {
         );
 
     targets.forEach((target) => {
-      if (reducedMotion) target.classList.add("is-revealed");
+      if (!shouldAnimate) target.classList.add("is-revealed");
       else observer?.observe(target);
     });
 

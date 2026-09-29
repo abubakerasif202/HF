@@ -22,11 +22,11 @@ const nextConfig: NextConfig = {
             key: "Content-Security-Policy",
             value: [
               "default-src 'self'",
-              "script-src 'self' 'unsafe-inline' https://js.stripe.com",
+              "script-src 'self' 'unsafe-inline' https://js.stripe.com https://www.googletagmanager.com",
               "style-src 'self' 'unsafe-inline'",
-              "img-src 'self' data:",
+              "img-src 'self' data: https://www.googletagmanager.com https://www.google-analytics.com https://www.google.com.au",
               "font-src 'self'",
-              "connect-src 'self' https://api.web3forms.com https://api.stripe.com",
+              "connect-src 'self' https://api.web3forms.com https://api.stripe.com https://www.googletagmanager.com https://www.google-analytics.com https://analytics.google.com https://www.google.com https://stats.g.doubleclick.net",
               "form-action 'self' https://api.web3forms.com",
               "frame-src 'self' https://www.google.com https://calendar.google.com https://checkout.stripe.com https://js.stripe.com",
               "object-src 'none'",
@@ -38,7 +38,33 @@ const nextConfig: NextConfig = {
     ];
   },
   async redirects() {
+    const alternateHosts = [
+      "hfremovalsadelaide.com.au",
+      "www.hfremovalsadelaide.com",
+      "hfremovalsadelaide.com",
+    ];
+    const legacyRoutes = [
+      { source: "/about-us", destination: "/about" },
+      { source: "/about-us/", destination: "/about" },
+      { source: "/contact-us", destination: "/contact" },
+      { source: "/contact-us/", destination: "/contact" },
+      { source: "/interstate-removal-services", destination: "/services/interstate-removals" },
+      { source: "/interstate-removal-services/", destination: "/services/interstate-removals" },
+      { source: "/blog", destination: "/guides" },
+      { source: "/blog/", destination: "/guides" },
+    ];
+
     return [
+      // Combine the alias-host and legacy-path rules so HTTPS requests to old
+      // host/path pairs reach the final canonical URL in one permanent hop.
+      ...alternateHosts.flatMap((host) =>
+        legacyRoutes.map(({ source, destination }) => ({
+          source,
+          has: [{ type: "host" as const, value: host }],
+          destination: `https://www.hfremovalsadelaide.com.au${destination}`,
+          permanent: true,
+        })),
+      ),
       {
         source: "/about-us",
         destination: "https://www.hfremovalsadelaide.com.au/about",
@@ -80,44 +106,44 @@ const nextConfig: NextConfig = {
         permanent: true,
       },
       {
-        source: "/",
-        has: [{ type: "host", value: "www.hfremovalsadelaide.com" }],
-        destination: "https://www.hfremovalsadelaide.com.au/",
-        permanent: true,
-      },
-      {
-        source: "/",
-        has: [{ type: "host", value: "hfremovalsadelaide.com.au" }],
-        destination: "https://www.hfremovalsadelaide.com.au/",
-        permanent: true,
-      },
-      {
-        source: "/",
-        has: [{ type: "host", value: "hfremovalsadelaide.com" }],
-        destination: "https://www.hfremovalsadelaide.com.au/",
-        permanent: true,
-      },
-      {
-        source: "/:path*",
-        has: [{ type: "host", value: "www.hfremovalsadelaide.com" }],
-        destination: "https://www.hfremovalsadelaide.com.au/:path*",
-        permanent: true,
-      },
-      {
-        source: "/:path*",
-        has: [{ type: "host", value: "hfremovalsadelaide.com.au" }],
-        destination: "https://www.hfremovalsadelaide.com.au/:path*",
-        permanent: true,
-      },
-      {
-        source: "/:path*",
-        has: [{ type: "host", value: "hfremovalsadelaide.com" }],
-        destination: "https://www.hfremovalsadelaide.com.au/:path*",
-        permanent: true,
-      },
-      {
         source: "/:path+/",
-        destination: "/:path+",
+        destination: "https://www.hfremovalsadelaide.com.au/:path+",
+        permanent: true,
+      },
+      {
+        source: "/",
+        has: [{ type: "host", value: "www.hfremovalsadelaide.com" }],
+        destination: "https://www.hfremovalsadelaide.com.au/",
+        permanent: true,
+      },
+      {
+        source: "/",
+        has: [{ type: "host", value: "hfremovalsadelaide.com.au" }],
+        destination: "https://www.hfremovalsadelaide.com.au/",
+        permanent: true,
+      },
+      {
+        source: "/",
+        has: [{ type: "host", value: "hfremovalsadelaide.com" }],
+        destination: "https://www.hfremovalsadelaide.com.au/",
+        permanent: true,
+      },
+      {
+        source: "/:path*",
+        has: [{ type: "host", value: "www.hfremovalsadelaide.com" }],
+        destination: "https://www.hfremovalsadelaide.com.au/:path*",
+        permanent: true,
+      },
+      {
+        source: "/:path*",
+        has: [{ type: "host", value: "hfremovalsadelaide.com.au" }],
+        destination: "https://www.hfremovalsadelaide.com.au/:path*",
+        permanent: true,
+      },
+      {
+        source: "/:path*",
+        has: [{ type: "host", value: "hfremovalsadelaide.com" }],
+        destination: "https://www.hfremovalsadelaide.com.au/:path*",
         permanent: true,
       },
     ];

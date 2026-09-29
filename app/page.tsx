@@ -1,9 +1,9 @@
 import type { Metadata } from "next";
 import { HomePage } from "./components/Site";
-import { business, canonical, entryLocalRate, localPricing, standardMoveFaqs } from "../lib/site-data";
+import { business, canonical, entryLocalRate, standardMoveFaqs } from "../lib/site-data";
 
-const homeTitle = "Adelaide Removalists | Local & Interstate Movers | HF";
-const homeDescription = `Adelaide removalists, movers and moving services for house, apartment, office and interstate moves. Local rates from ${entryLocalRate.halfHour} per 30 minutes.`;
+const homeTitle = "Adelaide Removalists & Movers | HF Removals Adelaide";
+const homeDescription = `Adelaide removalists for house, apartment, furniture and office moves, plus interstate routes. Local rates from ${entryLocalRate.halfHour} per 30 minutes, plus call-out.`;
 
 export const metadata: Metadata = {
   title: { absolute: homeTitle },
@@ -17,16 +17,6 @@ const schema = {
   "@context": "https://schema.org",
   "@graph": [
     {
-      "@type": "Organization",
-      "@id": `${business.domain}/#organization`,
-      name: business.name,
-      legalName: business.legalName,
-      url: business.domain,
-      email: business.emails[0],
-      telephone: business.phones[0].display,
-      logo: `${business.domain}${business.logo}`,
-    },
-    {
       "@type": "MovingCompany",
       "@id": `${business.domain}/#business`,
       name: business.name,
@@ -34,6 +24,7 @@ const schema = {
       url: business.domain,
       telephone: business.phones[0].display,
       email: business.emails[0],
+      logo: `${business.domain}${business.logo}`,
       image: `${business.domain}${business.heroImage}`,
       hasMap: business.googleBusiness.mapEmbedUrl,
       address: {
@@ -63,19 +54,13 @@ const schema = {
           closes: "20:00",
         },
       ],
-      makesOffer: localPricing.map((price) => ({
-        "@type": "Offer",
-        name: `${price.name} Local Relocation`,
-        price: price.halfHour.replace("$", ""),
-        priceCurrency: "AUD",
-        unitText: price.note,
-        itemOffered: {
-          "@type": "Service",
-          name: `${price.name} local moving service`,
-          serviceType: "Local removalist service",
-          areaServed: "Adelaide, South Australia",
-        },
-      })),
+    },
+    {
+      "@type": "WebSite",
+      "@id": `${business.domain}/#website`,
+      url: business.domain,
+      name: business.name,
+      publisher: { "@id": `${business.domain}/#business` },
     },
     {
       "@type": "WebPage",

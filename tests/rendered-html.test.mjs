@@ -84,7 +84,7 @@ test("renders the premium HF homepage without placeholder claims", async () => {
   assert.match(html, /Read all reviews on Google/i);
   assert.match(html, /maps\.google\.com/);
   assert.match(html, /application\/ld\+json/);
-  assert.match(html, /<title>Adelaide Removalists \| Local &amp; Interstate Movers \| HF<\/title>/i);
+  assert.match(html, /<title>Adelaide Removalists &amp; Movers \| HF Removals Adelaide<\/title>/i);
   assert.doesNotMatch(html, /HF Removals Adelaide \| HF Removals Adelaide<\/title>/i);
   assert.doesNotMatch(html, /codex-preview|react-loading-skeleton|5\.0 from|200\+ happy|#1 Adelaide|award.winning/i);
   assert.doesNotMatch(html, /Hamza Khan|Jessica Taylor|David Miller|Sarah Jenkins/i);
@@ -115,6 +115,8 @@ test("renders service, area, route, guide and contact routes", async () => {
 
   const contact = await render("/contact");
   const contactHtml = await contact.text();
+  assert.match(contactHtml, /<title>Contact HF Removals Adelaide<\/title>/i);
+  assert.doesNotMatch(contactHtml, /Contact HF Removals Adelaide \| HF Removals Adelaide<\/title>/i);
   assert.match(contactHtml, /Google Map showing HF Removals Adelaide/i);
   assert.match(contactHtml, /4v1787515237189/i);
   assert.match(contactHtml, /referrerpolicy="strict-origin-when-cross-origin"/i);
@@ -130,7 +132,9 @@ test("serves crawl discovery endpoints and unique guide metadata", async () => {
   const robots = await render("/robots.txt");
   assert.equal(robots.status, 200);
   assert.match(robots.headers.get("content-type") ?? "", /text\/plain/);
-  assert.match(await robots.text(), /Sitemap: https:\/\/www\.hfremovalsadelaide\.com\.au\/sitemap\.xml/);
+  const robotsText = await robots.text();
+  assert.match(robotsText, /Sitemap: https:\/\/www\.hfremovalsadelaide\.com\.au\/sitemap\.xml/);
+  assert.doesNotMatch(robotsText, /Disallow: \/(?:book|booking)(?:\/|\s|$)/i);
 
   const sitemap = await render("/sitemap.xml");
   assert.equal(sitemap.status, 200);
@@ -275,15 +279,32 @@ test("the production origin is declared once and drives canonical output", async
   assert.match(data, /export const quoteFormEndpoint = "https:\/\/api\.web3forms\.com\/submit"/);
   assert.match(data, /export const canonicalEmail = "admin@hfremovalsadelaide\.com\.au"/);
   assert.match(data, /NEXT_PUBLIC_WEB3FORMS_ACCESS_KEY/);
-  const html = await (await render()).text();
+  const homeResponse = await render();
+  const csp = homeResponse.headers.get("content-security-policy") ?? "";
+  assert.match(csp, /script-src[^;]*https:\/\/www\.googletagmanager\.com/i);
+  assert.match(csp, /img-src[^;]*https:\/\/www\.google-analytics\.com/i);
+  assert.match(csp, /img-src[^;]*https:\/\/www\.google\.com\.au/i);
+  assert.match(csp, /connect-src[^;]*https:\/\/www\.google-analytics\.com/i);
+  assert.match(csp, /connect-src[^;]*https:\/\/analytics\.google\.com/i);
+  assert.match(csp, /connect-src[^;]*https:\/\/stats\.g\.doubleclick\.net/i);
+  const html = await homeResponse.text();
   assert.match(html, /rel="canonical" href="https:\/\/www\.hfremovalsadelaide\.com\.au"/);
   assert.match(html, /property="og:url" content="https:\/\/www\.hfremovalsadelaide\.com\.au"/);
   assert.match(html, /mailto:admin@hfremovalsadelaide\.com\.au/);
   assert.doesNotMatch(html, /hfremovalad@gmail\.com/i);
-  assert.match(html, /"@type":"Organization"/);
+  assert.match(html, /"@type":"MovingCompany"/);
+  assert.match(html, /"@type":"WebSite"/);
+  assert.match(html, /"publisher":\{"@id":"https:\/\/www\.hfremovalsadelaide\.com\.au\/#business"\}/);
+  assert.match(html, /"logo":"https:\/\/www\.hfremovalsadelaide\.com\.au\/images\/hf-logo-384\.webp"/);
   assert.match(html, /"email":"admin@hfremovalsadelaide\.com\.au"/);
-  assert.match(html, /"priceCurrency":"AUD"/);
-  assert.match(html, /"unitText":"per 30 minutes"/);
+  assert.doesNotMatch(html, /"aggregateRating"|"priceRange"|"unitText"/);
+  const schemaMatch = html.match(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/i);
+  assert.ok(schemaMatch, "homepage should emit JSON-LD");
+  const graph = JSON.parse(schemaMatch[1])["@graph"];
+  assert.equal(graph.filter((node) => node["@type"] === "MovingCompany").length, 1);
+  assert.equal(graph.filter((node) => node["@type"] === "Organization").length, 0);
+  assert.equal(graph.filter((node) => node["@type"] === "WebSite").length, 1);
+  assert.equal(graph.filter((node) => node["@type"] === "Offer").length, 0);
   const client = await readFile(new URL("../app/components/SiteClient.tsx", import.meta.url), "utf8");
   assert.doesNotMatch(client, /hf-removals-adelaide\.vercel\.app|hfremovalsadelaide\.com(?!\.au)/);
 });
@@ -317,19 +338,36 @@ test("legacy WordPress URLs permanently redirect to the closest current page", a
       assert.equal(response.headers.get("location"), destination, variant);
     }
   }
+
+  for (const host of [
+    "hfremovalsadelaide.com.au",
+    "hfremovalsadelaide.com",
+    "www.hfremovalsadelaide.com",
+  ]) {
+    for (const [source, destination] of [
+      ["/contact-us/", "https://www.hfremovalsadelaide.com.au/contact"],
+      ["/about-us/", "https://www.hfremovalsadelaide.com.au/about"],
+      ["/services/", "https://www.hfremovalsadelaide.com.au/services"],
+      ["/areas/medindie/", "https://www.hfremovalsadelaide.com.au/areas/medindie"],
+    ]) {
+      const response = await render(source, { redirect: "manual", headers: { host } });
+      assert.equal(response.status, 308, `${host}${source}`);
+      assert.equal(response.headers.get("location"), destination, `${host}${source}`);
+    }
+  }
 });
 
 test("canonical routes normalize trailing slashes instead of serving duplicates", async () => {
   for (const source of ["/about/", "/services/", "/services/residential-removals/", "/sitemap.xml/"]) {
     const response = await render(source, { redirect: "manual", headers: { host: "www.hfremovalsadelaide.com.au" } });
     assert.equal(response.status, 308, source);
-    assert.equal(response.headers.get("location"), source.slice(0, -1), source);
+    assert.equal(response.headers.get("location"), `https://www.hfremovalsadelaide.com.au${source.slice(0, -1)}`, source);
   }
 });
 
 test("priority pages keep distinct metadata and useful page-level schema", async () => {
   const home = await (await render("/")).text();
-  assert.match(home, /name="description" content="Adelaide removalists, movers and moving services for house, apartment, office and interstate moves\./i);
+  assert.match(home, /name="description" content="Adelaide removalists for house, apartment, furniture and office moves, plus interstate routes\./i);
   assert.doesNotMatch(home, /"priceRange":"\$\$"/);
 
   const servicesHtml = await (await render("/services")).text();
@@ -340,7 +378,7 @@ test("priority pages keep distinct metadata and useful page-level schema", async
   assert.match(servicesHtml, /alt="HF Removals Adelaide logo"/);
 
   const houseHtml = await (await render("/services/residential-removals")).text();
-  assert.match(houseHtml, /<title>House Removalists Adelaide \| Residential Movers \| HF Removals<\/title>/i);
+  assert.match(houseHtml, /<title>House Removalists Adelaide \| HF Removals Adelaide<\/title>/i);
   assert.match(houseHtml, /<h1>House Removalists Adelaide<\/h1>/i);
   assert.match(houseHtml, /House removals for homes, apartments and townhouses across Adelaide/i);
   assert.match(houseHtml, /href="\/adelaide-removalists"/i);

@@ -6,7 +6,9 @@ export default function robots(): MetadataRoute.Robots {
     rules: {
       userAgent: "*",
       allow: "/",
-      disallow: ["/book", "/booking/", "/admin", "/admin/", "/api/"],
+      // Booking pages emit noindex and must remain crawlable so search engines
+      // can process that directive. Keep private/admin and API paths blocked.
+      disallow: ["/admin", "/admin/", "/api/"],
     },
     sitemap: `${business.domain}/sitemap.xml`,
   };
