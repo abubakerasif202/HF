@@ -2,7 +2,7 @@ const { test, expect } = require('@playwright/test');
 const fs = require('fs');
 const path = require('path');
 const baseURL = 'http://127.0.0.1:3100';
-const out = __dirname;
+const out = process.env.HF_SEO_BROWSER_OUT || __dirname;
 const findings = [];
 
 function diagnostics(page, label) {

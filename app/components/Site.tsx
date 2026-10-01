@@ -777,7 +777,7 @@ export function Footer() {
           {interstateRoutes.map((item) => (
             <a href={`/interstate/${item.slug}`} key={item.slug}>{item.eyebrow}</a>
           ))}
-          <a href="/pricing">Pricing Guide</a>
+          <a href="/pricing">Removalist Prices & Hourly Rates</a>
           <a href="/guides">Moving Guides & Checklists</a>
         </div>
       </div>
@@ -898,6 +898,8 @@ export function HomePage() {
             <a href="/services/interstate-removals"><strong>Adelaide interstate removals</strong><span>Route, inventory, volume and access planning for longer moves.</span></a>
             <a href="/services/packing-unpacking"><strong>Packing services Adelaide</strong><span>Prepare, protect and label belongings before moving day.</span></a>
             <a href="/areas"><strong>Local removals Adelaide</strong><span>Browse the service-area directory and nearby planning pages.</span></a>
+            <a href="/pricing"><strong>Adelaide removalist prices</strong><span>Compare crew rates, minimum service and call-out fees.</span></a>
+            <a href="/services/backloading"><strong>Backloading enquiries</strong><span>Share your destination, volume and date flexibility for review.</span></a>
           </div>
         </div>
       </section>
@@ -1088,7 +1090,7 @@ function relatedLinksFor(page: ContentPage): RelatedLink[] {
           .map((area) => ({ href: `/areas/${area.slug}`, label: `${area.name} removals`, description: `Review moving and access planning for ${area.name}.` }))
       : [];
     return [
-      { href: "/adelaide-removalists", label: "Adelaide removalist services", description: "Compare the main Adelaide moving services and plan the right scope for your move." },
+      { href: "/areas", label: "Adelaide service areas", description: "Return to the directory to plan pickup and destination locations." },
       { href: "/services/residential-removals", label: "House removals", description: "Plan inventory, access, protection and destination placement." },
       { href: "/services/packing-unpacking", label: "Packing support", description: "Prepare cartons, furniture and high-care items before moving day." },
       ...nearby,
@@ -1112,7 +1114,6 @@ function relatedLinksFor(page: ContentPage): RelatedLink[] {
       { href: "/interstate/adelaide-sydney", label: "Adelaide to Sydney removals", description: "Prepare destination access and a useful volume estimate." },
       { href: "/interstate/adelaide-queensland", label: "Adelaide to Queensland removals", description: "Add the destination city, suburb and postcode to the enquiry." },
       { href: "/interstate/adelaide-perth", label: "Adelaide to Perth removals", description: "Plan bulky items, protection and longer-distance access." },
-      { href: "/pricing", label: "Interstate removalist pricing", description: "Compare the supplied per-cubic-metre reference rates." },
       { href: "/guides/preparing-interstate-move", label: "Prepare for an interstate move", description: "Use the inventory, route and packing checklist before requesting a quote." },
       ...shared,
     ];
@@ -1127,10 +1128,13 @@ function relatedLinksFor(page: ContentPage): RelatedLink[] {
   }
 
   if (page.kind === "guide") {
+    const target = page.slug.includes("pricing") ? "/pricing" : page.slug.includes("interstate") || page.slug.includes("volume") ? "/services/interstate-removals" : page.slug.includes("office") ? "/services/office-commercial-removals" : page.slug.includes("packing") ? "/services/packing-unpacking" : page.slug.includes("furniture") ? "/services/furniture-removals" : "/services/residential-removals";
+    const targetLabel = target === "/pricing" ? "Adelaide removalist prices and hourly rates" : services.find((service) => `/services/${service.slug}` === target)?.eyebrow ?? "House removals";
     return [
+      { href: target, label: targetLabel, description: "Review the service and quote information for this planning topic." },
       { href: "/services", label: "Adelaide moving services", description: "Choose residential, office, interstate, backloading or packing support." },
       { href: "/areas", label: "Service areas", description: "Find moving-planning pages across Adelaide and selected regional corridors." },
-      ...shared,
+      ...shared.filter((link) => link.href !== target),
     ];
   }
 
@@ -1145,6 +1149,8 @@ function relatedLinksFor(page: ContentPage): RelatedLink[] {
   return [
     ...serviceLinks,
     { href: "/guides/adelaide-moving-checklist", label: "Adelaide moving checklist", description: "Prepare the practical details before moving day." },
+    { href: "/areas/adelaide-cbd", label: "Adelaide CBD moving access", description: "Prepare building access, loading and lift details." },
+    { href: "/areas/north-adelaide", label: "North Adelaide move planning", description: "Review pickup and destination access before requesting a quote." },
     ...shared,
   ];
 }
@@ -1176,7 +1182,15 @@ const BOOKABLE_SERVICE_SLUGS = new Set(["residential-removals", "furniture-remov
 
 export function DetailPage({ page }: { page: ContentPage }) {
   const area = page.kind === "area" ? hfServiceAreaRecords.find((item) => item.slug === page.slug) : undefined;
-  const heading = area ? (area.name === "Playford" ? "Removalists Across Playford" : `Removalists in ${area.name}`) : page.kind === "service" && page.slug === "residential-removals" ? "House Removalists Adelaide" : page.kind === "service" ? `${page.eyebrow}: ${page.title}` : page.title;
+  const serviceHeadings: Record<string, string> = {
+    "residential-removals": "House Removalists Adelaide",
+    "furniture-removals": "Furniture Removalists Adelaide",
+    "office-commercial-removals": "Office & Commercial Removalists Adelaide",
+    "interstate-removals": "Interstate Removalists Adelaide",
+    "packing-unpacking": "Packing & Unpacking Services Adelaide",
+    backloading: "Backloading Enquiries from Adelaide",
+  };
+  const heading = area ? (area.name === "Playford" ? "Removalists Across Playford" : `Removalists in ${area.name}`) : page.kind === "service" ? serviceHeadings[page.slug] ?? page.title : page.title;
   // Areas are local-move coverage pages — genuinely bookable regardless
   // of slug. Guides are educational and don't map to one specific
   // service, so they get the neutral "Get a Quote" treatment rather than
@@ -1238,7 +1252,7 @@ export function DetailPage({ page }: { page: ContentPage }) {
           <div className="editorial-sections">
             {page.sections.map((section) => (
               <article key={section.title}>
-                <h3>{section.title}</h3>
+                <h2>{section.title}</h2>
                 <p>{section.body}</p>
               </article>
             ))}
@@ -1304,9 +1318,22 @@ export function StaticPage({ type }: { type: "about" | "contact" | "pricing" | "
   if (type === "pricing")
     return (
       <SiteFrame>
-        <PageHero eyebrow="Clear billing units" title="Pricing for Adelaide and interstate moves" description="Compare supplied local time-based rates and interstate per-cubic-metre reference rates." />
+        <PageHero eyebrow="Clear billing units" title="Adelaide Removalist Prices & Hourly Rates" description="Compare the published rates for 2 or 3 movers and a truck, understand minimum service and call-out fees, and request a quote for your inventory and access." />
         <PricingSection />
+        <section className="section detail-section">
+          <div className="container">
+            <nav className="breadcrumbs" aria-label="Breadcrumb"><a href="/">Home</a><span>/</span><span aria-current="page">Removalist pricing</span></nav>
+            <div className="editorial-sections">
+              <article><h2>How your local removalist cost is calculated</h2><p>Choose the crew package that suits your move. A 3-hour minimum service and a separate 1-hour call-out fee apply at the selected package rate. The call-out covers truck fuel and basic transport charges; it is not an extra hour of moving labour. Additional service time is billed in 30-minute increments. The final price is calculated after the move is completed.</p></article>
+              <article><h2>What affects the time needed for your move?</h2><p>Prepare a room-by-room inventory, including garage and outdoor items. Tell HF about stairs, lift bookings, parking, the distance between the truck and each door, and furniture that needs special access planning. Loading, travel between addresses and unloading all need to be considered when discussing your move scope.</p></article>
+              <article><h2>Compare the crew and packing requirements</h2><p>The published packages include 2 movers and a truck or 3 movers and a truck. Share your property size and inventory rather than choosing a package on price alone. Tell HF which items are already packed and whether you need <a href="/services/packing-unpacking">packing and unpacking support</a>, so the scope can be confirmed.</p></article>
+              <article><h2>Interstate reference rates need a route and volume</h2><p>Interstate rates use cubic metres rather than the local hourly model. Provide both addresses, an item list, bulky-item dimensions, access notes and your preferred dates. Review <a href="/services/interstate-removals">interstate removal planning</a> and the route pages above; reference rates are not a fixed quote or a confirmed delivery schedule.</p></article>
+              <article><h2>Get a quote for your Adelaide move</h2><p>Send both addresses, your preferred date, property size, inventory and access notes through the <a href="/#quote">move quote form</a>. For examples of how to compare estimates, read <a href="/guides/how-removalist-pricing-works">how removalist pricing works</a>. This page remains the place to check HF’s published rates.</p></article>
+            </div>
+          </div>
+        </section>
         <VolumeGuidanceSection />
+        <FaqSection faqs={standardMoveFaqs.slice(0, 2)} title="Adelaide removalist pricing questions" />
         <QuoteStrip />
       </SiteFrame>
     );

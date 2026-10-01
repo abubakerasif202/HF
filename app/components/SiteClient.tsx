@@ -642,7 +642,7 @@ export function QuoteForm({ compact = false }: { compact?: boolean }) {
         </label>
         <label>
           <span className="field-label">Phone Number <b aria-hidden="true">*</b></span>
-          <input name="phone" required maxLength={32} autoComplete="tel" inputMode="tel" pattern="[0-9+() -]{8,}" value={form.phone} onChange={(e) => update("phone", e.target.value)} placeholder="e.g. 0400 000 000" aria-invalid={statusKind === "error" && !form.phone} aria-describedby={statusKind === "error" ? "quote-form-status" : undefined} />
+          <input name="phone" required maxLength={32} autoComplete="tel" inputMode="tel" pattern={"[0-9+\\(\\) \\-]{8,}"} value={form.phone} onChange={(e) => update("phone", e.target.value)} placeholder="e.g. 0400 000 000" aria-invalid={statusKind === "error" && !form.phone} aria-describedby={statusKind === "error" ? "quote-form-status" : undefined} />
         </label>
         <label>
           <span className="field-label">Moving From (Suburb) <b aria-hidden="true">*</b></span>

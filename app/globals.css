@@ -2770,7 +2770,7 @@ p {
   border-top: 2px solid var(--hf-gold-500);
   border-radius: 0 0 10px 10px;
 }
-.editorial-sections h3 {
+.editorial-sections h2 {
   font: 600 1.25rem var(--font-display);
   margin-bottom: 8px;
 }

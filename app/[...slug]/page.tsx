@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { DetailPage, ListingPage, StaticPage } from "../components/Site";
-import { areas, business, canonical, findContentPage, guides, indexablePaths, interstateRoutes, services } from "../../lib/site-data";
+import { areas, business, canonical, findContentPage, guides, indexablePaths, interstateRoutes, localPricing, services, standardMoveFaqs } from "../../lib/site-data";
 
 type Props = { params: Promise<{ slug: string[] }> };
 type ListingKind = "services" | "areas" | "interstate" | "guides";
@@ -9,7 +9,7 @@ type ListingKind = "services" | "areas" | "interstate" | "guides";
 const staticPages: Record<string, { type: "about" | "contact" | "pricing" | "adelaide" | "privacy" | "terms"; title: string; description: string; schema: string }> = {
   about: { type: "about", title: "About Our Adelaide Removalists", description: "Meet Muhammad Rasheed and learn how HF Removals Adelaide plans local, house, office and interstate moves around each customer's requirements.", schema: "AboutPage" },
   contact: { type: "contact", title: "Contact HF Removals Adelaide", description: "Contact HF Removals Adelaide to discuss a local, house, office or interstate move and request a quote based on your inventory and access details.", schema: "ContactPage" },
-  pricing: { type: "pricing", title: "Removalist Pricing Adelaide", description: "Compare supplied Adelaide removalist hourly rates and interstate per-cubic-metre reference pricing, then request a quote for your move.", schema: "WebPage" },
+  pricing: { type: "pricing", title: "Removalist Pricing Adelaide", description: `Compare Adelaide removalist rates: ${localPricing[0].hourly}/hr for 2 movers and a truck or ${localPricing[1].hourly}/hr for 3. See minimum service and call-out fees, then request a quote.`, schema: "WebPage" },
   "adelaide-removalists": { type: "adelaide", title: "Adelaide Moving Services, Pricing & Planning Guide | HF Removals", description: "Compare Adelaide moving services, supplied reference pricing and practical planning guidance for house, office, interstate and packing enquiries.", schema: "WebPage" },
   privacy: { type: "privacy", title: "Privacy", description: "How HF Removals Adelaide handles website enquiry information.", schema: "WebPage" },
   terms: { type: "terms", title: "Website Terms", description: "General website, pricing and insurance wording terms for HF Removals Adelaide.", schema: "WebPage" },
@@ -29,7 +29,7 @@ function contentTitle(page: NonNullable<ReturnType<typeof findContentPage>>) {
     const titles: Record<string, string> = {
       "residential-removals": "House Removalists Adelaide | HF Removals Adelaide",
       "furniture-removals": "Furniture Movers Adelaide | HF Removals Adelaide",
-      "office-commercial-removals": "Office Removals Adelaide | HF Removals Adelaide",
+      "office-commercial-removals": "Office & Commercial Removals Adelaide | HF Removals Adelaide",
       "interstate-removals": "Interstate Removalists Adelaide | HF Removals Adelaide",
       backloading: "Backloading Adelaide | HF Removals Adelaide",
       "packing-unpacking": "Packing Services Adelaide | HF Removals Adelaide",
@@ -112,7 +112,14 @@ export default async function ContentRoute({ params }: Props) {
   const path = pathFor(slug);
   if (slug.length === 1 && staticPages[slug[0]]) {
     const page = staticPages[slug[0]];
-    const schema = { "@context": "https://schema.org", "@type": page.schema, "@id": `${canonical(path)}#webpage`, url: canonical(path), name: page.title, about: { "@id": `${business.domain}/#business` } };
+    const schema = { "@context": "https://schema.org", "@graph": [
+      { "@type": page.schema, "@id": `${canonical(path)}#webpage`, url: canonical(path), name: page.title, about: { "@id": `${business.domain}/#business` } },
+      { "@type": "BreadcrumbList", itemListElement: [
+        { "@type": "ListItem", position: 1, name: "Home", item: canonical("/") },
+        { "@type": "ListItem", position: 2, name: page.title, item: canonical(path) },
+      ] },
+      ...(page.type === "pricing" ? [{ "@type": "FAQPage", "@id": `${canonical(path)}#faq`, mainEntity: standardMoveFaqs.slice(0, 2).map((faq) => ({ "@type": "Question", name: faq.question, acceptedAnswer: { "@type": "Answer", text: faq.answer } })) }] : []),
+    ] };
     return <><script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }} /><StaticPage type={page.type} /></>;
   }
   if (slug.length === 1 && listingPages[slug[0]]) {
@@ -128,7 +135,9 @@ export default async function ContentRoute({ params }: Props) {
     "@graph": [
       page.kind === "guide"
         ? { "@type": "Article", headline: page.title, description: page.description, mainEntityOfPage: canonical(path), publisher: { "@id": `${business.domain}/#business` } }
-        : { "@type": "Service", name: page.eyebrow, description: page.description, url: canonical(path), provider: { "@id": `${business.domain}/#business` }, ...(page.kind === "area" ? { areaServed: page.eyebrow.replace(/ removals| moving support/i, "") } : {}) },
+        : { "@type": "Service", "@id": `${canonical(path)}#service`, name: page.eyebrow, description: page.description, url: canonical(path), provider: { "@id": `${business.domain}/#business` }, ...(page.kind === "area" ? { areaServed: page.eyebrow.replace(/ removals| moving support/i, "") } : {}) },
+      { "@type": "WebPage", "@id": `${canonical(path)}#webpage`, url: canonical(path), name: contentTitle(page), description: page.description, isPartOf: { "@id": `${business.domain}/#website` } },
+      ...(page.faqs.length ? [{ "@type": "FAQPage", "@id": `${canonical(path)}#faq`, mainEntity: page.faqs.map((faq) => ({ "@type": "Question", name: faq.question, acceptedAnswer: { "@type": "Answer", text: faq.answer } })) }] : []),
       { "@type": "BreadcrumbList", itemListElement: [
         { "@type": "ListItem", position: 1, name: "Home", item: business.domain },
         { "@type": "ListItem", position: 2, name: group, item: canonical(`/${group}`) },

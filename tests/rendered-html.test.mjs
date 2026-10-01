@@ -125,7 +125,7 @@ test("renders service, area, route, guide and contact routes", async () => {
   assert.match(contactHtml, /Get directions/i);
 
   const service = await render("/services/residential-removals");
-  assert.doesNotMatch(await service.text(), /FAQPage/);
+  assert.match(await service.text(), /FAQPage/);
 });
 
 test("serves crawl discovery endpoints and unique guide metadata", async () => {

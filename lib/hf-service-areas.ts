@@ -295,6 +295,30 @@ type LocalAreaProfile = {
  * about move-planning differences, not claims about HF's job history.
  */
 const localAreaProfiles: Record<string, LocalAreaProfile> = {
+  "north-adelaide": {
+    description: "North Adelaide removalists for home and furniture moves. Share parking restrictions, entry measurements and access details for a tailored quote.",
+    intro: "For a North Adelaide move, start with the loading position and the path furniture will take through the property. Include any parking controls, narrow entries and shared access alongside the inventory.",
+    context: "heritage-style properties, furniture carries and city-fringe access",
+    route: "the connection between North Adelaide, Adelaide CBD, Medindie and the destination address",
+    access: "parking controls, entry widths, stairs and the furniture carry path",
+    nearby: ["Adelaide CBD", "Medindie", "Prospect", "Walkerville"],
+  },
+  woodcroft: {
+    description: "Woodcroft removalists for household and furniture moves. Include garage contents, driveway access and destination details in your quote request.",
+    intro: "A Woodcroft household enquiry should cover the whole property, including garages and outdoor belongings. Record where the truck could load and which rooms the larger pieces need to reach at the destination.",
+    context: "household furniture, garages, outdoor contents and southern Adelaide connections",
+    route: "the southern connection between Woodcroft, Reynella, Morphett Vale and the destination address",
+    access: "driveways, garage access, gates, stairs and destination room access",
+    nearby: ["Reynella", "Morphett Vale", "Noarlunga", "Southern Adelaide"],
+  },
+  campbelltown: {
+    description: "Campbelltown removalists for house, unit and furniture moves. Plan shared entries, parking and bulky-item access with HF Removals Adelaide.",
+    intro: "For a Campbelltown move, describe the property type at both ends rather than relying on a bedroom count. Include shared entries, stairs and measurements for furniture that may be difficult to carry through the doorway.",
+    context: "homes, units, townhouses and eastern Adelaide furniture moves",
+    route: "the eastern Adelaide connection between Campbelltown and the pickup or delivery suburb",
+    access: "shared entries, kerbside parking, stairs, narrow doorways and furniture carry paths",
+    nearby: ["Newton", "Athelstone", "Paradise", "Magill"],
+  },
   "adelaide-cbd": {
     description: "Adelaide CBD removalists for apartments, offices and city homes. Plan lifts, loading zones, parking and carry paths with HF Removals Adelaide.",
     intro: "City moves benefit from early access planning because apartment, office and street-front loading conditions can be time-sensitive. Include both addresses, lift or loading-zone details and the furniture inventory in the enquiry.",
@@ -553,6 +577,95 @@ const localAreaProfiles: Record<string, LocalAreaProfile> = {
   },
 };
 
+const priorityAreaPreparation: Record<string, { title: string; body: string; question: string; answer: string }> = {
+  "unley-park": {
+    title: "Check the furniture path through villas and townhouses",
+    body: "Measure large furniture against gates, entry doors and stair turns before the move. For a villa or townhouse, note each change of level and where the truck could load. Label cartons by destination room and identify beds or tables that may need dismantling before asking HF to scope the work.",
+    question: "What should I measure before an Unley Park furniture move?",
+    answer: "Measure bulky furniture, doorways, gates and stair turns at both properties. Include photos or notes about tight corners and tell HF which items may need dismantling or protective wrapping.",
+  },
+  "adelaide-hills": {
+    title: "Describe the driveway before choosing the loading position",
+    body: "A suburb name does not explain a Hills driveway. Provide its slope, surface, gates and available turning space, plus the distance from a possible truck position to the house. If access is uncertain, send photos for review and keep the unloading route clear of loose items.",
+    question: "What driveway details are useful for an Adelaide Hills quote?",
+    answer: "Describe gradients, driveway length, surface, gate clearance and turning space at both addresses. Photos can help explain the approach; the loading arrangement needs to be reviewed for the actual property.",
+  },
+  "hyde-park": {
+    title: "Separate street loading from the path into the home",
+    body: "For compact-street loading, identify a possible parking position and any restrictions before moving day. Then describe the route through the gate, villa entry or townhouse stairs. Keep access notes separate from the inventory so bulky furniture and cartons can be planned around the same clear path.",
+    question: "How do I prepare access notes for a Hyde Park move?",
+    answer: "Record the possible truck position, parking restrictions, gates, entry widths and stairs. Include the carry distance and large items that need to pass through tight corners at either property.",
+  },
+  medindie: {
+    title: "Prepare fragile pieces and shared-entry arrangements",
+    body: "List mirrors, glass, artwork and furniture needing protective wrapping separately from general cartons. For a unit or shared entry, confirm the route through common areas and note any access rules. Provide the destination room for each large piece so unloading does not depend on decisions made in the doorway.",
+    question: "What should I flag for a Medindie furniture move?",
+    answer: "Identify fragile pieces, unusual dimensions and narrow or shared entries. Describe the protection or packing help you need and provide destination room labels alongside the item list.",
+  },
+  "toorak-gardens": {
+    title: "Scope furniture protection before loading day",
+    body: "Create a separate list of large or delicate furniture and describe its finish, dimensions and entry path. Note steps, stairs and shared access at both homes. Discuss wrapping and any dismantling requirements when requesting the quote so the preparation is matched to the items rather than assumed from the property type.",
+    question: "How should I describe delicate furniture in a Toorak Gardens quote?",
+    answer: "List each piece with dimensions where practical, explain any fragile surfaces and note tight entries or stairs. Ask HF to review packing, wrapping and dismantling requirements for those specific items.",
+  },
+  malvern: {
+    title: "Plan stair turns and destination placement together",
+    body: "For villa or townhouse moves, identify which pieces must use stairs and measure the landing or turn as well as the doorway. Mark cartons by room and note where beds, appliances and larger furniture will be placed. Include parking and gates at both ends so the quote reflects the full carry path.",
+    question: "What matters when moving into a Malvern townhouse?",
+    answer: "Describe stairs, landings, entry widths, parking and the rooms receiving large furniture. Measure bulky pieces and discuss any dismantling needs before the move is scoped.",
+  },
+  "adelaide-cbd": {
+    title: "Confirm building access before choosing a moving window",
+    body: "Ask the building manager about service-lift bookings, loading-bay access and any permitted moving windows. Record lift dimensions and the carry from the loading area to your apartment or office. Share those details for both buildings with your inventory; do not assume a street loading zone gives access to a building's lift or loading bay.",
+    question: "Who should arrange lift access for an Adelaide CBD move?",
+    answer: "Check the booking process with the building manager or property contact and share the confirmed arrangements with HF. Include permitted access windows, lift dimensions and loading instructions for pickup and delivery.",
+  },
+  "north-adelaide": {
+    title: "Check parking controls and older-property entry widths",
+    body: "Record the parking rules at the actual address and measure the entry path for larger furniture. Where a heritage-style property has narrow doorways or steps, include photos and dimensions in the enquiry. Keep the pedestrian route clear and confirm access details at the destination as carefully as at pickup.",
+    question: "What access details help with a North Adelaide home move?",
+    answer: "Include parking restrictions, steps, narrow doorways and the carry distance from the possible truck position. Measurements and photos help explain bulky furniture access without assuming every property has the same layout.",
+  },
+  woodcroft: {
+    title: "Count the garage and outdoor load alongside the rooms",
+    body: "Include shelving, tools, outdoor furniture, plants and storage cartons in the inventory where they form part of the move. Separate items staying behind from those being moved, and keep a route clear through the garage or gates. Note destination storage and room placement so the load can be scoped beyond the main living areas.",
+    question: "Should garage items be included in a Woodcroft moving quote?",
+    answer: "Yes, list any garage, shed or outdoor belongings you want moved along with furniture and cartons. Flag bulky or unusually heavy items, gates and the access path so HF can review their scope.",
+  },
+  gawler: {
+    title: "Distinguish a local Gawler move from an Adelaide connection",
+    body: "Provide both full addresses or postcodes, not simply 'Gawler to Adelaide'. Include any extra pickup, storage stop or delivery address in the enquiry. Count shed and outdoor belongings as well as household furniture, and describe destination access so route and loading requirements can be assessed together.",
+    question: "What information distinguishes a local and longer Gawler move?",
+    answer: "Both addresses, any additional stops, the complete inventory and access at each stop establish the scope. Share your preferred date and explain any timing constraints when requesting a quote.",
+  },
+  "mount-barker": {
+    title: "Prepare the household load and the Hills-to-metro connection",
+    body: "For a Mount Barker move connecting with Adelaide or another regional address, include the complete route and all household, shed and outdoor items. Describe driveway gradients and turning space separately at pickup and delivery. Keep essential belongings accessible and clarify any packing help before settling the move arrangements.",
+    question: "What should I include when moving between Mount Barker and Adelaide?",
+    answer: "Provide both addresses, the complete furniture and carton inventory, shed or outdoor items and driveway details. Note stairs, gates, turning space and preferred timing at each property.",
+  },
+  campbelltown: {
+    title: "Compare the pickup and delivery property layouts",
+    body: "A house-to-unit or townhouse move can have different access at each end. Record shared-driveway or entry arrangements, stairs, kerbside loading and the rooms receiving larger items. Measure appliances and bulky furniture against destination doorways, and flag any piece that may need preparation before it can be carried inside.",
+    question: "How do I prepare for a Campbelltown house-to-unit move?",
+    answer: "Describe both property layouts, including shared entries, stairs and loading positions. Measure large items against the destination access and label cartons by room; tell HF about furniture that may need dismantling.",
+  },
+};
+
+function withPriorityAreaPreparation(page: ContentPage): ContentPage {
+  const preparation = priorityAreaPreparation[page.slug];
+  if (!preparation) return page;
+  return {
+    ...page,
+    ...(page.slug === "gawler" ? {
+      title: "Removalists in Gawler",
+      description: localAreaProfiles.gawler.description,
+    } : {}),
+    sections: [...page.sections, { title: preparation.title, body: preparation.body }],
+    faqs: [{ question: preparation.question, answer: preparation.answer }, ...page.faqs],
+  };
+}
+
 function formatList(items: string[]) {
   if (items.length === 1) return items[0];
   return `${items.slice(0, -1).join(", ")} and ${items[items.length - 1]}`;
@@ -575,8 +688,8 @@ function withSupportingLocalities(page: ContentPage, name: string): ContentPage 
     sections: [
       ...page.sections,
       {
-        title: `Where we work around ${name}`,
-        body: `Jobs in this area regularly take us along ${formatList(fresh)}. Naming the closest of these in your enquiry helps the team judge truck positioning and carry distance before the day.`,
+        title: `Location details for your ${name} enquiry`,
+        body: `Useful location references around ${name} include ${formatList(fresh)}. Provide the actual pickup and delivery addresses together with parking and entry details; a nearby street or landmark alone does not establish truck access.`,
       },
     ],
   };
@@ -647,7 +760,7 @@ function buildGeneratedAreaPage(name: string, region: ServiceAreaRegion, slug: s
 const featuredBySlug = new Map(featuredAreas.map((area) => [area.slug, area]));
 
 export const hfServiceAreas: ContentPage[] = hfServiceAreaRecords.map(({ name, region, slug }) =>
-  withSupportingLocalities(featuredBySlug.get(slug) ?? buildGeneratedAreaPage(name, region, slug), name),
+  withSupportingLocalities(withPriorityAreaPreparation(featuredBySlug.get(slug) ?? buildGeneratedAreaPage(name, region, slug)), name),
 );
 
 export const hfServiceAreaCount = hfServiceAreas.length;

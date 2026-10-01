@@ -3,7 +3,7 @@ import { HomePage } from "./components/Site";
 import { business, canonical, entryLocalRate, standardMoveFaqs } from "../lib/site-data";
 
 const homeTitle = "Adelaide Removalists & Movers | HF Removals Adelaide";
-const homeDescription = `Adelaide removalists for house, apartment, furniture and office moves, plus interstate routes. Local rates from ${entryLocalRate.halfHour} per 30 minutes, plus call-out.`;
+const homeDescription = `Adelaide removalists for house, apartment, furniture and office moves, plus interstate routes. From ${entryLocalRate.halfHour}/30 min plus call-out; minimum applies. Request a quote.`;
 
 export const metadata: Metadata = {
   title: { absolute: homeTitle },
@@ -66,7 +66,7 @@ const schema = {
       "@type": "WebPage",
       "@id": `${business.domain}/#webpage`,
       url: business.domain,
-      name: "Adelaide Removalists | HF Removals Adelaide",
+      name: homeTitle,
       about: { "@id": `${business.domain}/#business` },
     },
     {
