@@ -50,11 +50,11 @@ jobs:
       - name: Lint
         run: npm run lint
 
-      - name: Production build and rendered-route tests
-        run: npm test
-
       - name: Install Chromium
         run: npx playwright install --with-deps chromium
+
+      - name: Production build and rendered-route tests
+        run: npm test
 
       - name: Browser QA
         run: npm run test:browser
