@@ -4,6 +4,8 @@ import { FormEvent, useEffect, useRef, useState } from "react";
 import { usePathname } from "next/navigation";
 import { areas, business, entryLocalRate, interstatePricing, interstateRoutes, localPricing, quoteFormEndpoint, services, web3FormsAccessKey } from "../../lib/site-data";
 
+import { readAttribution } from "../../lib/marketing-attribution.ts";
+
 declare global {
   interface Window {
     gtag?: (...args: unknown[]) => void;
@@ -449,6 +451,7 @@ export function QuoteForm({ compact = false }: { compact?: boolean }) {
   const [loading, setLoading] = useState(false);
   const [statusKind, setStatusKind] = useState<"success" | "error" | "info">("info");
   const submitting = useRef(false);
+  const quoteAttempt = useRef<{ payload: string; id: string } | null>(null);
   const earliestDate = getAdelaideDateInputValue();
   const melbourneRate = interstatePricing.find((route) => route.slug === "adelaide-melbourne")!;
   const sydneyRate = interstatePricing.find((route) => route.slug === "adelaide-sydney")!;
@@ -492,9 +495,19 @@ export function QuoteForm({ compact = false }: { compact?: boolean }) {
     try {
       const formData = new FormData(event.currentTarget);
 
-      const response = await fetch(quoteFormEndpoint, {
+      const bridgeEnabled = process.env.NEXT_PUBLIC_HF_QUOTE_BRIDGE_ENABLED === "true";
+      let requestBody: BodyInit = formData;
+      if (bridgeEnabled) {
+        const values = Object.fromEntries(Array.from(formData.entries()).filter(([, value]) => typeof value === "string"));
+        const acquisition = readAttribution();
+        const payload = JSON.stringify({ ...values, "services[]": formData.getAll("services[]"), attribution_consent: Boolean(acquisition), ...(acquisition ? { attribution: acquisition } : {}) });
+        if (!quoteAttempt.current || quoteAttempt.current.payload !== payload) quoteAttempt.current = { payload, id: crypto.randomUUID() };
+        requestBody = JSON.stringify({ ...JSON.parse(payload), request_id: quoteAttempt.current.id });
+      }
+      const response = await fetch(bridgeEnabled ? "/api/quote" : quoteFormEndpoint, {
         method: "POST",
-        body: formData,
+        body: requestBody,
+        ...(bridgeEnabled ? { headers: { "Content-Type": "application/json" } } : {}),
       });
 
       const data: { success?: boolean; message?: string } = await response.json();
@@ -502,6 +515,7 @@ export function QuoteForm({ compact = false }: { compact?: boolean }) {
         throw new Error(data.message || `Web3Forms returned ${response.status}`);
       }
 
+      quoteAttempt.current = null;
       setForm(createEmptyForm());
       setStatusKind("success");
       setStatus("Thank you. Your move details have been sent to HF Removals Adelaide. We’ll be in touch shortly.");
@@ -516,7 +530,7 @@ export function QuoteForm({ compact = false }: { compact?: boolean }) {
 
   return (
     <form
-      action={quoteFormEndpoint}
+      action={process.env.NEXT_PUBLIC_HF_QUOTE_BRIDGE_ENABLED === "true" ? "/api/quote" : quoteFormEndpoint}
       method="POST"
       acceptCharset="UTF-8"
       className={`quote-form ${compact ? "quote-form-compact" : ""}`}

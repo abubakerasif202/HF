@@ -1,12 +1,12 @@
 import "server-only";
-import { NextResponse } from "next/server";
+import { NextResponse } from "next/server.js";
 import { getSupabaseAdmin } from "./supabase.ts";
 import { rateLimitConfig } from "./config.ts";
 import { checkRateLimit, RATE_LIMITED_MESSAGE, type ConsumeFn, type RateLimitAction } from "../rate-limit.ts";
 
 /** Atomic Postgres counter (migration 0012), service-role only. */
 const consumeViaSupabase: ConsumeFn = async (keyHash, action, limit, windowSeconds) => {
-  const { data, error } = await getSupabaseAdmin().rpc("consume_booking_rate_limit", {
+  const { data, error } = await getSupabaseAdmin().rpc(action === "quote" ? "consume_quote_rate_limit" : "consume_booking_rate_limit", {
     p_key_hash: keyHash,
     p_action: action,
     p_limit: limit,
@@ -34,6 +34,8 @@ export async function enforceRateLimit(request: Request, action: RateLimitAction
   });
 
   if (decision.allowed) {
+    // New quote ingestion requires working protection; existing booking policy stays intact.
+    if (action === "quote" && decision.skipped) return NextResponse.json({ success: false }, { status: 503 });
     if (decision.skipped === "no_secret" && !warnedNoSecret) {
       warnedNoSecret = true;
       console.warn("booking rate limiting disabled: RATE_LIMIT_SECRET is not set");

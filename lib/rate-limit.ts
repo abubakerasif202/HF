@@ -12,7 +12,7 @@
 import { createHmac } from "node:crypto";
 import { isIP } from "node:net";
 
-export type RateLimitAction = "availability" | "hold" | "confirm";
+export type RateLimitAction = "availability" | "hold" | "confirm" | "quote";
 
 /**
  * Technical abuse limits, not customer-facing business rules. Sized so a
@@ -29,6 +29,7 @@ export const RATE_LIMITS: Record<RateLimitAction, { limit: number; windowSeconds
   availability: { limit: 30, windowSeconds: 5 * 60 },
   hold: { limit: 6, windowSeconds: 30 * 60 },
   confirm: { limit: 10, windowSeconds: 30 * 60 },
+  quote: { limit: 6, windowSeconds: 30 * 60 },
 };
 
 export const RATE_LIMITED_MESSAGE = "Too many booking attempts. Please wait a few minutes and try again.";

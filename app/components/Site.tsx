@@ -1387,9 +1387,12 @@ export function StaticPage({ type }: { type: "about" | "contact" | "pricing" | "
           <h2>{privacy ? "Contact and delivery" : "Pricing and insurance wording"}</h2>
           <p>
             {privacy
-              ? `HF can also be contacted directly at ${business.emails[0]} or ${business.phones[0].display}. Quote-form details are sent to HF through Web3Forms, a third-party form-delivery service, so the information you enter is shared with that provider for delivery of your enquiry.`
+              ? process.env.NEXT_PUBLIC_HF_QUOTE_BRIDGE_ENABLED === "true"
+                ? `HF can also be contacted directly at ${business.emails[0]} or ${business.phones[0].display}. Quote-form details are stored in our Supabase system and sent to HF through Resend, our email-delivery provider, to review and respond to your enquiry.`
+                : `HF can also be contacted directly at ${business.emails[0]} or ${business.phones[0].display}. Quote-form details are sent to HF through Web3Forms, a third-party form-delivery service, so the information you enter is shared with that provider for delivery of your enquiry.`
               : "Published prices are reference rates reproduced from supplied business material. Interstate prices are per cubic metre, not total move prices. Insurance references are subject to applicable policy terms and the individual move scope."}
           </p>
+          {privacy && process.env.NEXT_PUBLIC_HF_QUOTE_BRIDGE_ENABLED === "true" && <p>When the HF quote service is enabled, enquiry details are also stored in our Supabase system and may be copied to our self-hosted Mautic CRM to manage your enquiry. Optional acquisition tracking remembers campaign identifiers and referring pages in this tab only, with your permission. This does not subscribe you to marketing emails. You can withdraw attribution permission using the checkbox at the bottom of the page.</p>}
           <h2>Contact</h2>
           <p>
             Questions can be sent to <a href={`mailto:${business.emails[0]}`}>{business.emails[0]}</a>.
