@@ -104,3 +104,44 @@ test('Resend timeout aborts its request and preserves uncertainty', async () => 
  try { const result = await sendQuoteNotification(quote); assert.equal(result.status, 'unknown'); assert.equal(result.failureCategory, 'timeout'); }
  finally { AbortSignal.timeout = original; }
 });
+
+test('valid customer email becomes Reply-To while From and To stay server-owned', async () => {
+ let message;
+ send = async (payload) => { message = payload; return { data: { id: 'synthetic' }, error: null }; };
+ const customer = quoteSchema.parse({ ...quote, email: ' customer@example.com ' });
+ assert.equal((await sendQuoteNotification(customer)).status, 'sent');
+ assert.equal(message.replyTo, 'customer@example.com');
+ assert.equal(message.from, from); assert.equal(message.to, recipient);
+ assert.notEqual(message.from, customer.email);
+});
+test('absent customer email omits Reply-To and still notifies the configured admin', async () => {
+ let message;
+ send = async (payload) => { message = payload; return { data: { id: 'synthetic' }, error: null }; };
+ for (const email of ['', undefined]) {
+  assert.equal((await sendQuoteNotification(quoteSchema.parse({ ...quote, email }))).status, 'sent');
+  assert.ok(!Object.hasOwn(message, 'replyTo')); assert.ok(!Object.hasOwn(message, 'reply_to'));
+  assert.equal(message.from, from); assert.equal(message.to, recipient);
+ }
+});
+test('invalid customer email is rejected by validation and never enters Reply-To', async () => {
+ let message;
+ send = async (payload) => { message = payload; return { data: { id: 'synthetic' }, error: null }; };
+ for (const email of ['not-an-email', 'one@example.com,two@example.com', 'customer@example.com\r\nBcc: attacker@example.com']) {
+  assert.equal(quoteSchema.safeParse({ ...quote, email }).success, false);
+  // Defensive helper check even if a future caller bypasses the quote schema.
+  assert.equal((await sendQuoteNotification({ ...quote, email })).status, 'sent');
+  assert.ok(!Object.hasOwn(message, 'replyTo')); assert.ok(!Object.hasOwn(message, 'reply_to'));
+  assert.equal(message.from, from); assert.equal(message.to, recipient);
+ }
+});
+test('client From, To and Reply-To overrides are stripped and cannot control recipients', async () => {
+ let message;
+ send = async (payload) => { message = payload; return { data: { id: 'synthetic' }, error: null }; };
+ const input = { ...quote, email: 'customer@example.com', from: 'attacker@example.com', to: 'attacker@example.com', replyTo: 'attacker@example.com', reply_to: 'attacker@example.com' };
+ const parsed = quoteSchema.parse(input);
+ for (const key of ['from', 'to', 'replyTo', 'reply_to']) assert.ok(!Object.hasOwn(parsed, key));
+ for (const candidate of [parsed, input]) {
+  assert.equal((await sendQuoteNotification(candidate)).status, 'sent');
+  assert.equal(message.from, from); assert.equal(message.to, recipient); assert.equal(message.replyTo, 'customer@example.com');
+ }
+});

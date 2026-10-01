@@ -7,11 +7,14 @@ test('existing Resend SDK forwards timeout signal and idempotency key to mocked 
  const signal = AbortSignal.abort();
  globalThis.fetch = async (url, options) => {
   count++; assert.equal(url, 'https://api.resend.com/emails');
+  assert.equal(JSON.parse(options.body).reply_to, 'customer@example.com');
+  assert.equal(JSON.parse(options.body).from, 'sender@example.com');
+  assert.equal(JSON.parse(options.body).to, 'admin@example.com');
   assert.equal(options.signal, signal); assert.equal(options.headers.get('Idempotency-Key'), 'hf-quote/synthetic');
   return new Response(JSON.stringify({ id: 'synthetic-message' }), { status: 200 });
  };
  try {
-  const result = await getResend().emails.send({ from: 'sender@example.com', to: 'admin@example.com', subject: 'Synthetic', text: 'Synthetic' }, { signal, idempotencyKey: 'hf-quote/synthetic' });
+  const result = await getResend().emails.send({ from: 'sender@example.com', to: 'admin@example.com', subject: 'Synthetic', text: 'Synthetic', replyTo: 'customer@example.com' }, { signal, idempotencyKey: 'hf-quote/synthetic' });
   assert.equal(result.data.id, 'synthetic-message'); assert.equal(count, 1);
  } finally { globalThis.fetch = previous; }
 });

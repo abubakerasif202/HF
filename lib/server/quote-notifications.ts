@@ -15,6 +15,7 @@ export async function sendQuoteNotification(quote: QuoteInput): Promise<QuoteDel
   const attemptedAt = new Date().toISOString();
   const result = (status: QuoteDeliveryResult["status"], failureCategory?: QuoteDeliveryResult["failureCategory"]): QuoteDeliveryResult => ({ status, attemptedAt, ...(failureCategory ? { failureCategory } : {}) });
   const recipient = resendConfig.adminEmail();
+  const customerEmail = z.email().safeParse(quote.email);
   if (!resendConfig.isConfigured() || !recipient || !z.email().safeParse(recipient).success || /[\r\n\u0000]/.test(resendConfig.from())) return result("failed", "configuration");
   const fields: [string, string][] = [
     ["Quote reference", quote.request_id], ["Customer name", quote.name], ["Phone", quote.phone],
@@ -37,6 +38,7 @@ export async function sendQuoteNotification(quote: QuoteInput): Promise<QuoteDel
   try {
     const response = await getResend().emails.send({
       from: resendConfig.from(), to: recipient,
+      ...(customerEmail.success ? { replyTo: customerEmail.data } : {}),
       subject: `New HF Removals Quote Request — ${quote.request_id}`, html, text,
     }, options);
     if (response.error) {
