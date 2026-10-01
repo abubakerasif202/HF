@@ -4,7 +4,6 @@ import { FormEvent, useEffect, useRef, useState } from "react";
 import { usePathname } from "next/navigation";
 import { areas, business, entryLocalRate, interstatePricing, interstateRoutes, localPricing, quoteFormEndpoint, services, web3FormsAccessKey } from "../../lib/site-data";
 
-import { readAttribution } from "../../lib/marketing-attribution.ts";
 
 declare global {
   interface Window {
@@ -451,7 +450,7 @@ export function QuoteForm({ compact = false }: { compact?: boolean }) {
   const [loading, setLoading] = useState(false);
   const [statusKind, setStatusKind] = useState<"success" | "error" | "info">("info");
   const submitting = useRef(false);
-  const quoteAttempt = useRef<{ payload: string; id: string } | null>(null);
+  const quoteAttempt = useRef<string | null>(null);
   const earliestDate = getAdelaideDateInputValue();
   const melbourneRate = interstatePricing.find((route) => route.slug === "adelaide-melbourne")!;
   const sydneyRate = interstatePricing.find((route) => route.slug === "adelaide-sydney")!;
@@ -494,21 +493,11 @@ export function QuoteForm({ compact = false }: { compact?: boolean }) {
 
     try {
       const formData = new FormData(event.currentTarget);
+      if (!quoteAttempt.current) quoteAttempt.current = crypto.randomUUID();
+      formData.set("quote_reference", quoteAttempt.current);
+      formData.set("source_page", window.location.href);
 
-      const bridgeEnabled = process.env.NEXT_PUBLIC_HF_QUOTE_BRIDGE_ENABLED === "true";
-      let requestBody: BodyInit = formData;
-      if (bridgeEnabled) {
-        const values = Object.fromEntries(Array.from(formData.entries()).filter(([, value]) => typeof value === "string"));
-        const acquisition = readAttribution();
-        const payload = JSON.stringify({ ...values, "services[]": formData.getAll("services[]"), attribution_consent: Boolean(acquisition), ...(acquisition ? { attribution: acquisition } : {}) });
-        if (!quoteAttempt.current || quoteAttempt.current.payload !== payload) quoteAttempt.current = { payload, id: crypto.randomUUID() };
-        requestBody = JSON.stringify({ ...JSON.parse(payload), request_id: quoteAttempt.current.id });
-      }
-      const response = await fetch(bridgeEnabled ? "/api/quote" : quoteFormEndpoint, {
-        method: "POST",
-        body: requestBody,
-        ...(bridgeEnabled ? { headers: { "Content-Type": "application/json" } } : {}),
-      });
+      const response = await fetch(quoteFormEndpoint, { method: "POST", body: formData });
 
       const data: { success?: boolean; message?: string } = await response.json();
       if (!response.ok || !data.success) {
@@ -530,7 +519,7 @@ export function QuoteForm({ compact = false }: { compact?: boolean }) {
 
   return (
     <form
-      action={process.env.NEXT_PUBLIC_HF_QUOTE_BRIDGE_ENABLED === "true" ? "/api/quote" : quoteFormEndpoint}
+      action={quoteFormEndpoint}
       method="POST"
       acceptCharset="UTF-8"
       className={`quote-form ${compact ? "quote-form-compact" : ""}`}
@@ -542,7 +531,8 @@ export function QuoteForm({ compact = false }: { compact?: boolean }) {
       }}
     >
       <input type="hidden" name="access_key" value={web3FormsAccessKey} />
-      <input type="hidden" name="subject" value="New HF Removals Adelaide Quote Request" />
+      <input type="hidden" name="subject" value={`New HF Removals Quote Request — ${form.name || "Website visitor"} — ${form.from || "?"} to ${form.to || "?"}`} />
+      <input type="hidden" name="replyto" value={form.email} />
       <input type="hidden" name="from_name" value="HF Removals Adelaide Website" />
       <input type="hidden" name="source_page" value={`${business.domain}${pathname}`} />
       <input type="hidden" name="move_category" value={form.tab === "interstate" ? "Interstate Move" : "Local Adelaide Move"} />
@@ -652,6 +642,14 @@ export function QuoteForm({ compact = false }: { compact?: boolean }) {
           <span className="field-label">Moving To (Suburb/City) <b aria-hidden="true">*</b></span>
           <input name="moving_to" required maxLength={180} autoComplete="address-level2" value={form.to} onChange={(e) => update("to", e.target.value)} placeholder={form.tab === "local" ? "e.g. Marion SA" : "e.g. Melbourne VIC"} aria-invalid={statusKind === "error" && !form.to} aria-describedby={statusKind === "error" ? "quote-form-status" : undefined} />
         </label>
+        <label>
+          <span className="field-label">Email Address <b aria-hidden="true">*</b></span>
+          <input name="email" type="email" required maxLength={254} autoComplete="email" value={form.email} onChange={(e) => update("email", e.target.value)} placeholder="email@domain.com.au" />
+        </label>
+        <label>
+          <span className="field-label">Preferred Moving Date <b aria-hidden="true">*</b></span>
+          <input name="preferred_moving_date" type="date" required min={earliestDate} value={form.date} onChange={(e) => update("date", e.target.value)} />
+        </label>
         <label className="form-wide">
           <span className="field-label">Move Type <b aria-hidden="true">*</b></span>
           <select name="move_type" required value={form.moveType} onChange={(e) => update("moveType", e.target.value)} aria-describedby={statusKind === "error" ? "quote-form-status" : undefined}>
@@ -663,24 +661,16 @@ export function QuoteForm({ compact = false }: { compact?: boolean }) {
             <option>Packing & Protection Only</option>
           </select>
         </label>
-        <input className="honeypot" type="text" name="_gotcha" tabIndex={-1} autoComplete="off" aria-hidden="true" value={form.company} onChange={(e) => update("company", e.target.value)} />
+        <input className="honeypot" type="checkbox" name="botcheck" tabIndex={-1} autoComplete="off" aria-hidden="true" checked={Boolean(form.company)} onChange={(e) => update("company", e.target.checked ? "1" : "")} />
       </fieldset>
 
       <details className="form-optional" open={compact || undefined}>
         <summary>
-          <span>More Details (Date, Property Size, Stairs/Lifts)</span>
+          <span>More Details (Property Size, Stairs/Lifts, Packing)</span>
           <span aria-hidden="true">+</span>
         </summary>
         <fieldset className="form-grid">
           <legend className="sr-only">Optional move details</legend>
-          <label>
-            <span className="field-label">Email Address</span>
-            <input name="email" type="email" maxLength={254} autoComplete="email" value={form.email} onChange={(e) => update("email", e.target.value)} placeholder="email@domain.com.au" />
-          </label>
-          <label>
-            <span className="field-label">Preferred Moving Date</span>
-            <input name="preferred_moving_date" type="date" min={earliestDate} value={form.date} onChange={(e) => update("date", e.target.value)} />
-          </label>
           <label className="form-wide">
             <span className="field-label">Property Size / Volume</span>
             <select name="property_size" value={form.propertySize} onChange={(e) => update("propertySize", e.target.value)}>

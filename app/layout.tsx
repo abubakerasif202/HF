@@ -1,7 +1,5 @@
-import { Suspense } from "react";
 import type { Metadata, Viewport } from "next";
 import Script from "next/script";
-import { MarketingAttribution } from "./components/MarketingAttribution";
 import "./globals.css";
 import { business } from "../lib/site-data";
 
@@ -55,7 +53,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
         <link rel="preconnect" href="https://maps.gstatic.com" crossOrigin="anonymous" />
         <link rel="preconnect" href="https://www.google.com" />
       </head>
-      <body>{children}<Suspense fallback={null}><MarketingAttribution /></Suspense></body>
+      <body>{children}</body>
       {gaId ? (
         <>
           <Script

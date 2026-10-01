@@ -154,10 +154,13 @@ test("renders one coherent, accessible Web3Forms quote flow", async () => {
     const html = await response.text();
 
     assert.match(html, /<form[^>]+action="https:\/\/api\.web3forms\.com\/submit"[^>]+method="POST"/i, path);
-    assert.match(html, /name="subject"[^>]+value="New HF Removals Adelaide Quote Request"/i, path);
+    assert.match(html, /name="subject"[^>]+value="New HF Removals Quote Request — Website visitor/i, path);
+    assert.match(html, /<input(?=[^>]*type="hidden")(?=[^>]*name="replyto")/i, path);
+    assert.match(html, /<input(?=[^>]*name="email")(?=[^>]*type="email")(?=[^>]*required)[^>]*>/i, path);
+    assert.match(html, /<input(?=[^>]*name="preferred_moving_date")(?=[^>]*type="date")(?=[^>]*required)[^>]*>/i, path);
     assert.match(html, /name="from_name"[^>]+value="HF Removals Adelaide Website"/i, path);
     assert.match(html, /name="source_page"/i, path);
-    assert.match(html, /<input(?=[^>]*name="_gotcha")(?=[^>]*tabindex="-1")[^>]*>/i, path);
+    assert.match(html, /<input(?=[^>]*name="botcheck")(?=[^>]*type="checkbox")(?=[^>]*tabindex="-1")[^>]*>/i, path);
     for (const field of ["name", "phone", "email", "moving_from", "moving_to", "move_type", "moving_package", "property_size", "preferred_moving_date", "details"]) {
       assert.match(html, new RegExp(`name="${field}"`, "i"), `${path}: ${field}`);
     }
@@ -170,6 +173,9 @@ test("renders one coherent, accessible Web3Forms quote flow", async () => {
   assert.match(client, /name="access_key" value=\{web3FormsAccessKey\}/i);
   assert.doesNotMatch(client, /formData\.append\("access_key"/i);
   assert.match(client, /data\.success/i);
+  assert.match(client, /formData\.set\("quote_reference"/);
+  assert.match(client, /formData\.set\("source_page", window\.location\.href\)/);
+  assert.doesNotMatch(client, /HF_QUOTE_BRIDGE|\/api\/quote/);
   assert.doesNotMatch(client, /formspree\.io|formsubmit\.co/i);
 });
 
