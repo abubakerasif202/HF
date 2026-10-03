@@ -30,6 +30,6 @@ At 640px/q75, measured image response sizes were 42,047 bytes (residential), 45,
 
 Production-only npm audit reported zero vulnerabilities. Full audit reported five high-severity entries tracing through ESLint's Next plugin → fast-glob → micromatch → braces 3.0.3. [GHSA-vfj7-8cjw-p6xm](https://github.com/advisories/GHSA-vfj7-8cjw-p6xm) lists no patched version. npm proposes a major eslint-config-next downgrade to 14.2.35; this was not applied. Existing package/package-lock edits were preserved.
 
-NAP matches the supplied values and remains in lib/site-data.ts. Google rating 5.0 and review count 451 are stored values with a 20 September verification date, not a live API feed. Keep them pending current official evidence; Birdeye's reported count does not replace Google evidence.
+NAP matches the supplied values and remains in lib/site-data.ts. Google rating 5.0, review count 455 and "Open 24 hours" were verified from the official Google Business Profile on 4 October 2026 (previously 451 reviews and 7am–8pm daily). They are stored values, not a live API feed; refresh them from Google evidence only. Birdeye's reported count does not replace Google evidence. The stored category is unchanged pending clear evidence.
 
 See SEO-2026-10-04-AUDIT.md for all 168 intended indexable routes, keyword ownership, remaining area-content opportunities and the monitoring plan. See SEO-OFFSITE-ACTIONS.md for uncompleted external listing and genuine Adelaide partnership recommendations. QA logs, raw network diagnostics and screenshots are in audit/2026-10-04/.

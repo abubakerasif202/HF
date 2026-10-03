@@ -73,8 +73,14 @@ test("renders the premium HF homepage without placeholder claims", async () => {
   assert.match(html, /5\.0 Google rating/i);
   assert.match(html, /HF&#x27;s removalists in Adelaide handle home, apartment, office and interstate moves/);
   assert.match(html, /<h1>Adelaide <em>Removalists<\/em><br\/>You Can Rely On<\/h1>/);
-  assert.match(html, /451(?:<!-- -->)? reviews/i);
-  assert.match(html, /7:00 am–8:00 pm daily/i);
+  assert.match(html, /455(?:<!-- -->)? reviews/i);
+  assert.doesNotMatch(html, /\b451\b/);
+  assert.match(html, /Open 24 hours/);
+  assert.doesNotMatch(html, /7:00 am–8:00 pm|7am–8pm/i);
+  // Visible "Open 24 hours" must agree with the MovingCompany opening hours in schema.
+  const business = JSON.parse(html.match(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/)[1])["@graph"].find((node) => node["@type"] === "MovingCompany");
+  assert.deepEqual(business.openingHoursSpecification, [{ "@type": "OpeningHoursSpecification", dayOfWeek: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"], opens: "00:00", closes: "23:59" }]);
+  assert.equal(business.aggregateRating, undefined, "Google's third-party rating must not be marked up as a first-party aggregate");
   assert.doesNotMatch(html, /24\/7|24h Enquiries/i);
   assert.match(html, /25–45 m³/i);
   assert.match(html, /40–60 m³/i);
@@ -190,9 +196,11 @@ test("keeps verified rates, coverage wording and canonical route inventory centr
   assert.match(data, /per m³/);
   assert.match(data, /Up to \$1,000,000 Public Liability & Transit Insurance/);
   assert.match(data, /rating: 5\.0/);
-  assert.match(data, /reviewCount: 451/);
-  assert.match(data, /verifiedAt: "2026-09-20"/);
-  assert.match(data, /hoursVerifiedAt: "2026-08-27"/);
+  assert.match(data, /reviewCount: 455/);
+  assert.match(data, /\bverifiedAt: "2026-10-04"/);
+  assert.match(data, /hoursVerifiedAt: "2026-10-04"/);
+  assert.match(data, /hoursLabel: "Open 24 hours"/);
+  assert.doesNotMatch(data, /reviewCount: 451|7:00 am–8:00 pm/);
   assert.doesNotMatch(data, /adelaide-(?:western-sydney|smithfield|brisbane|canberra)/);
   assert.match(data, /Complimentary mattress protection/);
   assert.doesNotMatch(data, /five-star|fully insured|no hidden fees|on-time every time/i);

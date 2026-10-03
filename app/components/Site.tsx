@@ -971,7 +971,7 @@ function PageHero({
             <span><b>{business.googleBusiness.rating.toFixed(1)}★</b> Rating</span>
             <span><b>{business.googleBusiness.reviewCount}</b> Reviews</span>
             <span><b>Up to $1M</b> Insurance</span>
-            <span><b>{business.googleBusiness.hoursShort}</b> Daily hours</span>
+            <span><b>{business.googleBusiness.hoursShort}</b> Every day</span>
           </div>
         </div>
         {price ? (
