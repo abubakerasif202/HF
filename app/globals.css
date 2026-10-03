@@ -751,6 +751,25 @@ p {
   visibility: visible;
   transform: none;
 }
+.mobile-menu-close {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  width: 100%;
+  max-width: 500px;
+  min-height: 44px;
+  margin: 0 auto 16px;
+  padding: 10px 14px;
+  border: 1px solid var(--hf-gold-300);
+  border-radius: 6px;
+  background: transparent;
+  color: var(--hf-white);
+  font: inherit;
+  cursor: pointer;
+}
+.mobile-menu-close span { font-size: 1.5rem; line-height: 1; }
+
 .mobile-menu nav {
   display: grid;
   max-width: 500px;

@@ -170,6 +170,7 @@ test('quote form validation, package selection, success, failure and double-subm
   await form.getByLabel('Phone Number').fill('0400 000 000');
   await form.getByLabel('Moving From (Suburb)').fill('Elizabeth Vale SA');
   await form.getByLabel('Moving To (Suburb/City)').fill('Marion SA');
+  await form.getByLabel('Preferred Moving Date').fill('2099-01-01');
 
   let requests = 0;
   await page.route('https://api.web3forms.com/submit', async (route) => {
@@ -188,12 +189,14 @@ test('quote form validation, package selection, success, failure and double-subm
   await form.getByLabel('Phone Number').fill('0400 000 000');
   await form.getByLabel('Moving From (Suburb)').fill('Elizabeth Vale SA');
   await form.getByLabel('Moving To (Suburb/City)').fill('Marion SA');
+  await form.getByLabel('Email Address').fill('qa.test@example.invalid');
+  await form.getByLabel('Preferred Moving Date').fill('2099-01-01');
   await page.unroute('https://api.web3forms.com/submit');
   await page.route('https://api.web3forms.com/submit', (route) =>
     route.fulfill({ status: 500, contentType: 'application/json', body: JSON.stringify({ success: false, message: 'Controlled QA failure' }) })
   );
   await submit.click();
-  await expect(form.locator('.form-status')).toContainText('We couldn’t send your request');
+  await expect(form.locator('.form-status')).toContainText('We could not confirm whether your request was received');
   await context.close();
 });
 

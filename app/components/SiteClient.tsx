@@ -206,7 +206,11 @@ export function Header() {
     // Let the click/open transition finish before moving focus into the drawer;
     // Chromium can otherwise leave focus on the trigger or body during animation.
     const focusTimers = open ? [80, 180, 280].map((delay) =>
-      window.setTimeout(() => firstLink.current?.focus({ preventScroll: true }), delay),
+      window.setTimeout(() => {
+        if (menu.current && !menu.current.contains(document.activeElement)) {
+          firstLink.current?.focus({ preventScroll: true });
+        }
+      }, delay),
     ) : [];
     const onKey = (event: KeyboardEvent) => {
       if (event.key === "Escape" && open) {
@@ -372,6 +376,10 @@ export function Header() {
           setOpen(false);
           window.setTimeout(() => toggle.current?.focus(), 0);
         }}>
+        <button className="mobile-menu-close" type="button" onClick={() => {
+          setOpen(false);
+          window.setTimeout(() => toggle.current?.focus(), 0);
+        }}>Close menu <span aria-hidden="true">&times;</span></button>
         <nav aria-label="Mobile navigation">
           <a className={pathname === "/" ? "is-active" : ""} ref={firstLink} href="/" onClick={() => setOpen(false)}>
             Home <span>↗</span>
@@ -491,13 +499,15 @@ export function QuoteForm({ compact = false }: { compact?: boolean }) {
     setStatusKind("info");
     setStatus("Submitting your move details securely…");
 
+    const controller = new AbortController();
+    const timeout = window.setTimeout(() => controller.abort(), 20000);
     try {
       const formData = new FormData(event.currentTarget);
       if (!quoteAttempt.current) quoteAttempt.current = crypto.randomUUID();
       formData.set("quote_reference", quoteAttempt.current);
       formData.set("source_page", window.location.href);
 
-      const response = await fetch(quoteFormEndpoint, { method: "POST", body: formData });
+      const response = await fetch(quoteFormEndpoint, { method: "POST", body: formData, signal: controller.signal });
 
       const data: { success?: boolean; message?: string } = await response.json();
       if (!response.ok || !data.success) {
@@ -510,8 +520,9 @@ export function QuoteForm({ compact = false }: { compact?: boolean }) {
       setStatus("Thank you. Your move details have been sent to HF Removals Adelaide. We’ll be in touch shortly.");
     } catch {
       setStatusKind("error");
-      setStatus(`We couldn’t send your request. Please try again or call ${business.phones[0].display}.`);
+      setStatus(`We could not confirm whether your request was received. Please call ${business.phones[0].display} before trying again.`);
     } finally {
+      window.clearTimeout(timeout);
       submitting.current = false;
       setLoading(false);
     }
@@ -636,11 +647,11 @@ export function QuoteForm({ compact = false }: { compact?: boolean }) {
         </label>
         <label>
           <span className="field-label">Moving From (Suburb) <b aria-hidden="true">*</b></span>
-          <input name="moving_from" required maxLength={180} autoComplete="address-level2" value={form.from} onChange={(e) => update("from", e.target.value)} placeholder="e.g. Elizabeth Vale SA" aria-invalid={statusKind === "error" && !form.from} aria-describedby={statusKind === "error" ? "quote-form-status" : undefined} />
+          <input name="moving_from" required maxLength={180} autoComplete="section-origin address-level2" value={form.from} onChange={(e) => update("from", e.target.value)} placeholder="e.g. Elizabeth Vale SA" aria-invalid={statusKind === "error" && !form.from} aria-describedby={statusKind === "error" ? "quote-form-status" : undefined} />
         </label>
         <label>
           <span className="field-label">Moving To (Suburb/City) <b aria-hidden="true">*</b></span>
-          <input name="moving_to" required maxLength={180} autoComplete="address-level2" value={form.to} onChange={(e) => update("to", e.target.value)} placeholder={form.tab === "local" ? "e.g. Marion SA" : "e.g. Melbourne VIC"} aria-invalid={statusKind === "error" && !form.to} aria-describedby={statusKind === "error" ? "quote-form-status" : undefined} />
+          <input name="moving_to" required maxLength={180} autoComplete="section-destination address-level2" value={form.to} onChange={(e) => update("to", e.target.value)} placeholder={form.tab === "local" ? "e.g. Marion SA" : "e.g. Melbourne VIC"} aria-invalid={statusKind === "error" && !form.to} aria-describedby={statusKind === "error" ? "quote-form-status" : undefined} />
         </label>
         <label>
           <span className="field-label">Email Address <b aria-hidden="true">*</b></span>
