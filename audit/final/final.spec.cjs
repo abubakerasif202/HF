@@ -70,6 +70,9 @@ test('mobile visuals and menu interaction', async ({ browser }) => {
   await expect(page.locator('main')).not.toHaveAttribute('inert', '');
 
   await toggle.click();
+  // Wait for the menu to finish opening; otherwise isHidden() below can read the
+  // pre-open state on a slow runner and the test wrongly concludes the backdrop closed it.
+  await expect(page.getByRole('dialog', { name: 'Mobile navigation' })).toBeVisible();
   const backdropTarget = await page.evaluate(() => ({ tag: document.elementFromPoint(4, 400)?.tagName, id: document.elementFromPoint(4, 400)?.id, className: document.elementFromPoint(4, 400)?.className }));
   await page.mouse.click(4, 400);
   const backdropClosed = await page.getByRole('dialog', { name: 'Mobile navigation' }).isHidden();
