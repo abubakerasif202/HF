@@ -1,0 +1,16 @@
+# HF offsite SEO actions — 4 October 2026
+
+These are recommendations awaiting external verification. No GBP edit, listing update, outreach, message, review request or external publication was performed by this audit.
+
+1. Obtain current Google Business Profile evidence for the primary category, business name, service area, address visibility, both phone numbers, canonical website URL, hours and review count. Compare it with lib/site-data.ts. The code stores 451 reviews and a 5.0 rating from 20 September 2026; this is not a live count.
+2. Check reputable existing Australian/local business citations for exact NAP consistency: HF Removals Adelaide; 20 Prunus Ave, Elizabeth Vale SA 5112; 0491 704 136; https://www.hfremovalsadelaide.com.au. Confirm address publication preferences and business ownership before requesting corrections. Document actual discrepancies and edit only verified listings.
+3. Inspect GSC Links and a verified backlink export. Assess links to old about/contact/blog/interstate URLs against configured permanent redirects. Seek corrections from existing legitimate partners where justified; avoid bulk directory submissions, paid link schemes or blanket disavowal.
+4. Establish an owner-approved request for honest customer reviews after completed jobs. No incentives, review gating, invented reviews or ranking guarantees. Publish owner-approved project photos and factual move examples only with customer consent, omitting private addresses and personal information.
+5. Compare a small verified competitor set for service coverage, original evidence and useful local information. Record observations rather than copying claims or creating unsupported suburb pages. Improve existing HF URL owners first.
+6. If the business supplies original move examples, add relevant proof to the existing residential, furniture, office and interstate pages. Verify service scope, route, access and outcome with the owner before publication; do not turn an example into a promised price or delivery time.
+
+Maintain a dated evidence log with listing URL, observed discrepancy, owner approval where needed, action, result and verification date. Keep these tasks separate from code validation and deployment status.
+
+Prioritize existing Birdeye, Poyst, dlook and Facebook listings reported by the supplied SEO report, then verify DirectSO, Bark, ProvenExpert, Oneflare, Pinterest Business, Gust, Apple Business Connect, Bing Places, Yellow Pages, True Local, Hotfrog, Yelp, Localsearch, Word of Mouth and StartLocal where HF actually has a listing. The reported inconsistencies were not independently verified in this code audit. Use the secondary phone 0493 092 539, admin@hfremovalsadelaide.com.au and Monday–Sunday 7:00 am–8:00 pm alongside the primary NAP above where supported.
+
+For genuine Adelaide links, prioritize existing relationships with real-estate agents, property managers, storage businesses, relocation partners, complementary local businesses and community organisations. A useful referral page or an original moving checklist can support a legitimate partnership. Link to the relevant existing service page when it helps their customers; do not buy bulk links or submit spun articles to SEO farms.

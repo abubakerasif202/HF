@@ -58,7 +58,7 @@ test("quote phone pattern compiles in native Unicode mode and validates realisti
 test("FAQ structured data uses questions and answers present in rendered content", async () => {
   const page = await browser.newPage();
   try {
-    for (const path of ["/", "/pricing", "/services/interstate-removals", "/services/packing-unpacking", "/areas/unley-park", "/interstate/adelaide-sydney"]) {
+    for (const path of ["/", "/pricing", "/services/interstate-removals", "/services/packing-unpacking", "/areas/unley-park", "/interstate/adelaide-sydney", ...["adelaide-moving-checklist", "how-removalist-pricing-works", "estimate-moving-volume", "preparing-interstate-move", "apartment-moving-preparation", "office-relocation-checklist", "packing-before-moving-day", "preparing-large-furniture"].map(slug => `/guides/${slug}`)]) {
       await page.goto(`${runtime.base}${path}`);
       const { visible, faqs } = await page.evaluate(() => {
         const schemas = [...document.querySelectorAll('script[type="application/ld+json"]')].flatMap(e => {
@@ -70,6 +70,38 @@ test("FAQ structured data uses questions and answers present in rendered content
       assert.ok(faqs.length > 0, `${path}: missing FAQ schema`);
       assert.equal(faqs.length, visible.length, `${path}: FAQ count differs`);
       assert.deepEqual(faqs.map(faq => ({ question: faq.name.replace(/\s+/g, " "), answer: faq.acceptedAnswer.text.replace(/\s+/g, " ") })), visible, `${path}: schema differs from actual FAQ content`);
+    }
+  } finally { await page.close(); }
+});
+
+test("service next steps connect complementary services rather than array order", async () => {
+  const page = await browser.newPage();
+  try {
+    for (const [slug, targets] of [
+      ["furniture-removals", ["residential-removals", "packing-unpacking", "interstate-removals"]],
+      ["office-commercial-removals", ["furniture-removals", "packing-unpacking", "interstate-removals"]],
+      ["packing-unpacking", ["residential-removals", "furniture-removals", "interstate-removals"]],
+      ["backloading", ["interstate-removals", "packing-unpacking", "furniture-removals"]],
+    ]) {
+      await page.goto(`${runtime.base}/services/${slug}`);
+      const links = await page.locator('.related-links a').evaluateAll(elements => elements.map(element => element.getAttribute('href')));
+      for (const target of targets) assert.ok(links.includes(`/services/${target}`), `${slug} must link to ${target}`);
+      assert.ok(links.includes('/areas'), `${slug} must link to service-area discovery`);
+      assert.ok(!links.includes(`/services/${slug}`), `${slug} must not recommend itself`);
+    }
+  } finally { await page.close(); }
+});
+
+test("service schema describes the visible service and its actual geographical scope", async () => {
+  const page = await browser.newPage();
+  try {
+    for (const slug of ["residential-removals", "furniture-removals", "office-commercial-removals", "interstate-removals", "backloading", "packing-unpacking"]) {
+      await page.goto(`${runtime.base}/services/${slug}`);
+      const schema = await page.locator('script[type="application/ld+json"]').evaluate(element => JSON.parse(element.textContent)["@graph"].find(node => node["@type"] === "Service"));
+      assert.equal(schema.serviceType, schema.name);
+      assert.equal(schema.url, `${origin}/services/${slug}`);
+      assert.equal(schema.provider["@id"], `${origin}/#business`);
+      assert.equal(schema.areaServed.name, ["interstate-removals", "backloading"].includes(slug) ? "Adelaide and interstate Australia" : "Adelaide metropolitan area");
     }
   } finally { await page.close(); }
 });

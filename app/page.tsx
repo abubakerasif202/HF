@@ -49,9 +49,9 @@ const schema = {
       openingHoursSpecification: [
         {
           "@type": "OpeningHoursSpecification",
-          dayOfWeek: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"],
-          opens: "07:00",
-          closes: "20:00",
+          dayOfWeek: business.googleBusiness.openingHours.days,
+          opens: business.googleBusiness.openingHours.opens,
+          closes: business.googleBusiness.openingHours.closes,
         },
       ],
     },

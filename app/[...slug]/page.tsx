@@ -28,11 +28,11 @@ function contentTitle(page: NonNullable<ReturnType<typeof findContentPage>>) {
   if (page.kind === "service") {
     const titles: Record<string, string> = {
       "residential-removals": "House Removalists Adelaide | HF Removals Adelaide",
-      "furniture-removals": "Furniture Movers Adelaide | HF Removals Adelaide",
-      "office-commercial-removals": "Office & Commercial Removals Adelaide | HF Removals Adelaide",
+      "furniture-removals": "Furniture Removalists Adelaide | HF Removals Adelaide",
+      "office-commercial-removals": "Office & Commercial Removalists Adelaide | HF Removals Adelaide",
       "interstate-removals": "Interstate Removalists Adelaide | HF Removals Adelaide",
       backloading: "Backloading Adelaide | HF Removals Adelaide",
-      "packing-unpacking": "Packing Services Adelaide | HF Removals Adelaide",
+      "packing-unpacking": "Packing & Unpacking Adelaide | HF Removals Adelaide",
     };
     return titles[page.slug] ?? `${page.eyebrow} Adelaide`;
   }
@@ -135,7 +135,7 @@ export default async function ContentRoute({ params }: Props) {
     "@graph": [
       page.kind === "guide"
         ? { "@type": "Article", headline: page.title, description: page.description, mainEntityOfPage: canonical(path), publisher: { "@id": `${business.domain}/#business` } }
-        : { "@type": "Service", "@id": `${canonical(path)}#service`, name: page.eyebrow, description: page.description, url: canonical(path), provider: { "@id": `${business.domain}/#business` }, ...(page.kind === "area" ? { areaServed: page.eyebrow.replace(/ removals| moving support/i, "") } : {}) },
+        : { "@type": "Service", "@id": `${canonical(path)}#service`, name: page.eyebrow, serviceType: page.eyebrow, description: page.description, url: canonical(path), provider: { "@id": `${business.domain}/#business` }, ...(page.kind === "service" ? { areaServed: { "@type": "Place", name: page.slug === "interstate-removals" || page.slug === "backloading" ? "Adelaide and interstate Australia" : "Adelaide metropolitan area" } } : page.kind === "area" ? { areaServed: page.eyebrow.replace(/ removals| moving support/i, "") } : {}) },
       { "@type": "WebPage", "@id": `${canonical(path)}#webpage`, url: canonical(path), name: contentTitle(page), description: page.description, isPartOf: { "@id": `${business.domain}/#website` } },
       ...(page.faqs.length ? [{ "@type": "FAQPage", "@id": `${canonical(path)}#faq`, mainEntity: page.faqs.map((faq) => ({ "@type": "Question", name: faq.question, acceptedAnswer: { "@type": "Answer", text: faq.answer } })) }] : []),
       { "@type": "BreadcrumbList", itemListElement: [

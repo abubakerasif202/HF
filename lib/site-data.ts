@@ -66,6 +66,11 @@ export const business = {
     reviewCount: 451,
     hoursLabel: "7:00 am–8:00 pm daily",
     hoursShort: "7am–8pm",
+    openingHours: {
+      days: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"],
+      opens: "07:00",
+      closes: "20:00",
+    },
     hoursVerifiedAt: "2026-08-27",
     category: "Moving and storage service",
     plusCode: "6MW7+J5 Elizabeth Vale, South Australia",
@@ -214,6 +219,7 @@ export const services: ContentPage[] = [
       "HF Removals Adelaide provides house removals for homes, apartments and townhouses across Adelaide. We plan around your inventory, property access, furniture protection and destination placement so the quote reflects the actual move.",
     highlights: ["Homes, apartments and townhouses", "Room-by-room inventory", "Packing and protective wraps", "Placement at your destination"],
     sections: [
+      { title: "Choose support for a whole-home move", body: "Use residential removals when you need to coordinate belongings from several rooms, including cartons, furniture and appliances, in one move plan. For a few selected bulky pieces, a furniture-removal enquiry may be a better starting point. For a home moving interstate, include the destination route so the quote can be assessed using the appropriate scope." },
       { title: "Prepare the house move", body: "Build a room-by-room inventory and include garages, outdoor items, fragile pieces and bulky furniture. Note stairs, lifts, gates and parking at both addresses." },
       { title: "Homes, apartments and townhouses", body: "Share the property type, entry path, lift or loading-zone requirements and any tight access before moving day so loading can be planned around the building." },
       { title: "Furniture moving and placement", body: "List lounges, beds, tables, appliances and other large furniture. Available protection includes moving blankets, shrink wrap, bubble wrap, mattress protection and side-table protective wrapping; label destination rooms and identify priority items for the unload." },
@@ -224,8 +230,8 @@ export const services: ContentPage[] = [
       { question: "What should I include in a house moving quote?", answer: "Share both addresses, your preferred date, property type and a room-by-room inventory. Include garage and outdoor contents, stairs, lifts, parking and furniture that may need dismantling." },
       { question: "Can you help with apartment and townhouse moves?", answer: "Yes. Include any lift booking, loading-zone restrictions, stairs and narrow entries at both buildings so the move can be planned around the access available." },
       { question: "Can I request packing help for my home move?", answer: "Full or partial packing and unpacking support is available. Tell HF which rooms or items need help, and keep documents, medication, keys and first-night essentials with you." },
-      standardMoveFaqs[0],
-      standardMoveFaqs[2],
+      { question: "How is a local house move charged?", answer: "Published local rates are $79 per 30 minutes for 2 movers and a truck, or $99 per 30 minutes for 3 movers and a truck. A 3-hour minimum service and a separate 1-hour call-out fee apply. The call-out covers truck fuel and basic transport charges, not extra labour. Additional service time is billed in 30-minute increments, with the final amount calculated when the job is complete." },
+      { question: "What furniture protection is provided for a home move?", answer: "Moving blankets, heavy-duty tie-down straps and trolleys are standard on every truck, with complimentary mattress protection and side-table protective wrapping. Identify fragile belongings and ask about any additional packing work or materials needed for your inventory." },
     ],
   },
   {
@@ -238,6 +244,7 @@ export const services: ContentPage[] = [
       "Furniture moves can be a complete household relocation or a smaller job involving selected large pieces. HF scopes the item list, entry paths, stairs or lifts and destination placement before confirming what the move requires.",
     highlights: ["Large furniture inventory", "Entry and access checks", "Protective wrapping", "Destination placement"],
     sections: [
+      { title: "A selected-item move starts with the item list", body: "A furniture move can focus on a lounge, bed, table or other selected pieces without treating the enquiry as a full house relocation. List all pieces together, including any accompanying cartons or appliances. A short item list still needs access assessment and is subject to the published local minimum service and call-out terms." },
       { title: "List every large item", body: "Include lounges, beds, tables, cabinets, appliances, mirrors and outdoor furniture. Dimensions for unusually large pieces help identify access or dismantling questions early." },
       { title: "Check the path in and out", body: "Share stairs, lifts, narrow entries, gates, parking and the distance from the truck to each doorway at both addresses." },
       { title: "Protect and place", body: "Discuss suitable blankets, shrink wrap, bubble wrap, mattress protection or side-table wrapping, then label the destination room or placement priority." },
@@ -248,7 +255,8 @@ export const services: ContentPage[] = [
       { question: "Can I enquire about moving only selected furniture?", answer: "Yes. Furniture enquiries can cover selected large pieces or a household inventory. List every item and both addresses; the published local minimum service and call-out terms still need to be considered when planning your budget." },
       { question: "What measurements help with a furniture move?", answer: "Provide dimensions for bulky pieces and measure the narrowest doors, corridors, stairs or lift openings on the route in and out. Photos and access notes can help explain a tight fit before moving day." },
       { question: "Should furniture be dismantled before moving?", answer: "Discuss beds, desks and other large furniture with HF before the move. Disassembly and reassembly are available; confirm which items need this work rather than assuming every piece must be taken apart." },
-      standardMoveFaqs[2],
+      { question: "What protection can I discuss for individual furniture pieces?", answer: "Moving blankets, heavy-duty tie-down straps and trolleys are standard truck equipment. Complimentary mattress protection and side-table protective wrapping are provided. Identify glass, mirrors and delicate finishes so HF can discuss suitable wrapping and confirm the preparation needed for those pieces." },
+      { question: "Will moving one item avoid the local minimum charge?", answer: "The published local policy is a 3-hour minimum service plus a separate 1-hour call-out fee. Share the complete item list and ask HF to confirm the quote and charging terms for your selected-item enquiry before booking." },
     ],
   },
   {
@@ -261,6 +269,7 @@ export const services: ContentPage[] = [
       "Office and commercial removals benefit from a clear inventory, named site contacts and an agreed placement plan. HF works from the workplace details you provide, from loading access and lifts to workstation, office furniture and equipment destinations.",
     highlights: ["Office furniture", "Workstations and equipment", "Access coordination", "Destination labelling"],
     sections: [
+      { title: "Define the physical workplace relocation", body: "This enquiry is for moving workplace furniture, cartons and equipment between sites. Identify desks or other furniture needing disassembly and reassembly, and specify any packing help separately. Assign equipment preparation, data backups and reconnection to the responsible workplace contacts so those tasks are accounted for in your own relocation plan." },
       { title: "Create a workplace inventory", body: "Group office furniture, workstations, equipment, archives and cartons by team, room or destination zone. Identify items that need separate preparation or handling discussion." },
       { title: "Confirm loading access", body: "Share loading areas, lift requirements, parking restrictions, building rules and site contacts for both ends of the commercial relocation." },
       { title: "Plan destination placement", body: "A labelled floor plan and clearly marked cartons help direct desks, chairs, equipment and furniture to the intended workplace area." },
@@ -271,31 +280,34 @@ export const services: ContentPage[] = [
       { question: "What information is needed for an office relocation quote?", answer: "Provide both workplace addresses, a furniture and equipment inventory, preferred date, site contacts and building access rules. A destination floor plan or labels by team and room help explain placement requirements." },
       { question: "How should office equipment and archives be prepared?", answer: "Identify fragile devices and equipment that needs separate preparation. Group cartons and archives by destination area, and confirm who will disconnect and prepare equipment before it is moved." },
       { question: "Can a commercial move be planned around building access windows?", answer: "Share lift booking windows, loading restrictions, security requirements and site contacts with HF. Confirm the proposed move timing directly before arranging building access or staff attendance." },
-      standardMoveFaqs[0],
+      { question: "How do I specify desk dismantling and packing work?", answer: "List the desks or other furniture needing disassembly and reassembly, and identify the rooms, archives or items requiring packing support. HF offers these services; confirm the exact work and materials in your individual quote rather than assuming every preparation task is included." },
+      { question: "Can you promise that the office will be ready to reopen at a set time?", answer: "Confirm the physical moving scope and proposed timing directly with HF. Your workplace plan should also allow for equipment reconnection, IT checks and staff setup; the website does not publish a guaranteed reopening time." },
     ],
   },
   {
     slug: "interstate-removals",
     kind: "service",
     eyebrow: "Interstate removals",
-    title: "Plan an interstate move by volume and scope",
+    title: "Plan your Adelaide interstate relocation",
     description: "Interstate removalists in Adelaide for Adelaide interstate removals, with per-cubic-metre reference pricing, route planning, inventory and access preparation.",
     intro:
       "HF provides interstate moving support between Adelaide and the listed destinations. A useful quote starts with an accurate inventory, cubic-volume estimate, access details at both ends and a clear route.",
     highlights: ["Adelaide interstate routes", "Per-m³ reference pricing", "Inventory and volume planning", "Packing and protection"],
     sections: [
-      { title: "Plan the Adelaide interstate move", body: "Start with the pickup suburb, destination city or suburb, preferred date, property type and whether the move is local to a route or part of a longer connection." },
+      { title: "Plan the complete interstate relocation", body: "Start with the pickup suburb, destination city, suburb and postcode, preferred dates and property types at both ends. This service suits a household or furniture move crossing state boundaries; the destination route and cubic volume need assessment rather than relying on the local hourly rate." },
       { title: "Build an inventory and volume", body: "List furniture, appliances, cartons, plants, garage items and unusually large pieces. Dimensions for bulky items help establish a more useful cubic-metre estimate." },
       { title: "Understand per-m³ reference pricing", body: "The listed Melbourne, Sydney, Queensland and Perth figures are reference rates per cubic metre, not total move prices. Final pricing depends on confirmed volume and the complete scope." },
       { title: "Confirm loading and access", body: "Share stairs, lifts, driveways, parking, loading zones, gates and the carry distance from the truck to each doorway at origin and destination." },
       { title: "Prepare and protect belongings", body: "Identify fragile, high-care and bulky items early. Packing support, blankets, shrink wrap, bubble wrap and mattress or side-table protection can be discussed against the inventory." },
       { title: "Scope the route and quote", body: "HF reviews the complete origin-to-destination route, inventory and access details before confirming what applies to your individual enquiry." },
+      { title: "Prepare for pickup and destination handover", body: "Keep your travel documents, medication, keys and personal essentials with you. Name a contact for each property, label cartons for their destination rooms and identify any fixed lift or access window. Confirm pickup and delivery arrangements with HF before making travel or building bookings that depend on the move." },
     ],
     faqs: [
       { question: "How is an Adelaide interstate move quoted?", answer: "HF reviews the route, itemised inventory, cubic-volume estimate, packing requirements and access at both addresses. Published route figures are reference rates per cubic metre, not a fixed total for your move." },
       { question: "Which interstate route information should I provide?", answer: "Include the pickup and destination city, suburb and postcode, your preferred moving date and any timing constraints. For a Queensland enquiry, the actual destination is needed rather than the state name alone." },
       { question: "Is an interstate delivery time guaranteed?", answer: "No fixed transit time or departure schedule is published here. Confirm pickup and delivery arrangements for your individual enquiry directly with HF before making dependent travel or access bookings." },
       { question: "Can I ask about backloading for my interstate move?", answer: "Yes. Backloading suitability depends on whether available capacity aligns with your destination, inventory and timing. It must be assessed for the individual enquiry." },
+      { question: "Can packing and furniture dismantling be part of an interstate enquiry?", answer: "Yes. HF offers full or partial packing and unpacking, plus disassembly and reassembly of beds, desks and large furniture. List the items and work needed at each address so the materials and service scope can be confirmed with your interstate quote." },
     ],
   },
   {
@@ -305,12 +317,13 @@ export const services: ContentPage[] = [
     title: "Flexible interstate capacity, properly scoped",
     description: "Backloading removals from Adelaide: discuss your destination, inventory, date flexibility and access with HF to assess suitability and request a quote.",
     intro:
-      "Backloading can suit eligible interstate moves when available capacity aligns with the destination and inventory. HF reviews each enquiry rather than promising a fixed schedule.",
-    highlights: ["Interstate enquiries", "Volume-based scoping", "Destination details", "Packing readiness"],
+      "Backloading is an option to ask about when your interstate belongings may fit available transport capacity and you have room to adjust pickup or delivery dates. HF needs your item list, complete route and acceptable date windows to assess whether the available space and timing suit your move.",
+    highlights: ["Available capacity assessment", "Pickup and delivery flexibility", "Itemised volume estimate", "Confirmed transport scope"],
     sections: [
+      { title: "Decide whether flexible capacity suits you", body: "Backloading may be worth assessing for a household inventory or selected furniture when the route, space and timing align. Tell HF if keys, settlement, a lease end or building access creates a fixed deadline. Those constraints need to be considered before you rely on backloading for the move." },
       { title: "Start with an inventory", body: "List furniture, appliances, cartons and unusual items. Add dimensions where practical to reduce uncertainty in the volume estimate." },
       { title: "Share destination detail", body: "A destination city, suburb and postcode are needed before suitability or pricing can be assessed." },
-      { title: "Keep timing flexible", body: "Availability depends on the individual move and transport scope. Confirm timing directly with HF rather than relying on assumed route schedules." },
+      { title: "Give separate pickup and delivery windows", body: "State the earliest and latest dates you can accept at each address, then identify which dates are fixed. Explain who can release and receive the belongings within those windows. HF can use this information to assess available capacity; a preferred date alone does not confirm a transport arrangement." },
       { title: "Confirm packing readiness and access", body: "Explain whether belongings are packed, whether furniture needs dismantling and whether you want packing support. Include stairs, lifts, parking and loading arrangements at both properties so access constraints are considered alongside available capacity." },
       { title: "Assess the full move before booking arrangements", body: "Share preferred dates and any fixed constraints when requesting a quote. Confirm the proposed transport scope, inclusions and pickup or delivery arrangements directly before making dependent plans." },
     ],
@@ -318,6 +331,8 @@ export const services: ContentPage[] = [
       { question: "When might backloading suit my move?", answer: "It may suit an eligible interstate move when available transport capacity matches the destination and inventory. Share your date flexibility so HF can assess the enquiry; availability is not promised." },
       { question: "Is backloading always cheaper than an interstate move?", answer: "Do not assume a discount or fixed price. Ask HF to assess your inventory, route, access and timing, then compare quotes for the same scope and inclusions." },
       { question: "What should be ready before a backloading enquiry?", answer: "Provide an itemised inventory, estimated carton count, dimensions for bulky items, both addresses and packing requirements. Explain any fixed pickup or delivery constraints." },
+      { question: "Can I request backloading if my delivery date is fixed?", answer: "You can enquire, but give HF the exact deadline and any access booking window. Suitability depends on available capacity matching your route, inventory and timing. Confirm an arrangement directly before relying on it for keys, travel or building bookings." },
+      { question: "Does an interstate per-m³ rate confirm a backloading price?", answer: "No. The published interstate figures are route reference rates per cubic metre. A backloading quote still requires assessment of your inventory, available capacity, access, dates and packing requirements; confirm the total scope and price for your enquiry." },
     ],
   },
   {
@@ -330,6 +345,7 @@ export const services: ContentPage[] = [
       "Packing support can be included when you want help preparing belongings for loading or organising placement after arrival. The scope is tailored to the inventory and materials required.",
     highlights: [...business.packingMaterials],
     sections: [
+      { title: "Match the service to the preparation you need", body: "Full packing may suit a move where you want help across the home; partial packing can focus on selected rooms or belongings while you prepare the rest. Unpacking is a separate part of the scope to discuss for the destination. State clearly whether your enquiry covers packing, unpacking or both, alongside any furniture-moving requirements." },
       { title: "Decide the level of help", body: "Tell HF whether you need complete packing support, help with selected rooms or protection for specific furniture." },
       { title: "Separate essentials", body: "Keep medication, keys, documents, chargers and first-night essentials with you rather than inside general moving cartons." },
       { title: "Label for placement", body: "Mark each carton with its destination room and any handling notes to support an organised unload." },
@@ -341,6 +357,7 @@ export const services: ContentPage[] = [
       { question: "Can I request packing help for selected rooms?", answer: "Yes. HF offers full or partial packing and unpacking support. Explain which rooms, cartons or furniture need assistance so the scope and materials can be discussed." },
       { question: "What should I keep out of moving cartons?", answer: "Keep medication, keys, important documents, valuables, chargers and first-night essentials with you. Label destination rooms and identify fragile items for handling discussion." },
       { question: "Are packing materials included in every packing enquiry?", answer: "Discuss the materials required and confirm what applies to your packing scope. Existing furniture protection includes moving blankets, shrink wrap, bubble wrap, complimentary mattress protection and side-table protective wraps." },
+      { question: "Does a packing enquiry automatically include unpacking?", answer: "Specify whether you want packing before loading, unpacking at the destination or both. Full and partial support are available, but the rooms, items, materials and work must be agreed for your move." },
     ],
   },
 ];
@@ -530,6 +547,37 @@ const guideBodies: Record<string, string[]> = {
   ],
 };
 
+const guideFaqs: Record<string, Faq[]> = {
+  "adelaide-moving-checklist": [
+    { question: "What should I check before requesting a moving quote?", answer: "Prepare both addresses, your preferred date and a room-by-room item list. Include garages and outdoor belongings, then record parking, stairs, lifts and the path from the truck to each property." },
+    { question: "What should stay with me on moving day?", answer: "Keep keys, documents, medication, valuables, chargers and first-night essentials separate from the load. Label destination rooms before unloading so cartons and furniture can be directed clearly." },
+  ],
+  "estimate-moving-volume": [
+    { question: "Is a bedroom count enough to estimate moving volume?", answer: "A bedroom count is a starting point rather than an inventory. Include the actual furniture, appliances and packed cartons, plus garage, shed and outdoor items. Measure unusually large pieces so HF can review the volume and scope." },
+    { question: "How do I account for items that will be dismantled?", answer: "List the item and its dimensions, and explain whether it will travel assembled or dismantled. Confirm who will dismantle it and keep the parts together; do not assume that a flat-packed size applies to an assembled piece." },
+  ],
+  "preparing-interstate-move": [
+    { question: "What timing should I confirm for an interstate move?", answer: "Discuss pickup and delivery separately, including any fixed deadline and building access window at either end. Do not make plans around an assumed departure or transit time; confirm the arrangements for your move with HF." },
+    { question: "What destination details does an interstate enquiry need?", answer: "Provide the delivery city, suburb, postcode and address, together with the item list and access notes. A state name alone does not describe the full route or the work needed at the destination." },
+  ],
+  "apartment-moving-preparation": [
+    { question: "Which building arrangements should I check before moving?", answer: "Ask building management about lift reservations, loading positions, access hours and shared-area requirements at both properties. Include those conditions in your enquiry so the moving plan can be reviewed against them." },
+    { question: "What if furniture may not fit in the lift or doorway?", answer: "Measure the piece and the narrowest doors, corridors, stairs and lift openings along its path. Send those measurements to HF before moving day and discuss dismantling where relevant rather than assuming the item will fit." },
+  ],
+  "office-relocation-checklist": [
+    { question: "How should we label office furniture and equipment?", answer: "Use the destination room, team or workstation label and share a placement plan. Nominate a contact at each site so questions about security, access and final positioning can be resolved during the move." },
+    { question: "Who should prepare IT equipment before an office move?", answer: "Arrange backups, disconnection and reconnection with your own IT contact. Identify devices that need separate handling and discuss their physical transport with HF; a furniture move does not imply IT installation support." },
+  ],
+  "packing-before-moving-day": [
+    { question: "Which rooms should I pack first?", answer: "Start with stored and low-use belongings, then work toward everyday rooms. Leave an essentials bag accessible and label cartons with their destination room and a short contents description." },
+    { question: "How do I request help with only part of the packing?", answer: "List the rooms or items you want HF to help prepare, what is already packed and any fragile pieces. Discuss materials and unpacking separately so the agreed scope is clear." },
+  ],
+  "preparing-large-furniture": [
+    { question: "Which measurements matter for large furniture?", answer: "Record the piece's dimensions and the narrowest doorways, stair turns, corridors and lift openings at both addresses. Include the carry path and loading position so HF can review the access." },
+    { question: "Should I dismantle furniture before moving day?", answer: "Discuss each piece with HF first and agree who will do the work. If dismantling is agreed, label the parts and keep fasteners together for reassembly; do not assume it is included without confirming the scope." },
+  ],
+};
+
 export const guides: ContentPage[] = guideSeed.map(([slug, title, description, highlights]) => ({
   slug,
   kind: "guide",
@@ -546,7 +594,7 @@ export const guides: ContentPage[] = guideSeed.map(([slug, title, description, h
     { question: "Why is an hourly rate different from the final moving cost?", answer: "An hourly rate is a charging unit, not a total. For local HF moves, consider the 3-hour minimum service, separate 1-hour call-out fee and additional service time billed in 30-minute increments. The actual job determines the final amount." },
     { question: "Does the call-out fee add another hour of moving labour?", answer: "No. HF's published call-out fee covers truck fuel and basic transport charges. It is separate from the service time and should be accounted for separately when estimating the cost." },
     { question: "Where can I find the published HF removalist rates?", answer: "The removalist pricing page lists the local team-and-truck rates and interstate per-cubic-metre reference figures. Use this guide to understand the calculation, then request a quote based on your actual inventory and access." },
-  ] : standardMoveFaqs,
+  ] : guideFaqs[slug] ?? [],
 }));
 
 export const allContentPages = [...services, ...areas, ...interstateRoutes, ...guides];

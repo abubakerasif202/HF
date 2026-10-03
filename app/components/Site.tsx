@@ -1,3 +1,4 @@
+import Image from "next/image";
 import { areas, business, ContentPage, entryLocalRate, googleReviews, guides, interstatePricing, interstateRoutes, localPricing, services, standardMoveFaqs } from "../../lib/site-data";
 import { hfServiceAreaRecords } from "../../lib/hf-service-areas";
 import { ABDeveloperCredit } from "./ABDeveloperCredit";
@@ -205,15 +206,15 @@ function ApartmentAccessSection() {
   const points = [
     { title: "Lift Bookings & Access Windows", desc: "Coordinated move timing to fit strict strata and body corporate service lift reservations." },
     { title: "Loading Dock Clearances", desc: "Truck height & positioning planned around basement clearance and designated loading bays." },
-    { title: "Stairways & Tight Hallways", desc: "Expert manoeuvring for oversized lounges, double fridges, and king beds without wall marks." },
-    { title: "Common Area & Floor Protection", desc: "Complimentary floor runners, corner guards, and mattress protection to safeguard shared spaces." },
+    { title: "Stairways & Tight Hallways", desc: "Share furniture dimensions, stair turns and narrow doorways so the team can review the access before moving day." },
+    { title: "Common Area & Furniture Protection", desc: "Tell us about building protection requirements. Mattress protection is available; confirm other materials and preparation with your quote." },
   ];
 
   return (
     <section className="section apartment-section" aria-labelledby="apartment-title">
       <div className="container apartment-grid">
         <div className="apartment-media">
-          <img src="/images/hf-apartment-removals.webp" alt="HF Removals Adelaide crew moving labelled cartons into a residential property" width="1672" height="941" loading="lazy" />
+          <Image src="/images/hf-apartment-removals.webp" alt="HF Removals Adelaide crew moving labelled cartons into a residential property" width={1672} height={941} sizes="(max-width: 900px) calc(100vw - 32px), (max-width: 1280px) 50vw, 600px" />
           <div className="apartment-media-badge">
             <strong>Adelaide CBD & apartment move planning</strong>
             <span>Share lift, loading-zone and common-area requirements before moving day</span>
@@ -290,7 +291,7 @@ function ServicePhotosSection() {
         <div className="service-photo-grid">
           {servicePhotos.map((photo, index) => (
             <a className="service-photo-card" href={photo.href} key={photo.src}>
-              <img src={photo.src} alt={photo.alt} width="1672" height="941" loading="lazy" />
+              <Image src={photo.src} alt={photo.alt} width={1672} height={941} sizes="(max-width: 680px) calc(100vw - 32px), (max-width: 1280px) 50vw, 600px" />
               <span className="service-photo-shade" />
               <span className="service-photo-copy">
                 <small>{String(index + 1).padStart(2, "0")}</small>
@@ -565,7 +566,7 @@ function PackingSection() {
 
 function ProcessSection() {
   const steps = [
-    ["Instant Quote", "Submit your move dates, suburbs, and inventory."],
+    ["Request a Quote", "Submit your move dates, suburbs, and inventory for review."],
     ["Scope & Review", "We confirm access, truck size, and exact inclusions."],
     ["Professional Packing", "Furniture is wrapped and secured with protective gear."],
     ["Careful Transport", "Belongings are secured for transport; applicable insurance terms depend on the move scope."],
@@ -982,7 +983,7 @@ function PageHero({
           </div>
         ) : media ? (
           <figure className="inner-visual">
-            <img src={media.src} alt={media.alt} width="1672" height="941" />
+            <Image src={media.src} alt={media.alt} width={1672} height={941} sizes="(max-width: 900px) calc(100vw - 32px), (max-width: 1280px) 50vw, 600px" loading="eager" fetchPriority="high" />
             <figcaption>
               <span>HF Removals Adelaide</span>
               <strong>{media.label}</strong>
@@ -1138,17 +1139,32 @@ function relatedLinksFor(page: ContentPage): RelatedLink[] {
     ];
   }
 
-  const serviceLinks = services
-    .filter((service) => service.slug !== page.slug)
-    .slice(0, 3)
+  // Choose complementary services deliberately: array order is not relevance.
+  const relatedServiceSlugs: Record<string, string[]> = {
+    "furniture-removals": ["residential-removals", "packing-unpacking", "interstate-removals"],
+    "office-commercial-removals": ["furniture-removals", "packing-unpacking", "interstate-removals"],
+    "packing-unpacking": ["residential-removals", "furniture-removals", "interstate-removals"],
+    backloading: ["interstate-removals", "packing-unpacking", "furniture-removals"],
+  };
+  const serviceLinks = (relatedServiceSlugs[page.slug] ?? [])
+    .map((slug) => services.find((service) => service.slug === slug))
+    .filter((service): service is ContentPage => Boolean(service))
     .map((service) => ({
       href: `/services/${service.slug}`,
       label: service.eyebrow,
       description: service.description,
     }));
+  const planningGuide = page.slug === "office-commercial-removals"
+    ? guides.find((guide) => guide.slug.includes("office"))
+    : page.slug === "packing-unpacking"
+      ? guides.find((guide) => guide.slug.includes("packing"))
+      : page.slug === "backloading"
+        ? guides.find((guide) => guide.slug === "preparing-interstate-move")
+        : guides.find((guide) => guide.slug === "adelaide-moving-checklist");
   return [
     ...serviceLinks,
-    { href: "/guides/adelaide-moving-checklist", label: "Adelaide moving checklist", description: "Prepare the practical details before moving day." },
+    ...(planningGuide ? [{ href: `/guides/${planningGuide.slug}`, label: planningGuide.title, description: planningGuide.description }] : []),
+    { href: "/areas", label: "Adelaide service areas", description: "Find pickup and destination planning information for your move." },
     { href: "/areas/adelaide-cbd", label: "Adelaide CBD moving access", description: "Prepare building access, loading and lift details." },
     { href: "/areas/north-adelaide", label: "North Adelaide move planning", description: "Review pickup and destination access before requesting a quote." },
     ...shared,
