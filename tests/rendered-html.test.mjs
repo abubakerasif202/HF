@@ -303,7 +303,11 @@ test("the production origin is declared once and drives canonical output", async
   assert.match(csp, /connect-src[^;]*https:\/\/www\.google-analytics\.com/i);
   assert.match(csp, /connect-src[^;]*https:\/\/analytics\.google\.com/i);
   assert.match(csp, /connect-src[^;]*https:\/\/stats\.g\.doubleclick\.net/i);
+  assert.match(csp, /script-src[^;]*https:\/\/analytics\.ahrefs\.com/i);
+  assert.match(csp, /connect-src[^;]*https:\/\/analytics\.ahrefs\.com/i);
   const html = await homeResponse.text();
+  assert.match(html, /https:\/\/analytics\.ahrefs\.com\/analytics\.js/);
+  assert.match(html, /0gE3gGK\/wklc0HGPuI\/URA/);
   assert.match(html, /rel="canonical" href="https:\/\/www\.hfremovalsadelaide\.com\.au"/);
   assert.match(html, /property="og:url" content="https:\/\/www\.hfremovalsadelaide\.com\.au"/);
   assert.match(html, /mailto:admin@hfremovalsadelaide\.com\.au/);

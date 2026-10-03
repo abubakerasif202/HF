@@ -22,11 +22,11 @@ const nextConfig: NextConfig = {
             key: "Content-Security-Policy",
             value: [
               "default-src 'self'",
-              "script-src 'self' 'unsafe-inline' https://js.stripe.com https://www.googletagmanager.com",
+              "script-src 'self' 'unsafe-inline' https://js.stripe.com https://www.googletagmanager.com https://analytics.ahrefs.com",
               "style-src 'self' 'unsafe-inline'",
               "img-src 'self' data: https://www.googletagmanager.com https://www.google-analytics.com https://www.google.com.au",
               "font-src 'self'",
-              "connect-src 'self' https://api.web3forms.com https://api.stripe.com https://www.googletagmanager.com https://www.google-analytics.com https://analytics.google.com https://www.google.com https://stats.g.doubleclick.net",
+              "connect-src 'self' https://api.web3forms.com https://api.stripe.com https://www.googletagmanager.com https://www.google-analytics.com https://analytics.google.com https://www.google.com https://stats.g.doubleclick.net https://analytics.ahrefs.com",
               "form-action 'self' https://api.web3forms.com",
               "frame-src 'self' https://www.google.com https://calendar.google.com https://checkout.stripe.com https://js.stripe.com",
               "object-src 'none'",

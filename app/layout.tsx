@@ -45,6 +45,7 @@ export const viewport: Viewport = { width: "device-width", initialScale: 1, them
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   const gaId = process.env.NEXT_PUBLIC_GA_ID ?? "G-C1L7YK52TM";
+  const ahrefsAnalyticsKey = process.env.NEXT_PUBLIC_AHREFS_ANALYTICS_KEY ?? "0gE3gGK/wklc0HGPuI/URA";
 
   return (
     <html lang="en-AU">
@@ -69,6 +70,9 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
             `}
           </Script>
         </>
+      ) : null}
+      {ahrefsAnalyticsKey ? (
+        <Script src="https://analytics.ahrefs.com/analytics.js" data-key={ahrefsAnalyticsKey} strategy="afterInteractive" />
       ) : null}
     </html>
   );
