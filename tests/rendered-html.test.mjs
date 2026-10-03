@@ -414,7 +414,9 @@ const relatedAnchor = (href, label) => new RegExp(`href="${href}"><strong>${labe
 
 test("inner pages link back to the homepage with varied removalist anchors", async () => {
   for (const [path, label] of [
-    ["/areas/unley-park", "Adelaide removalists"],
+    ["/areas/adelaide-cbd", "Adelaide removalists"],
+    ["/areas/adelaide-hills", "Removalists across Adelaide"],
+    ["/areas/unley-park", "Local Adelaide removalists"],
     ["/services/furniture-removals", "Removalists in Adelaide"],
     ["/guides/adelaide-moving-checklist", "Our Adelaide removalists"],
     ["/interstate/adelaide-perth", "Our Adelaide removalists"],

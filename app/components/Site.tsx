@@ -1076,6 +1076,9 @@ function Breadcrumbs({ page }: { page: ContentPage }) {
 
 type RelatedLink = { href: string; label: string; description: string };
 
+// Rotated across the 139 area pages so their homepage links do not share one anchor.
+const AREA_HOME_ANCHORS = ["Adelaide removalists", "Removalists across Adelaide", "Local Adelaide removalists"] as const;
+
 function relatedLinksFor(page: ContentPage): RelatedLink[] {
   const shared: RelatedLink[] = [
     { href: "/pricing", label: "Removalist pricing", description: "Compare the supplied Adelaide and interstate pricing units." },
@@ -1101,7 +1104,7 @@ function relatedLinksFor(page: ContentPage): RelatedLink[] {
         ? { href: "/services/office-commercial-removals", label: "Office & commercial removalists", description: "Plan workplace furniture, equipment, building access and placement." }
         : { href: "/services/furniture-removals", label: "Furniture removalists in Adelaide", description: "Plan large furniture, access, protection and destination placement." },
       ...nearby,
-      homeLink("Adelaide removalists"),
+      homeLink(AREA_HOME_ANCHORS[Math.max(0, hfServiceAreaRecords.findIndex((area) => area.slug === page.slug)) % AREA_HOME_ANCHORS.length]),
       ...shared,
     ];
   }
