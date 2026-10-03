@@ -409,6 +409,44 @@ test("sitemap contains only canonical indexable routes", async () => {
   assert.ok(locations.includes("https://www.hfremovalsadelaide.com.au/areas/medindie"));
 });
 
+const relatedLinksHtml = (html) => (html.match(/<section class="related-links"[\s\S]*?<\/section>/) || [""])[0];
+const relatedAnchor = (href, label) => new RegExp(`href="${href}"><strong>${label}</strong>`, "i");
+
+test("inner pages link back to the homepage with varied removalist anchors", async () => {
+  for (const [path, label] of [
+    ["/areas/unley-park", "Adelaide removalists"],
+    ["/services/furniture-removals", "Removalists in Adelaide"],
+    ["/guides/adelaide-moving-checklist", "Our Adelaide removalists"],
+    ["/interstate/adelaide-perth", "Our Adelaide removalists"],
+  ]) {
+    const related = relatedLinksHtml(await (await render(path)).text());
+    assert.match(related, relatedAnchor("/", label), `${path} should link home as "${label}"`);
+  }
+});
+
+test("service pages receive contextual keyword links from areas and guides", async () => {
+  const suburb = relatedLinksHtml(await (await render("/areas/unley-park")).text());
+  assert.match(suburb, relatedAnchor("/services/furniture-removals", "Furniture removalists in Adelaide"));
+  const cbd = relatedLinksHtml(await (await render("/areas/adelaide-cbd")).text());
+  assert.match(cbd, relatedAnchor("/services/office-commercial-removals", "Office &amp; commercial removalists"));
+  const interstateGuide = relatedLinksHtml(await (await render("/guides/preparing-interstate-move")).text());
+  assert.match(interstateGuide, relatedAnchor("/services/backloading", "Backloading from Adelaide"));
+});
+
+test("service hero introductions name the service and Adelaide", async () => {
+  for (const [slug, pattern] of [
+    ["furniture-removals", /Furniture removals in Adelaide/],
+    ["office-commercial-removals", /Office and commercial removals in Adelaide/],
+    ["interstate-removals", /interstate removals between Adelaide/],
+    ["backloading", /Backloading from Adelaide/],
+    ["packing-unpacking", /Packing and unpacking support in Adelaide/],
+  ]) {
+    const html = await (await render(`/services/${slug}`)).text();
+    const intro = (html.match(/<h1>[\s\S]*?<\/h1>\s*<p>([\s\S]*?)<\/p>/) || [, ""])[1];
+    assert.match(intro, pattern, `${slug} hero intro`);
+  }
+});
+
 test("area pages provide contextual crawl paths and the directory keeps a nested heading hierarchy", async () => {
   const detail = await (await render("/areas/medindie")).text();
   assert.match(detail, /<title>Removalists Medindie \| HF Removals Adelaide<\/title>/i);

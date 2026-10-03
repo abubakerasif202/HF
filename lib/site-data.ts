@@ -241,7 +241,7 @@ export const services: ContentPage[] = [
     title: "Move furniture with a clear access plan",
     description: "Furniture removalists in Adelaide for household furniture, bulky pieces and furniture-moving support planned around access, protection and placement.",
     intro:
-      "Furniture moves can be a complete household relocation or a smaller job involving selected large pieces. HF scopes the item list, entry paths, stairs or lifts and destination placement before confirming what the move requires.",
+      "Furniture removals in Adelaide can be a complete household relocation or a smaller job involving selected large pieces. HF scopes the item list, entry paths, stairs or lifts and destination placement before confirming what the move requires.",
     highlights: ["Large furniture inventory", "Entry and access checks", "Protective wrapping", "Destination placement"],
     sections: [
       { title: "A selected-item move starts with the item list", body: "A furniture move can focus on a lounge, bed, table or other selected pieces without treating the enquiry as a full house relocation. List all pieces together, including any accompanying cartons or appliances. A short item list still needs access assessment and is subject to the published local minimum service and call-out terms." },
@@ -266,7 +266,7 @@ export const services: ContentPage[] = [
     title: "Coordinate the move around your workplace",
     description: "Office removalists and commercial movers in Adelaide for workplace relocation, office furniture, workstations, equipment, loading access and destination placement.",
     intro:
-      "Office and commercial removals benefit from a clear inventory, named site contacts and an agreed placement plan. HF works from the workplace details you provide, from loading access and lifts to workstation, office furniture and equipment destinations.",
+      "Office and commercial removals in Adelaide benefit from a clear inventory, named site contacts and an agreed placement plan. HF works from the workplace details you provide, from loading access and lifts to workstation, office furniture and equipment destinations.",
     highlights: ["Office furniture", "Workstations and equipment", "Access coordination", "Destination labelling"],
     sections: [
       { title: "Define the physical workplace relocation", body: "This enquiry is for moving workplace furniture, cartons and equipment between sites. Identify desks or other furniture needing disassembly and reassembly, and specify any packing help separately. Assign equipment preparation, data backups and reconnection to the responsible workplace contacts so those tasks are accounted for in your own relocation plan." },
@@ -291,7 +291,7 @@ export const services: ContentPage[] = [
     title: "Plan your Adelaide interstate relocation",
     description: "Interstate removalists in Adelaide for Adelaide interstate removals, with per-cubic-metre reference pricing, route planning, inventory and access preparation.",
     intro:
-      "HF provides interstate moving support between Adelaide and the listed destinations. A useful quote starts with an accurate inventory, cubic-volume estimate, access details at both ends and a clear route.",
+      "HF provides interstate removals between Adelaide and the listed destinations. A useful quote starts with an accurate inventory, cubic-volume estimate, access details at both ends and a clear route.",
     highlights: ["Adelaide interstate routes", "Per-m³ reference pricing", "Inventory and volume planning", "Packing and protection"],
     sections: [
       { title: "Plan the complete interstate relocation", body: "Start with the pickup suburb, destination city, suburb and postcode, preferred dates and property types at both ends. This service suits a household or furniture move crossing state boundaries; the destination route and cubic volume need assessment rather than relying on the local hourly rate." },
@@ -317,7 +317,7 @@ export const services: ContentPage[] = [
     title: "Flexible interstate capacity, properly scoped",
     description: "Backloading removals from Adelaide: discuss your destination, inventory, date flexibility and access with HF to assess suitability and request a quote.",
     intro:
-      "Backloading is an option to ask about when your interstate belongings may fit available transport capacity and you have room to adjust pickup or delivery dates. HF needs your item list, complete route and acceptable date windows to assess whether the available space and timing suit your move.",
+      "Backloading from Adelaide is an option to ask about when your interstate belongings may fit available transport capacity and you have room to adjust pickup or delivery dates. HF needs your item list, complete route and acceptable date windows to assess whether the available space and timing suit your move.",
     highlights: ["Available capacity assessment", "Pickup and delivery flexibility", "Itemised volume estimate", "Confirmed transport scope"],
     sections: [
       { title: "Decide whether flexible capacity suits you", body: "Backloading may be worth assessing for a household inventory or selected furniture when the route, space and timing align. Tell HF if keys, settlement, a lease end or building access creates a fixed deadline. Those constraints need to be considered before you rely on backloading for the move." },
@@ -342,7 +342,7 @@ export const services: ContentPage[] = [
     title: "Prepare, protect and place with more support",
     description: "Packing and unpacking services in Adelaide for full or partial moving preparation. Discuss rooms, fragile items, furniture protection and quote requirements with HF.",
     intro:
-      "Packing support can be included when you want help preparing belongings for loading or organising placement after arrival. The scope is tailored to the inventory and materials required.",
+      "Packing and unpacking support in Adelaide can be included when you want help preparing belongings for loading or organising placement after arrival. The scope is tailored to the inventory and materials required.",
     highlights: [...business.packingMaterials],
     sections: [
       { title: "Match the service to the preparation you need", body: "Full packing may suit a move where you want help across the home; partial packing can focus on selected rooms or belongings while you prepare the rest. Unpacking is a separate part of the scope to discuss for the destination. State clearly whether your enquiry covers packing, unpacking or both, alongside any furniture-moving requirements." },

@@ -1081,6 +1081,9 @@ function relatedLinksFor(page: ContentPage): RelatedLink[] {
     { href: "/pricing", label: "Removalist pricing", description: "Compare the supplied Adelaide and interstate pricing units." },
     { href: "/#quote", label: "Get a quote", description: "Send both addresses, inventory, access notes and your preferred date." },
   ];
+  // Descriptive links back to the homepage, which owns the "Adelaide removalists" intent.
+  // Anchors vary by page type so the sitewide pattern does not repeat one exact phrase.
+  const homeLink = (label: string): RelatedLink => ({ href: "/", label, description: "See HF's moving services, published rates and quote form on the main page." });
 
   if (page.kind === "area") {
     const record = hfServiceAreaRecords.find((area) => area.slug === page.slug);
@@ -1094,7 +1097,11 @@ function relatedLinksFor(page: ContentPage): RelatedLink[] {
       { href: "/areas", label: "Adelaide service areas", description: "Return to the directory to plan pickup and destination locations." },
       { href: "/services/residential-removals", label: "House removals", description: "Plan inventory, access, protection and destination placement." },
       { href: "/services/packing-unpacking", label: "Packing support", description: "Prepare cartons, furniture and high-care items before moving day." },
+      record?.region === "Central Adelaide"
+        ? { href: "/services/office-commercial-removals", label: "Office & commercial removalists", description: "Plan workplace furniture, equipment, building access and placement." }
+        : { href: "/services/furniture-removals", label: "Furniture removalists in Adelaide", description: "Plan large furniture, access, protection and destination placement." },
       ...nearby,
+      homeLink("Adelaide removalists"),
       ...shared,
     ];
   }
@@ -1105,6 +1112,7 @@ function relatedLinksFor(page: ContentPage): RelatedLink[] {
       { href: "/services/furniture-removals", label: "Furniture removalists", description: "Plan large furniture, access, protection and destination placement." },
       { href: "/services/packing-unpacking", label: "Packing support", description: "Prepare cartons, furniture and high-care items before moving day." },
       { href: "/areas", label: "Adelaide service areas", description: "Find local planning pages for the suburb and property access involved in your move." },
+      homeLink("Removalists in Adelaide"),
       ...shared,
     ];
   }
@@ -1116,6 +1124,7 @@ function relatedLinksFor(page: ContentPage): RelatedLink[] {
       { href: "/interstate/adelaide-queensland", label: "Adelaide to Queensland removals", description: "Add the destination city, suburb and postcode to the enquiry." },
       { href: "/interstate/adelaide-perth", label: "Adelaide to Perth removals", description: "Plan bulky items, protection and longer-distance access." },
       { href: "/guides/preparing-interstate-move", label: "Prepare for an interstate move", description: "Use the inventory, route and packing checklist before requesting a quote." },
+      homeLink("Removalists in Adelaide"),
       ...shared,
     ];
   }
@@ -1124,6 +1133,7 @@ function relatedLinksFor(page: ContentPage): RelatedLink[] {
     return [
       { href: "/services/interstate-removals", label: "Interstate removals", description: "Understand the inventory and access details needed for an interstate enquiry." },
       { href: "/guides/preparing-interstate-move", label: "Interstate moving guide", description: "Prepare the route, volume and packing information before requesting a quote." },
+      homeLink("Our Adelaide removalists"),
       ...shared,
     ];
   }
@@ -1135,6 +1145,8 @@ function relatedLinksFor(page: ContentPage): RelatedLink[] {
       { href: target, label: targetLabel, description: "Review the service and quote information for this planning topic." },
       { href: "/services", label: "Adelaide moving services", description: "Choose residential, office, interstate, backloading or packing support." },
       { href: "/areas", label: "Service areas", description: "Find moving-planning pages across Adelaide and selected regional corridors." },
+      ...(target === "/services/interstate-removals" ? [{ href: "/services/backloading", label: "Backloading from Adelaide", description: "Ask whether available capacity suits your route, inventory and date flexibility." }] : []),
+      homeLink("Our Adelaide removalists"),
       ...shared.filter((link) => link.href !== target),
     ];
   }
@@ -1167,6 +1179,7 @@ function relatedLinksFor(page: ContentPage): RelatedLink[] {
     { href: "/areas", label: "Adelaide service areas", description: "Find pickup and destination planning information for your move." },
     { href: "/areas/adelaide-cbd", label: "Adelaide CBD moving access", description: "Prepare building access, loading and lift details." },
     { href: "/areas/north-adelaide", label: "North Adelaide move planning", description: "Review pickup and destination access before requesting a quote." },
+    homeLink("Removalists in Adelaide"),
     ...shared,
   ];
 }
