@@ -71,6 +71,8 @@ test("renders the premium HF homepage without placeholder claims", async () => {
   assert.match(html, /\$79/);
   assert.match(html, /\$119\.43/);
   assert.match(html, /5\.0 Google rating/i);
+  assert.match(html, /HF&#x27;s removalists in Adelaide handle home, apartment, office and interstate moves/);
+  assert.match(html, /<h1>Adelaide <em>Removalists<\/em><br\/>You Can Rely On<\/h1>/);
   assert.match(html, /451(?:<!-- -->)? reviews/i);
   assert.match(html, /7:00 am–8:00 pm daily/i);
   assert.doesNotMatch(html, /24\/7|24h Enquiries/i);
@@ -431,6 +433,12 @@ test("service pages receive contextual keyword links from areas and guides", asy
   assert.match(suburb, relatedAnchor("/services/furniture-removals", "Furniture removalists in Adelaide"));
   const cbd = relatedLinksHtml(await (await render("/areas/adelaide-cbd")).text());
   assert.match(cbd, relatedAnchor("/services/office-commercial-removals", "Office &amp; commercial removalists"));
+  // Residential central suburbs keep the furniture link rather than an office link.
+  for (const path of ["/areas/medindie", "/areas/prospect", "/areas/north-adelaide"]) {
+    const related = relatedLinksHtml(await (await render(path)).text());
+    assert.doesNotMatch(related, /href="\/services\/office-commercial-removals"/, `${path} should not get an office link`);
+    assert.match(related, relatedAnchor("/services/furniture-removals", "Furniture removalists in Adelaide"));
+  }
   const interstateGuide = relatedLinksHtml(await (await render("/guides/preparing-interstate-move")).text());
   assert.match(interstateGuide, relatedAnchor("/services/backloading", "Backloading from Adelaide"));
 });

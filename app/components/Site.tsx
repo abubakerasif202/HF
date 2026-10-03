@@ -845,7 +845,7 @@ export function HomePage() {
               You Can Rely On
             </h1>
             <p className="hero-lead">
-              HF is an Adelaide moving company for home, apartment, office and interstate moves, with published reference rates. Coverage includes {business.insurance}, subject to applicable policy terms.
+              HF&apos;s removalists in Adelaide handle home, apartment, office and interstate moves, with published reference rates. Coverage includes {business.insurance}, subject to applicable policy terms.
             </p>
             <p className="hero-book-line">Book your move online in minutes — choose your date, confirm your booking, and we take it from there.</p>
             <div className="hero-actions">
@@ -1077,6 +1077,9 @@ function Breadcrumbs({ page }: { page: ContentPage }) {
 type RelatedLink = { href: string; label: string; description: string };
 
 // Rotated across the 139 area pages so their homepage links do not share one anchor.
+// Areas whose existing copy describes office, workplace or commercial moves. Residential
+// suburbs (even central ones such as Medindie or Prospect) get the furniture link instead.
+const COMMERCIAL_AREA_SLUGS = new Set(["adelaide-cbd", "salisbury", "mawson-lakes", "western-adelaide"]);
 const AREA_HOME_ANCHORS = ["Adelaide removalists", "Removalists across Adelaide", "Local Adelaide removalists"] as const;
 
 function relatedLinksFor(page: ContentPage): RelatedLink[] {
@@ -1100,7 +1103,7 @@ function relatedLinksFor(page: ContentPage): RelatedLink[] {
       { href: "/areas", label: "Adelaide service areas", description: "Return to the directory to plan pickup and destination locations." },
       { href: "/services/residential-removals", label: "House removals", description: "Plan inventory, access, protection and destination placement." },
       { href: "/services/packing-unpacking", label: "Packing support", description: "Prepare cartons, furniture and high-care items before moving day." },
-      record?.region === "Central Adelaide"
+      COMMERCIAL_AREA_SLUGS.has(page.slug)
         ? { href: "/services/office-commercial-removals", label: "Office & commercial removalists", description: "Plan workplace furniture, equipment, building access and placement." }
         : { href: "/services/furniture-removals", label: "Furniture removalists in Adelaide", description: "Plan large furniture, access, protection and destination placement." },
       ...nearby,
