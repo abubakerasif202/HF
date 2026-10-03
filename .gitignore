@@ -46,3 +46,7 @@ next-env.d.ts
 /.node_modules-partial-*/
 /.dev-server.*.log
 tsconfig.tsbuildinfo
+
+# local credential files (Google OAuth) — never commit
+/g.env
+/599726746096-*.txt
