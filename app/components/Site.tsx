@@ -2,6 +2,7 @@ import Image from "next/image";
 import { areas, business, ContentPage, entryLocalRate, googleReviews, guides, interstatePricing, interstateRoutes, localPricing, services, standardMoveFaqs } from "../../lib/site-data";
 import { hfServiceAreaRecords } from "../../lib/hf-service-areas";
 import { ABDeveloperCredit } from "./ABDeveloperCredit";
+import { contentTrail, homeCrumb, sectionCrumbs, staticCrumbLabels, type Crumb } from "../../lib/breadcrumbs";
 import { BookNowButton, Header, MobileStickyCta, MotionExperience, QuoteForm, SideQuoteTab, UtilityBar } from "./SiteClient";
 
 function CheckIcon({ size = 12, style }: { size?: number; style?: React.CSSProperties }) {
@@ -373,7 +374,7 @@ function PricingSection() {
                 </li>
               </ul>
               <div className="package-cta-row">
-                <BookNowButton location="pricing" packageId={item.name.startsWith("3") ? "3-men" : "2-men"}>
+                <BookNowButton location="pricing" packageId={item.id}>
                   Book Now <span>→</span>
                 </BookNowButton>
                 <a className="package-quote-link" href="/#quote">Not ready? Get a Quote instead</a>
@@ -466,7 +467,7 @@ function ReviewsSection() {
             </div>
             <strong>{google.rating.toFixed(1)} / 5.0</strong>
             <p>Based on {google.reviewCount} customer reviews</p>
-            <a href="https://maps.google.com/?cid=10700874558509895358" target="_blank" rel="noopener noreferrer" className="google-review-link">
+            <a href={google.listingUrl} target="_blank" rel="noopener noreferrer" className="google-review-link">
               Read all reviews on Google <span>→</span>
             </a>
           </div>
@@ -930,7 +931,9 @@ function PageHero({
   unit,
   media,
   quotePrimary = false,
+  breadcrumbs,
 }: {
+  breadcrumbs?: Crumb[];
   eyebrow: string;
   title: string;
   description: string;
@@ -948,6 +951,7 @@ function PageHero({
       <div className="inner-orbit" aria-hidden="true" />
       <div className="container inner-hero-grid">
         <div>
+          {breadcrumbs ? <Breadcrumbs items={breadcrumbs} /> : null}
           <p className="eyebrow">{eyebrow}</p>
           <h1>{title}</h1>
           <p>{description}</p>
@@ -1057,19 +1061,19 @@ function mediaForPage(page: ContentPage) {
   );
 }
 
-function Breadcrumbs({ page }: { page: ContentPage }) {
-  const area = page.kind === "area" ? hfServiceAreaRecords.find((item) => item.slug === page.slug) : undefined;
-  const areaRegion = area?.region;
-  const regionPage = areaRegion ? hfServiceAreaRecords.find((item) => item.name === areaRegion) : undefined;
-  const group = page.kind === "route" ? "interstate" : `${page.kind}s`;
+export function Breadcrumbs({ items }: { items: Crumb[] }) {
   return (
     <nav className="breadcrumbs" aria-label="Breadcrumb">
-      <a href="/">Home</a>
-      <span>/</span>
-      <a href={`/${group}`}>{group}</a>
-      {areaRegion && regionPage && regionPage.slug !== area?.slug && <><span>/</span><a href={`/areas/${regionPage.slug}`}>{areaRegion}</a></>}
-      <span>/</span>
-      <span aria-current="page">{page.eyebrow}</span>
+      <ol>
+        {items.map((item, index) => {
+          const current = index === items.length - 1;
+          return (
+            <li key={`${item.label}-${index}`}>
+              {current || !item.href ? <span aria-current={current ? "page" : undefined}>{item.label}</span> : <a href={item.href}>{item.label}</a>}
+            </li>
+          );
+        })}
+      </ol>
     </nav>
   );
 }
@@ -1233,11 +1237,10 @@ export function DetailPage({ page }: { page: ContentPage }) {
   const isBookable = page.kind === "area" || (page.kind === "service" && BOOKABLE_SERVICE_SLUGS.has(page.slug));
   return (
     <SiteFrame>
-      <PageHero eyebrow={page.eyebrow} title={heading} description={page.intro} price={page.price} unit={page.unit} media={mediaForPage(page)} quotePrimary={!isBookable} />
+      <PageHero breadcrumbs={contentTrail(page)} eyebrow={page.eyebrow} title={heading} description={page.intro} price={page.price} unit={page.unit} media={mediaForPage(page)} quotePrimary={!isBookable} />
       <ServiceTicker />
       <section className="section detail-section">
         <div className="container">
-          <Breadcrumbs page={page} />
           <div className="detail-grid">
             <article>
               <p className="eyebrow">What to plan</p>
@@ -1330,7 +1333,7 @@ export function ListingPage({ kind }: { kind: "services" | "areas" | "interstate
   }[kind];
   return (
     <SiteFrame>
-      <PageHero eyebrow={map.eyebrow} title={map.title} description={map.description} quotePrimary={kind === "interstate"} />
+      <PageHero breadcrumbs={[homeCrumb, { label: sectionCrumbs[kind].label }]} eyebrow={map.eyebrow} title={map.title} description={map.description} quotePrimary={kind === "interstate"} />
       <section className="section listing-section">
         <div className="container listing-grid">
             {map.items.map((item, index) => (
@@ -1353,11 +1356,10 @@ export function StaticPage({ type }: { type: "about" | "contact" | "pricing" | "
   if (type === "pricing")
     return (
       <SiteFrame>
-        <PageHero eyebrow="Clear billing units" title="Adelaide Removalist Prices & Hourly Rates" description="Compare the published rates for 2 or 3 movers and a truck, understand minimum service and call-out fees, and request a quote for your inventory and access." />
+        <PageHero breadcrumbs={[homeCrumb, { label: staticCrumbLabels.pricing }]} eyebrow="Clear billing units" title="Adelaide Removalist Prices & Hourly Rates" description="Compare the published rates for 2 or 3 movers and a truck, understand minimum service and call-out fees, and request a quote for your inventory and access." />
         <PricingSection />
         <section className="section detail-section">
           <div className="container">
-            <nav className="breadcrumbs" aria-label="Breadcrumb"><a href="/">Home</a><span>/</span><span aria-current="page">Removalist pricing</span></nav>
             <div className="editorial-sections">
               <article><h2>How your local removalist cost is calculated</h2><p>Choose the crew package that suits your move. A 3-hour minimum service and a separate 1-hour call-out fee apply at the selected package rate. The call-out covers truck fuel and basic transport charges; it is not an extra hour of moving labour. Additional service time is billed in 30-minute increments. The final price is calculated after the move is completed.</p></article>
               <article><h2>What affects the time needed for your move?</h2><p>Prepare a room-by-room inventory, including garage and outdoor items. Tell HF about stairs, lift bookings, parking, the distance between the truck and each door, and furniture that needs special access planning. Loading, travel between addresses and unloading all need to be considered when discussing your move scope.</p></article>
@@ -1375,7 +1377,7 @@ export function StaticPage({ type }: { type: "about" | "contact" | "pricing" | "
   if (type === "about")
     return (
       <SiteFrame>
-        <PageHero eyebrow="About HF Removals Adelaide" title="Clear communication, careful handling, practical support" description="HF plans local and interstate moves around the details supplied by each customer." />
+        <PageHero breadcrumbs={[homeCrumb, { label: staticCrumbLabels.about }]} eyebrow="About HF Removals Adelaide" title="Clear communication, careful handling, practical support" description="HF plans local and interstate moves around the details supplied by each customer." />
         <LeadershipSection />
         <ReviewsSection />
         <ProcessSection />
@@ -1386,7 +1388,7 @@ export function StaticPage({ type }: { type: "about" | "contact" | "pricing" | "
   if (type === "contact")
     return (
       <SiteFrame>
-        <PageHero eyebrow="Contact HF" title="Let’s start with the details of your move" description="Call, email or send the quote form with both addresses, date, property size and move type." />
+        <PageHero breadcrumbs={[homeCrumb, { label: staticCrumbLabels.contact }]} eyebrow="Contact HF" title="Let’s start with the details of your move" description="Call, email or send the quote form with both addresses, date, property size and move type." />
         <section className="section contact-section">
           <div className="container contact-grid">
             <div>
@@ -1421,7 +1423,7 @@ export function StaticPage({ type }: { type: "about" | "contact" | "pricing" | "
   if (type === "adelaide")
     return (
       <SiteFrame>
-        <PageHero eyebrow="Adelaide moving guide" title="Adelaide moving services, pricing and planning" description="Compare HF's Adelaide moving services, supplied reference rates, packing support and practical move-planning resources before requesting a tailored quote." />
+        <PageHero breadcrumbs={[homeCrumb, { label: staticCrumbLabels.adelaide }]} eyebrow="Adelaide moving guide" title="Adelaide moving services, pricing and planning" description="Compare HF's Adelaide moving services, supplied reference rates, packing support and practical move-planning resources before requesting a tailored quote." />
         <ServicesGrid />
         <ApartmentAccessSection />
         <PricingSection />
@@ -1434,6 +1436,7 @@ export function StaticPage({ type }: { type: "about" | "contact" | "pricing" | "
   return (
     <SiteFrame>
       <PageHero
+        breadcrumbs={[homeCrumb, { label: privacy ? staticCrumbLabels.privacy : staticCrumbLabels.terms }]}
         eyebrow={privacy ? "Privacy" : "Website terms"}
         title={privacy ? "How enquiry information is handled" : "Using the HF Removals Adelaide website"}
         description={privacy ? "A concise explanation of the information used to respond to move enquiries." : "General website information and important limits around published pricing and coverage wording."}

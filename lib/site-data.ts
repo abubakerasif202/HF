@@ -73,6 +73,8 @@ export const business = {
       closes: "23:59",
     },
     hoursVerifiedAt: "2026-10-04",
+    // Public Google Business Profile listing (reviews link in the utility bar and reviews section).
+    listingUrl: "https://maps.google.com/?cid=10700874558509895358",
     category: "Moving and storage service",
     plusCode: "6MW7+J5 Elizabeth Vale, South Australia",
     coordinates: { latitude: -34.7578, longitude: 138.6834 },
@@ -142,10 +144,46 @@ export const googleReviews = [
   },
 ] as const;
 
-export const localPricing = [
-  { name: "2 Movers + Truck", halfHour: "$79", hourly: "$158", note: "per 30 minutes" },
-  { name: "3 Movers + Truck", halfHour: "$99", hourly: "$198", note: "per 30 minutes" },
+/**
+ * Published local moving packages — the ONE place the local rates are stored.
+ * The public pricing UI, quote form, booking wizard, meta copy, FAQ answers and
+ * the server-side package names all derive from this table. The booking API's
+ * authoritative charge still comes from the pricing_rules table, seeded with the
+ * same cents (supabase/migrations/0001_booking_system.sql); a test keeps the two
+ * in step.
+ */
+export const billingIncrementMinutes = 30;
+export const minimumServiceMinutes = 180;
+export const calloutMinutes = 60;
+
+export const movingPackages = [
+  { id: "2-men", crewSize: 2, name: "2 Movers + Truck", bookingName: "2 Men + Truck", ratePer30MinCents: 7900 },
+  { id: "3-men", crewSize: 3, name: "3 Movers + Truck", bookingName: "3 Men + Truck", ratePer30MinCents: 9900 },
 ] as const;
+
+export type MovingPackage = (typeof movingPackages)[number];
+export type MovingPackageId = MovingPackage["id"];
+
+/** Formats integer cents as AUD for display, dropping ".00" for whole dollars. */
+export function formatAud(cents: number): string {
+  return cents % 100 === 0 ? `$${cents / 100}` : `$${(cents / 100).toFixed(2)}`;
+}
+
+export function findMovingPackage(by: { id?: string; crewSize?: number }): MovingPackage | undefined {
+  return movingPackages.find((item) => (by.id !== undefined ? item.id === by.id : item.crewSize === by.crewSize));
+}
+
+/** Display rows for the public pricing UI, derived from movingPackages. */
+export const localPricing = movingPackages.map((item) => ({
+  id: item.id,
+  crewSize: item.crewSize,
+  name: item.name,
+  bookingName: item.bookingName,
+  halfHour: formatAud(item.ratePer30MinCents),
+  hourly: formatAud(item.ratePer30MinCents * (60 / billingIncrementMinutes)),
+  callout: formatAud(item.ratePer30MinCents * (calloutMinutes / billingIncrementMinutes)),
+  note: "per 30 minutes",
+}));
 
 /**
  * Cheapest published local rate. Headlines, meta copy, the trust strip and the quote
@@ -165,7 +203,7 @@ export const standardMoveFaqs: Faq[] = [
   {
     question: "How much do removalists cost in Adelaide?",
     answer:
-      "Our local rates start from $79 per 30 minutes ($158/hr) for 2 movers and a truck, or $99 per 30 minutes ($198/hr) for 3 movers and a truck. A 3-hour minimum service and a separate 1-hour call-out fee apply — the call-out covers truck fuel and basic transport charges, not extra labour time. Additional service time beyond the 3-hour minimum is billed in 30-minute increments, and your final price is calculated when the job is completed.",
+      `Our local rates start from ${localPricing[0].halfHour} per 30 minutes (${localPricing[0].hourly}/hr) for 2 movers and a truck, or ${localPricing[1].halfHour} per 30 minutes (${localPricing[1].hourly}/hr) for 3 movers and a truck. A 3-hour minimum service and a separate 1-hour call-out fee apply — the call-out covers truck fuel and basic transport charges, not extra labour time. Additional service time beyond the 3-hour minimum is billed in 30-minute increments, and your final price is calculated when the job is completed.`,
   },
   {
     question: "Do I need to pay anything upfront to book online?",
@@ -231,7 +269,7 @@ export const services: ContentPage[] = [
       { question: "What should I include in a house moving quote?", answer: "Share both addresses, your preferred date, property type and a room-by-room inventory. Include garage and outdoor contents, stairs, lifts, parking and furniture that may need dismantling." },
       { question: "Can you help with apartment and townhouse moves?", answer: "Yes. Include any lift booking, loading-zone restrictions, stairs and narrow entries at both buildings so the move can be planned around the access available." },
       { question: "Can I request packing help for my home move?", answer: "Full or partial packing and unpacking support is available. Tell HF which rooms or items need help, and keep documents, medication, keys and first-night essentials with you." },
-      { question: "How is a local house move charged?", answer: "Published local rates are $79 per 30 minutes for 2 movers and a truck, or $99 per 30 minutes for 3 movers and a truck. A 3-hour minimum service and a separate 1-hour call-out fee apply. The call-out covers truck fuel and basic transport charges, not extra labour. Additional service time is billed in 30-minute increments, with the final amount calculated when the job is complete." },
+      { question: "How is a local house move charged?", answer: `Published local rates are ${localPricing[0].halfHour} per 30 minutes for 2 movers and a truck, or ${localPricing[1].halfHour} per 30 minutes for 3 movers and a truck. A 3-hour minimum service and a separate 1-hour call-out fee apply. The call-out covers truck fuel and basic transport charges, not extra labour. Additional service time is billed in 30-minute increments, with the final amount calculated when the job is complete.` },
       { question: "What furniture protection is provided for a home move?", answer: "Moving blankets, heavy-duty tie-down straps and trolleys are standard on every truck, with complimentary mattress protection and side-table protective wrapping. Identify fragile belongings and ask about any additional packing work or materials needed for your inventory." },
     ],
   },

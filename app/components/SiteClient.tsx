@@ -2,7 +2,7 @@
 
 import { FormEvent, useEffect, useRef, useState } from "react";
 import { usePathname } from "next/navigation";
-import { areas, business, entryLocalRate, interstatePricing, interstateRoutes, localPricing, quoteFormEndpoint, services, web3FormsAccessKey } from "../../lib/site-data";
+import { areas, business, entryLocalRate, findMovingPackage, interstatePricing, interstateRoutes, localPricing, quoteFormEndpoint, services, web3FormsAccessKey, type MovingPackageId } from "../../lib/site-data";
 
 
 declare global {
@@ -17,14 +17,14 @@ declare global {
  * customer PII. Safe to call even when GA hasn't loaded (e.g. analytics
  * blocked): `window.gtag` is checked before use.
  */
-export function trackBookNowClick(location: string, packageId?: "2-men" | "3-men"): void {
+export function trackBookNowClick(location: string, packageId?: MovingPackageId): void {
   if (typeof window === "undefined" || typeof window.gtag !== "function") return;
   window.gtag("event", "book_now_click", { location, ...(packageId ? { package: packageId } : {}) });
 }
 
 interface BookNowButtonProps {
   location: string;
-  packageId?: "2-men" | "3-men";
+  packageId?: MovingPackageId;
   className?: string;
   children: React.ReactNode;
   onNavigate?: () => void;
@@ -39,7 +39,8 @@ interface BookNowButtonProps {
  * UX nicety only, not a second booking architecture.
  */
 export function BookNowButton({ location, packageId, className = "", children, onNavigate }: BookNowButtonProps) {
-  const href = packageId ? `/book?crewSize=${packageId === "3-men" ? 3 : 2}` : "/book";
+  const selectedPackage = packageId ? findMovingPackage({ id: packageId }) : undefined;
+  const href = selectedPackage ? `/book?crewSize=${selectedPackage.crewSize}` : "/book";
   return (
     <a
       className={`button button-ruby button-book-now ${className}`.trim()}
@@ -72,7 +73,7 @@ export function UtilityBar() {
           <span>Adelaide Removalists · {business.googleBusiness.hoursLabel} · {business.insurance}</span>
         </div>
         <div className="utility-contact">
-          <a href="https://maps.google.com/?cid=10700874558509895358" target="_blank" rel="noopener noreferrer" className="utility-rating">
+          <a href={business.googleBusiness.listingUrl} target="_blank" rel="noopener noreferrer" className="utility-rating">
             <span className="utility-stars" aria-hidden="true">
               {[...Array(5)].map((_, i) => (
                 <svg key={i} width="11" height="11" viewBox="0 0 24 24" fill="currentColor" style={{ display: "inline-block", marginRight: "1px" }}>
@@ -436,7 +437,7 @@ const ADDITIONAL_SERVICES = [
 
 const createEmptyForm = (): FormDataShape => ({
   name: "", phone: "", email: "", date: "", from: "", to: "",
-  moveType: "Residential (House / Unit)", movingPackage: "2 Men + Truck", propertySize: "2 Bedrooms", details: "", company: "", tab: "local",
+  moveType: "Residential (House / Unit)", movingPackage: entryLocalRate.bookingName, propertySize: "2 Bedrooms", details: "", company: "", tab: "local",
   floorAccess: "Ground Floor / Driveway Access", parkingAccess: "On-Street Parking (Nearby)", boxesNeeded: "Not Sure Yet", services: []
 });
 
@@ -609,8 +610,8 @@ export function QuoteForm({ compact = false }: { compact?: boolean }) {
       <fieldset className="package-selection">
         <legend className="field-label">Select Your Moving Package <b aria-hidden="true">*</b></legend>
         <div className="package-options">
-          {localPricing.map((pricing, index) => {
-            const packageName = `${index + 2} Men + Truck`;
+          {localPricing.map((pricing) => {
+            const packageName = pricing.bookingName;
             return (
               <label className="package-option" key={pricing.name}>
                 <input
@@ -792,9 +793,9 @@ export function QuoteForm({ compact = false }: { compact?: boolean }) {
 export function MobileStickyCta() {
   return (
     <aside className="mobile-sticky" aria-label="Quick mobile call and booking action">
-      <a href={business.phones[0].href} className="mobile-sticky-call">
+      <a href={business.phones[0].href} className="mobile-sticky-call" aria-label={`Call ${business.phones[0].display}`}>
         <svg aria-hidden="true" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z" /></svg>
-        <span>Call {business.phones[0].display}</span>
+        <span>{business.phones[0].display}</span>
       </a>
       <BookNowButton location="sticky_mobile" className="mobile-sticky-quote">
         <span>Book Now</span>

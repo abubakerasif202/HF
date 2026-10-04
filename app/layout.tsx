@@ -1,7 +1,13 @@
 import type { Metadata, Viewport } from "next";
 import Script from "next/script";
+import { Inter } from "next/font/google";
 import "./globals.css";
 import { business } from "../lib/site-data";
+
+// Inter is self-hosted at build time (no runtime request to Google; CSP font-src 'self'
+// still holds). One variable latin file covers every weight the UI uses (400–900);
+// next/font adds a metric-matched fallback so the swap does not shift layout.
+const inter = Inter({ subsets: ["latin"], display: "swap", variable: "--font-inter" });
 
 export const metadata: Metadata = {
   metadataBase: new URL(business.domain),
@@ -48,7 +54,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
   const ahrefsAnalyticsKey = process.env.NEXT_PUBLIC_AHREFS_ANALYTICS_KEY ?? "0gE3gGK/wklc0HGPuI/URA";
 
   return (
-    <html lang="en-AU">
+    <html lang="en-AU" className={inter.variable}>
       <head>
         <link rel="preconnect" href="https://maps.googleapis.com" />
         <link rel="preconnect" href="https://maps.gstatic.com" crossOrigin="anonymous" />

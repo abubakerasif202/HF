@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { trackBookingEvent } from "../../lib/booking-analytics";
+import { findMovingPackage, localPricing, minimumServiceMinutes } from "../../lib/site-data";
 
 type Step = "details" | "locations" | "schedule" | "customer" | "review";
 
@@ -43,12 +44,15 @@ export function BookingWizard() {
   const [submitting, setSubmitting] = useState(false);
 
   const searchParams = useSearchParams();
-  const preselectedCrewSize = searchParams.get("crewSize") === "3" ? 3 : searchParams.get("crewSize") === "2" ? 2 : null;
+  // crewSize is the stable package key shared with the booking API and the
+  // pricing_rules table; only sizes that exist in the canonical package table count.
+  const preselectedCrewSize = findMovingPackage({ crewSize: Number(searchParams.get("crewSize")) })?.crewSize ?? null;
   const [serviceSlug, setServiceSlug] = useState(SERVICES[0].slug);
   // Optional preselection from a "Book Now" link on a specific package
   // card (e.g. /book?crewSize=3) — a UX nicety only; the customer can
   // still change it on this step, and no separate booking path exists.
-  const [crewSize, setCrewSize] = useState(preselectedCrewSize ?? 2);
+  const [crewSize, setCrewSize] = useState<number>(preselectedCrewSize ?? localPricing[0].crewSize);
+  const selectedPackage = localPricing.find((item) => item.crewSize === crewSize) ?? localPricing[0];
   const [propertySize, setPropertySize] = useState("");
   const [customerNotes, setCustomerNotes] = useState("");
 
@@ -232,14 +236,15 @@ export function BookingWizard() {
           <label className="block">
             <span className="text-sm font-medium">Package</span>
             <select className="mt-1 w-full rounded-lg border px-3 py-2" value={crewSize} onChange={(e) => setCrewSize(Number(e.target.value))}>
-              <option value={2}>2 Men + Truck — $79 / 30 min ($158/hr)</option>
-              <option value={3}>3 Men + Truck — $99 / 30 min ($198/hr)</option>
+              {localPricing.map((item) => (
+                <option key={item.id} value={item.crewSize}>{item.bookingName} — {item.halfHour} / 30 min ({item.hourly}/hr)</option>
+              ))}
             </select>
           </label>
           <div className="rounded-lg bg-neutral-50 px-4 py-3 text-sm text-neutral-600">
-            <p><strong>Minimum service:</strong> 3 hours</p>
+            <p><strong>Minimum service:</strong> {minimumServiceMinutes / 60} hours</p>
             <p className="mt-1">
-              <strong>Call-out:</strong> 1 hour — ${(crewSize === 3 ? 99 : 79) * 2}
+              <strong>Call-out:</strong> 1 hour — {selectedPackage.callout}
               <br />Includes truck fuel and basic transport charges
             </p>
           </div>
@@ -251,7 +256,7 @@ export function BookingWizard() {
             <span className="text-sm font-medium">Anything else we should know?</span>
             <textarea className="mt-1 w-full rounded-lg border px-3 py-2" rows={3} value={customerNotes} onChange={(e) => setCustomerNotes(e.target.value)} />
           </label>
-          <button className="rounded-full bg-neutral-900 px-6 py-3 text-white" onClick={() => setStep("locations")}>Continue</button>
+          <button className="button button-ruby" onClick={() => setStep("locations")}>Continue</button>
         </section>
       )}
 
@@ -260,8 +265,8 @@ export function BookingWizard() {
           <AddressForm title="Pickup address" value={pickupAddress} onChange={setPickupAddress} />
           <AddressForm title="Destination address" value={destinationAddress} onChange={setDestinationAddress} />
           <div className="flex gap-3">
-            <button className="rounded-full border px-6 py-3" onClick={() => setStep("details")}>Back</button>
-            <button disabled={!canContinueLocations} className="rounded-full bg-neutral-900 px-6 py-3 text-white disabled:opacity-40" onClick={() => setStep("schedule")}>Continue</button>
+            <button className="button button-outline" onClick={() => setStep("details")}>Back</button>
+            <button disabled={!canContinueLocations} className="button button-ruby" onClick={() => setStep("schedule")}>Continue</button>
           </div>
         </section>
       )}
@@ -294,8 +299,8 @@ export function BookingWizard() {
             })}
           </div>
           <div className="flex gap-3">
-            <button className="rounded-full border px-6 py-3" onClick={() => setStep("locations")}>Back</button>
-            <button disabled={!selectedSlot} className="rounded-full bg-neutral-900 px-6 py-3 text-white disabled:opacity-40" onClick={() => setStep("customer")}>Continue</button>
+            <button className="button button-outline" onClick={() => setStep("locations")}>Back</button>
+            <button disabled={!selectedSlot} className="button button-ruby" onClick={() => setStep("customer")}>Continue</button>
           </div>
         </section>
       )}
@@ -304,15 +309,15 @@ export function BookingWizard() {
         <section className="mt-8 space-y-4">
           <label className="block">
             <span className="text-sm font-medium">Full name</span>
-            <input className="mt-1 w-full rounded-lg border px-3 py-2" value={customer.name} onChange={(e) => setCustomer({ ...customer, name: e.target.value })} />
+            <input autoComplete="name" className="mt-1 w-full rounded-lg border px-3 py-2" value={customer.name} onChange={(e) => setCustomer({ ...customer, name: e.target.value })} />
           </label>
           <label className="block">
             <span className="text-sm font-medium">Email</span>
-            <input type="email" className="mt-1 w-full rounded-lg border px-3 py-2" value={customer.email} onChange={(e) => setCustomer({ ...customer, email: e.target.value })} />
+            <input type="email" autoComplete="email" className="mt-1 w-full rounded-lg border px-3 py-2" value={customer.email} onChange={(e) => setCustomer({ ...customer, email: e.target.value })} />
           </label>
           <label className="block">
             <span className="text-sm font-medium">Phone (optional)</span>
-            <input className="mt-1 w-full rounded-lg border px-3 py-2" value={customer.phone} onChange={(e) => setCustomer({ ...customer, phone: e.target.value })} />
+            <input type="tel" inputMode="tel" autoComplete="tel" className="mt-1 w-full rounded-lg border px-3 py-2" value={customer.phone} onChange={(e) => setCustomer({ ...customer, phone: e.target.value })} />
           </label>
           <input
             type="text"
@@ -325,10 +330,10 @@ export function BookingWizard() {
             className="absolute -left-[9999px] h-0 w-0 opacity-0"
           />
           <div className="flex gap-3">
-            <button className="rounded-full border px-6 py-3" onClick={() => setStep("schedule")}>Back</button>
+            <button className="button button-outline" onClick={() => setStep("schedule")}>Back</button>
             <button
               disabled={!customer.name || !customer.email}
-              className="rounded-full bg-neutral-900 px-6 py-3 text-white disabled:opacity-40"
+              className="button button-ruby"
               onClick={async () => {
                 setStep("review");
                 await submitHold();
@@ -352,7 +357,7 @@ export function BookingWizard() {
 
           {!hold && !submitting && !error && <p>Preparing your reservation…</p>}
           {!hold && !submitting && error && (
-            <button className="rounded-full border px-6 py-3" onClick={() => setStep("customer")}>Back</button>
+            <button className="button button-outline" onClick={() => setStep("customer")}>Back</button>
           )}
           {submitting && !hold && <p>Holding your time slot…</p>}
 
@@ -376,7 +381,7 @@ export function BookingWizard() {
           )}
 
           {hold && (
-            <button disabled={submitting} aria-busy={submitting} className="rounded-full bg-neutral-900 px-6 py-3 text-white disabled:opacity-40" onClick={confirmBooking}>
+            <button disabled={submitting} aria-busy={submitting} className="button button-ruby" onClick={confirmBooking}>
               {submitting ? "Confirming your booking…" : "Confirm Booking"}
             </button>
           )}
@@ -396,14 +401,15 @@ function Row({ label, value }: { label: string; value: string }) {
 }
 
 function AddressForm({ title, value, onChange }: { title: string; value: Address; onChange: (a: Address) => void }) {
+  const section = title.toLowerCase().includes("pickup") ? "section-pickup" : "section-destination";
   return (
     <fieldset className="space-y-2">
       <legend className="text-sm font-medium">{title}</legend>
-      <input className="w-full rounded-lg border px-3 py-2" placeholder="Street address" value={value.addressLine} onChange={(e) => onChange({ ...value, addressLine: e.target.value })} />
-      <div className="grid grid-cols-3 gap-2">
-        <input className="rounded-lg border px-3 py-2" placeholder="Suburb" value={value.suburb} onChange={(e) => onChange({ ...value, suburb: e.target.value })} />
-        <input className="rounded-lg border px-3 py-2" placeholder="State" value={value.state} onChange={(e) => onChange({ ...value, state: e.target.value })} />
-        <input className="rounded-lg border px-3 py-2" placeholder="Postcode" value={value.postcode} onChange={(e) => onChange({ ...value, postcode: e.target.value })} />
+      <input className="w-full rounded-lg border px-3 py-2" aria-label={`${title}: street address`} autoComplete={`${section} address-line1`} placeholder="Street address" value={value.addressLine} onChange={(e) => onChange({ ...value, addressLine: e.target.value })} />
+      <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+        <input className="col-span-2 rounded-lg border px-3 py-2 sm:col-span-1" aria-label={`${title}: suburb`} autoComplete={`${section} address-level2`} placeholder="Suburb" value={value.suburb} onChange={(e) => onChange({ ...value, suburb: e.target.value })} />
+        <input className="rounded-lg border px-3 py-2" aria-label={`${title}: state`} autoComplete={`${section} address-level1`} placeholder="State" value={value.state} onChange={(e) => onChange({ ...value, state: e.target.value })} />
+        <input className="rounded-lg border px-3 py-2" aria-label={`${title}: postcode`} autoComplete={`${section} postal-code`} inputMode="numeric" placeholder="Postcode" value={value.postcode} onChange={(e) => onChange({ ...value, postcode: e.target.value })} />
       </div>
     </fieldset>
   );

@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { SiteFrame } from "../components/Site";
 import { business, canonical } from "../../lib/site-data";
+import { breadcrumbSchema, homeCrumb, sectionCrumbs } from "../../lib/breadcrumbs";
+import { Breadcrumbs } from "../components/Site";
 import {
   hfServiceAreaCount,
   hfServiceAreaRecords,
@@ -68,13 +70,7 @@ export default function AreasPage() {
           url: canonical(`/areas/${area.slug}`),
         })),
       },
-      {
-        "@type": "BreadcrumbList",
-        itemListElement: [
-          { "@type": "ListItem", position: 1, name: "Home", item: business.domain },
-          { "@type": "ListItem", position: 2, name: "Service Areas", item: canonical("/areas") },
-        ],
-      },
+      breadcrumbSchema([homeCrumb, { label: sectionCrumbs.areas.label }], canonical, canonical("/areas")),
     ],
   };
 
@@ -85,6 +81,7 @@ export default function AreasPage() {
         <div className="inner-orbit" aria-hidden="true" />
         <div className="container inner-hero-grid">
           <div>
+            <Breadcrumbs items={[homeCrumb, { label: sectionCrumbs.areas.label }]} />
             <p className="eyebrow">Adelaide & Regional Coverage</p>
             <h1>HF Removals service areas across Adelaide and South Australia</h1>
             <p>

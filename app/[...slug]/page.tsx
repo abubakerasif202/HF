@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { DetailPage, ListingPage, StaticPage } from "../components/Site";
+import { breadcrumbSchema, contentTrail, homeCrumb, sectionCrumbs, staticCrumbLabels } from "../../lib/breadcrumbs";
 import { areas, business, canonical, findContentPage, guides, indexablePaths, interstateRoutes, localPricing, services, standardMoveFaqs } from "../../lib/site-data";
 
 type Props = { params: Promise<{ slug: string[] }> };
@@ -71,13 +72,7 @@ function listingSchema(kind: ListingKind, title: string, path: string) {
           url: canonical(`/${kind}/${item.slug}`),
         })),
       },
-      {
-        "@type": "BreadcrumbList",
-        itemListElement: [
-          { "@type": "ListItem", position: 1, name: "Home", item: business.domain },
-          { "@type": "ListItem", position: 2, name: title, item: canonical(path) },
-        ],
-      },
+      breadcrumbSchema([homeCrumb, { label: sectionCrumbs[kind].label }], canonical, canonical(path)),
     ],
   };
 }
@@ -114,10 +109,7 @@ export default async function ContentRoute({ params }: Props) {
     const page = staticPages[slug[0]];
     const schema = { "@context": "https://schema.org", "@graph": [
       { "@type": page.schema, "@id": `${canonical(path)}#webpage`, url: canonical(path), name: page.title, about: { "@id": `${business.domain}/#business` } },
-      { "@type": "BreadcrumbList", itemListElement: [
-        { "@type": "ListItem", position: 1, name: "Home", item: canonical("/") },
-        { "@type": "ListItem", position: 2, name: page.title, item: canonical(path) },
-      ] },
+      breadcrumbSchema([homeCrumb, { label: staticCrumbLabels[page.type] }], canonical, canonical(path)),
       ...(page.type === "pricing" ? [{ "@type": "FAQPage", "@id": `${canonical(path)}#faq`, mainEntity: standardMoveFaqs.slice(0, 2).map((faq) => ({ "@type": "Question", name: faq.question, acceptedAnswer: { "@type": "Answer", text: faq.answer } })) }] : []),
     ] };
     return <><script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }} /><StaticPage type={page.type} /></>;
@@ -129,7 +121,6 @@ export default async function ContentRoute({ params }: Props) {
   }
   const page = findContentPage(slug);
   if (!page) notFound();
-  const group = slug[0];
   const schema = {
     "@context": "https://schema.org",
     "@graph": [
@@ -138,11 +129,7 @@ export default async function ContentRoute({ params }: Props) {
         : { "@type": "Service", "@id": `${canonical(path)}#service`, name: page.eyebrow, serviceType: page.eyebrow, description: page.description, url: canonical(path), provider: { "@id": `${business.domain}/#business` }, ...(page.kind === "service" ? { areaServed: { "@type": "Place", name: page.slug === "interstate-removals" || page.slug === "backloading" ? "Adelaide and interstate Australia" : "Adelaide metropolitan area" } } : page.kind === "area" ? { areaServed: page.eyebrow.replace(/ removals| moving support/i, "") } : {}) },
       { "@type": "WebPage", "@id": `${canonical(path)}#webpage`, url: canonical(path), name: contentTitle(page), description: page.description, isPartOf: { "@id": `${business.domain}/#website` } },
       ...(page.faqs.length ? [{ "@type": "FAQPage", "@id": `${canonical(path)}#faq`, mainEntity: page.faqs.map((faq) => ({ "@type": "Question", name: faq.question, acceptedAnswer: { "@type": "Answer", text: faq.answer } })) }] : []),
-      { "@type": "BreadcrumbList", itemListElement: [
-        { "@type": "ListItem", position: 1, name: "Home", item: business.domain },
-        { "@type": "ListItem", position: 2, name: group, item: canonical(`/${group}`) },
-        { "@type": "ListItem", position: 3, name: page.eyebrow, item: canonical(path) },
-      ] },
+      breadcrumbSchema(contentTrail(page), canonical, canonical(path)),
     ],
   };
   return <><script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }} /><DetailPage page={page} /></>;

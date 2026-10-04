@@ -1,13 +1,12 @@
 import type { BusinessSettings, FinalBilling, PaymentStatus, PricingRule, PricingSnapshot, QuoteInput, QuoteResult } from "./types.ts";
 import { instantToZonedParts } from "./timezone.ts";
+import { findMovingPackage } from "../site-data.ts";
 
-/** Confirmed HF Removals Adelaide package names, derived from crew size —
- * the single canonical source (crewSize -> rate) never duplicates a name
- * string in the database. */
+/** Confirmed HF Removals Adelaide package names, derived from crew size via the
+ * canonical package table in lib/site-data.ts — never duplicated as strings here
+ * or in the database. */
 export function packageNameForCrewSize(crewSize: number): string {
-  if (crewSize === 2) return "2 Men + Truck";
-  if (crewSize === 3) return "3 Men + Truck";
-  return `${crewSize} Men + Truck`;
+  return findMovingPackage({ crewSize })?.bookingName ?? `${crewSize} Men + Truck`;
 }
 
 /** Customer-facing pricing policy line, shown alongside every quote. */

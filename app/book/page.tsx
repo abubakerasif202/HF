@@ -21,7 +21,7 @@ export default function BookPage() {
           Our instant booking system is being switched on. In the meantime, tell us about your move and
           we&apos;ll get back to you with a quote.
         </p>
-        <Link href="/contact" className="mt-8 inline-block rounded-full bg-neutral-900 px-6 py-3 text-white">
+        <Link href="/contact" className="button button-ruby mt-8">
           Get a Quote
         </Link>
       </main>

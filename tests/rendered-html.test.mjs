@@ -189,8 +189,10 @@ test("renders one coherent, accessible Web3Forms quote flow", async () => {
 
 test("keeps verified rates, coverage wording and canonical route inventory centralized", async () => {
   const data = await readFile(new URL("../lib/site-data.ts", import.meta.url), "utf8");
-  assert.match(data, /\$79/);
-  assert.match(data, /\$99/);
+  // Local rates are stored once as cents in movingPackages (displayed as $79 / $99);
+  // tests/pricing-source.test.mjs checks every derived display value.
+  assert.match(data, /ratePer30MinCents: 7900/);
+  assert.match(data, /ratePer30MinCents: 9900/);
   assert.match(data, /\$119\.43/);
   assert.match(data, /\$186\.06/);
   assert.match(data, /per m³/);
@@ -221,6 +223,45 @@ test("keeps verified rates, coverage wording and canonical route inventory centr
   assert.match(data, /export const entryLocalRate/);
   for (const [label, source] of [["Site", site], ["SiteClient", client], ["page", home]]) {
     assert.doesNotMatch(stripComments(source), /\$\d{2,3}\s*\/\s*30 min|\$\d{2,3}\/30min/, `${label} should read rates from site-data`);
+  }
+});
+
+test("pricing page renders canonical package rates and package-specific booking links", async () => {
+  const { localPricing } = await import("../lib/site-data.ts");
+  const html = await (await render("/pricing")).text();
+  for (const item of localPricing) {
+    assert.ok(html.includes(item.name), `${item.name} rendered`);
+    assert.ok(html.includes(`${item.halfHour}</strong>`), `${item.halfHour} rendered`);
+    assert.ok(html.includes(`${item.hourly}<!-- --> per hour`) || html.includes(`${item.hourly} per hour`), `${item.hourly} per hour rendered`);
+    assert.match(html, new RegExp(`href="/book\\?crewSize=${item.crewSize}"`));
+  }
+});
+
+test("structured data stays within the canonical business configuration", async () => {
+  const { business } = await import("../lib/site-data.ts");
+  const routes = ["/", "/services", "/services/residential-removals", "/areas", "/areas/elizabeth", "/interstate/adelaide-melbourne", "/guides", "/pricing", "/about", "/contact", "/adelaide-removalists", "/privacy", "/terms"];
+  const forbidden = ["aggregateRating", "review", "priceRange", "award", "foundingDate", "employee", "sameAs"];
+  for (const route of routes) {
+    const html = await (await render(route)).text();
+    const blocks = [...html.matchAll(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/g)].map((m) => JSON.parse(m[1]));
+    assert.ok(blocks.length > 0, `${route} has structured data`);
+    const json = JSON.stringify(blocks);
+    for (const key of forbidden) assert.ok(!json.includes(`"${key}"`), `${route} must not declare ${key}`);
+    const nodes = blocks.flatMap((block) => block["@graph"] ?? [block]);
+    for (const node of nodes) {
+      if (node["@type"] === "MovingCompany") {
+        assert.equal(node.name, business.name);
+        assert.equal(node.telephone, business.phones[0].display);
+        assert.equal(node.email, business.emails[0]);
+        assert.equal(node.address.streetAddress, business.address.street);
+        assert.equal(node.address.postalCode, business.address.postcode);
+      }
+      if (node["@type"] === "BreadcrumbList") {
+        const visible = [...html.matchAll(/<nav class="breadcrumbs" aria-label="Breadcrumb">([\s\S]*?)<\/nav>/g)].map((m) => m[1]);
+        assert.equal(visible.length, 1, `${route} shows one breadcrumb trail`);
+        for (const item of node.itemListElement) assert.ok(visible[0].includes(item.name.replace(/&/g, "&amp;")), `${route} breadcrumb "${item.name}" is visible`);
+      }
+    }
   }
 });
 
@@ -494,9 +535,12 @@ test("high-intent pricing surfaces expose the ruby package hierarchy", async () 
   assert.doesNotMatch(html, /package-option package-option--popular/);
   assert.doesNotMatch(html, /package-popular[^>]*>Popular/);
   const css = await builtCss();
-  assert.match(css, /\.price-card--popular\{/);
+  // The unverified "Most Popular" treatment was retired with its markup; its
+  // styles must not linger as a ready-made way to reintroduce the claim.
+  assert.doesNotMatch(css, /\.price-card--popular|\.price-popular-badge|\.package-popular/);
   assert.match(css, /\.package-option:has\(input:checked\)\{/);
-  assert.match(css, /\.route-cost strong\{color:var\(--ruby-light\)/);
+  // Ruby brand layer: route rates use the accent token, never a raw ruby literal.
+  assert.match(css, /\.route-cost strong\{color:var\(--accent\)/);
 });
 
 test("layout grids declare a track for every child they render", async () => {

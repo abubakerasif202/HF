@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { DetailPage } from "../../components/Site";
+import { breadcrumbSchema, contentTrail } from "../../../lib/breadcrumbs";
 import { business, canonical } from "../../../lib/site-data";
 import { hfServiceAreaRecords, hfServiceAreas } from "../../../lib/hf-service-areas";
 
@@ -50,7 +51,6 @@ export default async function ServiceAreaPage({ params }: Props) {
   if (!page || !record) notFound();
 
   const path = `/areas/${slug}`;
-  const regionRecord = hfServiceAreaRecords.find((area) => area.name === record.region);
   const schema = {
     "@context": "https://schema.org",
     "@graph": [
@@ -67,15 +67,7 @@ export default async function ServiceAreaPage({ params }: Props) {
         },
         serviceType: "Removalist and moving service",
       },
-      {
-        "@type": "BreadcrumbList",
-        itemListElement: [
-          { "@type": "ListItem", position: 1, name: "Home", item: business.domain },
-          { "@type": "ListItem", position: 2, name: "Service Areas", item: canonical("/areas") },
-          ...(regionRecord && regionRecord.slug !== record.slug ? [{ "@type": "ListItem", position: 3, name: record.region, item: canonical(`/areas/${regionRecord.slug}`) }] : []),
-          { "@type": "ListItem", position: regionRecord && regionRecord.slug !== record.slug ? 4 : 3, name: record.name, item: canonical(path) },
-        ],
-      },
+      breadcrumbSchema(contentTrail(page), canonical, canonical(path)),
       {
         "@type": "FAQPage",
         "@id": `${canonical(path)}#faq`,
