@@ -6,6 +6,8 @@
 // Supabase stays authoritative. The Google event is an operational mirror
 // only, and a failure here never changes the booking itself.
 
+import { packageNameForCrewSize } from "./booking/pricing.ts";
+
 export const CALENDAR_TIME_ZONE = "Australia/Adelaide";
 
 /** Bookings that should have a visible Google event. */
@@ -70,7 +72,7 @@ function surname(name: string | null | undefined): string {
  * excluded.
  */
 export function buildCalendarEvent(booking: CalendarBooking, options: { adminBaseUrl: string }): CalendarEventBody {
-  const packageName = booking.pricing_snapshot?.package ?? `${booking.crew_size} Men + Truck`;
+  const packageName = booking.pricing_snapshot?.package ?? packageNameForCrewSize(booking.crew_size);
   const customer = booking.customer;
   const description = [
     `Booking reference: ${booking.booking_number}`,

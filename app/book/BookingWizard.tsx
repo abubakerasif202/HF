@@ -237,7 +237,7 @@ export function BookingWizard() {
             <span className="text-sm font-medium">Package</span>
             <select className="mt-1 w-full rounded-lg border px-3 py-2" value={crewSize} onChange={(e) => setCrewSize(Number(e.target.value))}>
               {localPricing.map((item) => (
-                <option key={item.id} value={item.crewSize}>{item.bookingName} — {item.halfHour} / 30 min ({item.hourly}/hr)</option>
+                <option key={item.id} value={item.crewSize}>{item.name} — {item.halfHour} / 30 min ({item.hourly}/hr)</option>
               ))}
             </select>
           </label>

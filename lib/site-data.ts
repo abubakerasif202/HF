@@ -21,7 +21,7 @@ export const web3FormsAccessKey =
 
 export const business = {
   name: "HF Removals Adelaide",
-  legalName: "HFremovalsadelaide - BeMovedWithUs",
+  legalName: "HF REMOVALS PTY LTD",
   tagline: "Moving Made Easy With Us",
   domain: siteOrigin,
   phones: [
@@ -157,8 +157,8 @@ export const minimumServiceMinutes = 180;
 export const calloutMinutes = 60;
 
 export const movingPackages = [
-  { id: "2-men", crewSize: 2, name: "2 Movers + Truck", bookingName: "2 Men + Truck", ratePer30MinCents: 7900 },
-  { id: "3-men", crewSize: 3, name: "3 Movers + Truck", bookingName: "3 Men + Truck", ratePer30MinCents: 9900 },
+  { id: "2-men", crewSize: 2, name: "2 Movers + Truck", ratePer30MinCents: 7900 },
+  { id: "3-men", crewSize: 3, name: "3 Movers + Truck", ratePer30MinCents: 9900 },
 ] as const;
 
 export type MovingPackage = (typeof movingPackages)[number];
@@ -178,7 +178,6 @@ export const localPricing = movingPackages.map((item) => ({
   id: item.id,
   crewSize: item.crewSize,
   name: item.name,
-  bookingName: item.bookingName,
   halfHour: formatAud(item.ratePer30MinCents),
   hourly: formatAud(item.ratePer30MinCents * (60 / billingIncrementMinutes)),
   callout: formatAud(item.ratePer30MinCents * (calloutMinutes / billingIncrementMinutes)),

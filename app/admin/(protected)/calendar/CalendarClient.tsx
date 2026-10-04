@@ -4,6 +4,8 @@ import Link from "next/link";
 import { useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { classifyBlockedTime } from "../../../../lib/booking/calendar-range.ts";
+import { packageNameForCrewSize } from "../../../../lib/booking/pricing.ts";
+import { movingPackages } from "../../../../lib/site-data.ts";
 import { AdminPageHeader } from "../../_components/ui";
 import { AdminStatusBadge, statusStyle } from "../../_components/AdminStatusBadge";
 import { Icon } from "../../_components/Icon";
@@ -44,7 +46,7 @@ interface Resource {
 const FILTERABLE_STATUSES = ["held", "pending_payment", "confirmed", "assigned", "in_progress", "completed"];
 
 function packageLabel(crewSize: number): string {
-  return crewSize === 3 ? "3 Men + Truck" : crewSize === 2 ? "2 Men + Truck" : `${crewSize} Men + Truck`;
+  return packageNameForCrewSize(crewSize);
 }
 
 function fmtTime(iso: string, timezone: string): string {
@@ -194,8 +196,7 @@ export function CalendarClient({
           </select>
           <select aria-label="Filter by package" value={packageFilter} onChange={(e) => setPackageFilter(e.target.value)} className="admin-input admin-input--compact">
             <option value="">All packages</option>
-            <option value="2">2 Men + Truck</option>
-            <option value="3">3 Men + Truck</option>
+            {movingPackages.map((item) => <option key={item.id} value={String(item.crewSize)}>{item.name}</option>)}
           </select>
         </div>
       </div>

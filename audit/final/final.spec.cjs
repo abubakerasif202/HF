@@ -160,7 +160,7 @@ test('quote form validation, package selection, success, failure and double-subm
   await submit.click();
   await expect(form.locator('.form-status')).toContainText('Please complete the required fields');
 
-  const packageThree = form.getByRole('radio', { name: /3 Men \+ Truck/ });
+  const packageThree = form.getByRole('radio', { name: /3 Movers \+ Truck/ });
   await packageThree.check({ force: true });
   await expect(packageThree).toBeChecked();
   await form.getByText('More Details', { exact: false }).click();

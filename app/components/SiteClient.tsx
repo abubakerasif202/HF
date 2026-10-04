@@ -437,7 +437,7 @@ const ADDITIONAL_SERVICES = [
 
 const createEmptyForm = (): FormDataShape => ({
   name: "", phone: "", email: "", date: "", from: "", to: "",
-  moveType: "Residential (House / Unit)", movingPackage: entryLocalRate.bookingName, propertySize: "2 Bedrooms", details: "", company: "", tab: "local",
+  moveType: "Residential (House / Unit)", movingPackage: entryLocalRate.name, propertySize: "2 Bedrooms", details: "", company: "", tab: "local",
   floorAccess: "Ground Floor / Driveway Access", parkingAccess: "On-Street Parking (Nearby)", boxesNeeded: "Not Sure Yet", services: []
 });
 
@@ -611,7 +611,7 @@ export function QuoteForm({ compact = false }: { compact?: boolean }) {
         <legend className="field-label">Select Your Moving Package <b aria-hidden="true">*</b></legend>
         <div className="package-options">
           {localPricing.map((pricing) => {
-            const packageName = pricing.bookingName;
+            const packageName = pricing.name;
             return (
               <label className="package-option" key={pricing.name}>
                 <input

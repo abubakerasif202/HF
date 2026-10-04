@@ -6,7 +6,7 @@ import { findMovingPackage } from "../site-data.ts";
  * canonical package table in lib/site-data.ts — never duplicated as strings here
  * or in the database. */
 export function packageNameForCrewSize(crewSize: number): string {
-  return findMovingPackage({ crewSize })?.bookingName ?? `${crewSize} Men + Truck`;
+  return findMovingPackage({ crewSize })?.name ?? `${crewSize} Movers + Truck`;
 }
 
 /** Customer-facing pricing policy line, shown alongside every quote. */

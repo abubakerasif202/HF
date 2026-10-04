@@ -16,7 +16,7 @@ function booking(overrides = {}) {
     crew_size: 2,
     pickup_address: { addressLine: "1 Test St", suburb: "Adelaide" },
     destination_address: { addressLine: "2 Test Rd", suburb: "Glenelg" },
-    pricing_snapshot: { package: "2 Men + Truck" },
+    pricing_snapshot: { package: "2 Movers + Truck" },
     google_calendar_event_id: null,
     customer: { name: "Jane Smith", email: "jane@example.com", phone: "0400000000" },
     ...overrides,
@@ -62,6 +62,13 @@ function apply(b, outcome) {
   return b;
 }
 
+test("event content: package name falls back to the canonical package table, and a stored snapshot name is kept as booked", () => {
+  assert.equal(buildCalendarEvent(booking({ pricing_snapshot: null }), OPTS).summary, "HF-2026-00023 — Smith — 2 Movers + Truck");
+  assert.equal(buildCalendarEvent(booking({ crew_size: 3, pricing_snapshot: {} }), OPTS).summary, "HF-2026-00023 — Smith — 3 Movers + Truck");
+  // Bookings made before the naming change keep the package text frozen in their snapshot.
+  assert.equal(buildCalendarEvent(booking({ pricing_snapshot: { package: "2 Men + Truck" } }), OPTS).summary, "HF-2026-00023 — Smith — 2 Men + Truck");
+});
+
 test("event id: deterministic per booking and valid for Google (base32hex a-v, 0-9)", () => {
   const id = googleEventIdForBooking("FC4EE04B-045d-497c-8400-c16b428602a1");
   assert.equal(id, "hffc4ee04b045d497c8400c16b428602a1");
@@ -71,8 +78,8 @@ test("event id: deterministic per booking and valid for Google (base32hex a-v, 0
 
 test("event content: concise operational title and useful description, no internal notes", () => {
   const event = buildCalendarEvent({ ...booking(), internal_notes: "PRIVATE NOTE" }, OPTS);
-  assert.equal(event.summary, "HF-2026-00023 — Smith — 2 Men + Truck");
-  for (const text of ["Booking reference: HF-2026-00023", "Customer: Jane Smith", "Phone: 0400000000", "Email: jane@example.com", "Pickup: 1 Test St Adelaide", "Destination: 2 Test Rd Glenelg", "Package: 2 Men + Truck", "Crew size: 2", "Booking status: confirmed", "Admin: https://www.hfremovalsadelaide.com.au/admin/bookings/fc4ee04b-045d-497c-8400-c16b428602a1"]) {
+  assert.equal(event.summary, "HF-2026-00023 — Smith — 2 Movers + Truck");
+  for (const text of ["Booking reference: HF-2026-00023", "Customer: Jane Smith", "Phone: 0400000000", "Email: jane@example.com", "Pickup: 1 Test St Adelaide", "Destination: 2 Test Rd Glenelg", "Package: 2 Movers + Truck", "Crew size: 2", "Booking status: confirmed", "Admin: https://www.hfremovalsadelaide.com.au/admin/bookings/fc4ee04b-045d-497c-8400-c16b428602a1"]) {
     assert.ok(event.description.includes(text), text);
   }
   assert.ok(!event.description.includes("PRIVATE NOTE"));

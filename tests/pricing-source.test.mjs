@@ -31,7 +31,7 @@ test("package IDs and crew sizes resolve to the same package", () => {
   for (const item of movingPackages) {
     assert.equal(findMovingPackage({ id: item.id }), item);
     assert.equal(findMovingPackage({ crewSize: item.crewSize }), item);
-    assert.equal(packageNameForCrewSize(item.crewSize), item.bookingName);
+    assert.equal(packageNameForCrewSize(item.crewSize), item.name);
   }
   assert.equal(findMovingPackage({ id: "4-men" }), undefined);
   assert.equal(findMovingPackage({ crewSize: Number.NaN }), undefined);
@@ -62,4 +62,22 @@ test("pricing UI and booking UI consume the package table instead of retyping ra
   assert.doesNotMatch(client, /\d Men \+ Truck|\$\d{2,3}\b/, "quote form must not hard-code packages or rates");
 
   assert.doesNotMatch(serverPricing, /return "\d Men \+ Truck"/, "server package names must come from the package table");
+});
+
+test("every package label in app and server code reads '<n> Movers + Truck' from the package table", async () => {
+  for (const item of movingPackages) assert.match(item.name, /^\d Movers \+ Truck$/);
+  const files = [
+    "app/book/BookingWizard.tsx",
+    "app/components/Site.tsx",
+    "app/components/SiteClient.tsx",
+    "app/admin/(protected)/calendar/CalendarClient.tsx",
+    "lib/booking/pricing.ts",
+    "lib/calendar-sync.ts",
+    "lib/site-data.ts",
+  ];
+  for (const path of files) {
+    const source = stripComments(await read(path));
+    assert.doesNotMatch(source, /Men \+ Truck|bookingName/, `${path} must not carry the retired "Men + Truck" label`);
+    if (path !== "lib/site-data.ts") assert.doesNotMatch(source, /["'`>]\s*\d Movers \+ Truck/, `${path} must not retype package labels`);
+  }
 });

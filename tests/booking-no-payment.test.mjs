@@ -98,7 +98,7 @@ function createFakeDb(overrides = {}) {
   return db;
 }
 
-const SNAPSHOT = { package: "2 Men + Truck", ratePer30MinCents: 7900, minimumBookingMinutes: 180, calloutMinutes: 60, advancePaymentRequired: false, advancePaymentCents: 0 };
+const SNAPSHOT = { package: "2 Movers + Truck", ratePer30MinCents: 7900, minimumBookingMinutes: 180, calloutMinutes: 60, advancePaymentRequired: false, advancePaymentCents: 0 };
 
 function confirmVia(db, { accessToken = db.booking.access_token, emailFails = false, calendarFails = false } = {}) {
   return runNoPaymentConfirmation({

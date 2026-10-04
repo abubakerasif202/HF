@@ -41,8 +41,8 @@ The site ships with an online booking system (`/book`) that is **disabled by def
 
 These are the real, verified HF Removals Adelaide policy, encoded server-side (`lib/booking/pricing.ts`) and in `business_settings`/`pricing_rules` — never invented, never duplicated as a second source of truth:
 
-- **2 Men + Truck:** $79 / 30 min ($158/hr)
-- **3 Men + Truck:** $99 / 30 min ($198/hr)
+- **2 Movers + Truck:** $79 / 30 min ($158/hr)
+- **3 Movers + Truck:** $99 / 30 min ($198/hr)
 - **Minimum booking:** 3 hours (180 min), enforced regardless of actual job length
 - **Call-out:** 1 hour, billed at the job's own per-30-minute rate (never a separate flat fee) — includes truck fuel and basic transport charges
 - **No advance payment:** customers confirm their booking online without paying anything up-front — no deposit, no card, no Stripe. The final balance of a new booking is the full final job total
@@ -85,7 +85,7 @@ Supabase is the source of truth and `/admin/calendar` works without Google. When
 
 **What it does** (`lib/server/google-calendar.ts` → `reconcileBookingCalendar`, pure logic in `lib/calendar-sync.ts`):
 
-- **Confirm** → creates one event: title `HF-2026-00023 — Smith — 2 Men + Truck`; description with booking reference, customer name/phone/email, pickup, destination, package, crew size, status and the admin booking URL (never internal notes). Times are the booking's own `starts_at`/`ends_at` in `Australia/Adelaide` — the billing call-out never adds an hour.
+- **Confirm** → creates one event: title `HF-2026-00023 — Smith — 2 Movers + Truck`; description with booking reference, customer name/phone/email, pickup, destination, package, crew size, status and the admin booking URL (never internal notes). Times are the booking's own `starts_at`/`ends_at` in `Australia/Adelaide` — the billing call-out never adds an hour.
 - **Idempotent** → the Google event id is derived from the booking UUID (`hf` + hex), so a retry, double submit or restart hits "already exists" and updates instead of duplicating. The id is also stored in `bookings.google_calendar_event_id`.
 - **Reschedule / vehicle / crew / status change / job completion** → the same event is updated in place.
 - **Cancel** (list or detail page) → the event is deleted.

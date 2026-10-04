@@ -132,16 +132,16 @@ test("availability: booking window rejects too-soon and too-far dates", () => {
 });
 
 test("pricing: package names derive from crew size, one canonical source", () => {
-  assert.equal(packageNameForCrewSize(2), "2 Men + Truck");
-  assert.equal(packageNameForCrewSize(3), "3 Men + Truck");
+  assert.equal(packageNameForCrewSize(2), "2 Movers + Truck");
+  assert.equal(packageNameForCrewSize(3), "3 Movers + Truck");
 });
 
-test("pricing: 2 Men + Truck uses the canonical 7900 cents / 30 min rate", () => {
+test("pricing: 2 Movers + Truck uses the canonical 7900 cents / 30 min rate", () => {
   const quote = calculateQuote({ crewSize: 2, actualDurationMinutes: 180, startsAt: new Date("2026-03-10T00:00:00Z") }, rule2, configuredSettings, TZ);
   assert.equal(quote.ratePer30MinCents, 7900);
 });
 
-test("pricing: 3 Men + Truck uses the canonical 9900 cents / 30 min rate", () => {
+test("pricing: 3 Movers + Truck uses the canonical 9900 cents / 30 min rate", () => {
   const quote = calculateQuote({ crewSize: 3, actualDurationMinutes: 180, startsAt: new Date("2026-03-10T00:00:00Z") }, rule3, configuredSettings, TZ);
   assert.equal(quote.ratePer30MinCents, 9900);
 });
@@ -194,7 +194,7 @@ test("pricing: changing package changes the call-out automatically, with no sepa
 
 const at = new Date("2026-03-10T00:00:00Z");
 
-test("pricing worked example: 2 Men + Truck minimum job totals $632, and the whole $632 is the balance (no advance payment)", () => {
+test("pricing worked example: 2 Movers + Truck minimum job totals $632, and the whole $632 is the balance (no advance payment)", () => {
   const quote = calculateQuote({ crewSize: 2, actualDurationMinutes: 180, startsAt: at }, rule2, configuredSettings, TZ);
   assert.equal(quote.serviceChargeCents, 47400); // 6 x $79
   assert.equal(quote.calloutFeeCents, 15800); // 2 x $79
@@ -202,7 +202,7 @@ test("pricing worked example: 2 Men + Truck minimum job totals $632, and the who
   assert.equal(quote.estimatedBalanceCents, 63200);
 });
 
-test("pricing worked example: 3 Men + Truck minimum job totals $792, balance $792", () => {
+test("pricing worked example: 3 Movers + Truck minimum job totals $792, balance $792", () => {
   const quote = calculateQuote({ crewSize: 3, actualDurationMinutes: 180, startsAt: at }, rule3, configuredSettings, TZ);
   assert.equal(quote.serviceChargeCents, 59400); // 6 x $99
   assert.equal(quote.calloutFeeCents, 19800); // 2 x $99
@@ -281,7 +281,7 @@ test("pricing: missing pricing rule surfaces a caveat instead of a fabricated pr
 test("pricing snapshot: freezes package, rate, minimum and call-out policy with advance payment marked not required", () => {
   const quote = calculateQuote({ crewSize: 3, actualDurationMinutes: 180, startsAt: at }, rule3, configuredSettings, TZ);
   assert.deepEqual(buildPricingSnapshot(quote), {
-    package: "3 Men + Truck",
+    package: "3 Movers + Truck",
     ratePer30MinCents: 9900,
     minimumBookingMinutes: 180,
     calloutMinutes: 60,
@@ -302,7 +302,7 @@ test("pricing snapshot: preserves the policy at booking time, unaffected by late
 
 // --- Final billing: new no-payment vs historical $100 bookings -------------
 
-const newSnapshot2 = { package: "2 Men + Truck", ratePer30MinCents: 7900, minimumBookingMinutes: 180, calloutMinutes: 60, advancePaymentRequired: false, advancePaymentCents: 0 };
+const newSnapshot2 = { package: "2 Movers + Truck", ratePer30MinCents: 7900, minimumBookingMinutes: 180, calloutMinutes: 60, advancePaymentRequired: false, advancePaymentCents: 0 };
 const historicalSnapshot2 = { package: "2 Men + Truck", ratePer30MinCents: 7900, minimumBookingMinutes: 180, calloutMinutes: 60, bookingConfirmationCents: 10000 };
 
 test("final billing: a new no-payment booking pays $0 before the job, so balance = full final total", () => {
