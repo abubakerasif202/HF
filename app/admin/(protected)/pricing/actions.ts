@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { getStaffSession } from "../../../../lib/server/supabase-ssr.ts";
 import { getSupabaseAdmin } from "../../../../lib/server/supabase.ts";
+import { findMovingPackage } from "../../../../lib/site-data.ts";
 
 async function requireStaff() {
   const session = await getStaffSession();
@@ -11,7 +12,8 @@ async function requireStaff() {
 }
 
 /**
- * Upserts one crew-size pricing rule. Existing bookings are never
+ * Upserts one package-keyed pricing rule (the unique key is package_id; several
+ * packages share a crew size). Existing bookings are never
  * affected by this: confirmed bookings freeze their price in
  * `pricing_snapshot` at confirmation time (see lib/booking/pricing.ts),
  * so changing a rate here only changes future quotes.
@@ -19,14 +21,15 @@ async function requireStaff() {
 export async function upsertPricingRuleAction(formData: FormData): Promise<{ error?: string }> {
   await requireStaff();
   try {
-    const crewSize = Number(formData.get("crew_size"));
+    const packageId = String(formData.get("package_id") ?? "");
+    const pkg = findMovingPackage({ id: packageId });
     const ratePer30Min = Number(formData.get("rate_per_30_min"));
     const minimumBillableMinutes = Number(formData.get("minimum_billable_minutes"));
     const callOutFee = Number(formData.get("call_out_fee"));
     const weekendMultiplier = Number(formData.get("weekend_multiplier"));
     const publicHolidayMultiplier = Number(formData.get("public_holiday_multiplier"));
 
-    if (!Number.isInteger(crewSize) || crewSize <= 0) throw new Error("Crew size must be a positive whole number.");
+    if (!pkg) throw new Error("Choose a package.");
     if (!Number.isFinite(ratePer30Min) || ratePer30Min <= 0) throw new Error("Rate per 30 minutes must be a positive amount.");
     if (!Number.isInteger(minimumBillableMinutes) || minimumBillableMinutes <= 0) throw new Error("Minimum billable minutes must be a positive whole number.");
     if (!Number.isFinite(callOutFee) || callOutFee < 0) throw new Error("Call-out fee cannot be negative.");
@@ -35,7 +38,10 @@ export async function upsertPricingRuleAction(formData: FormData): Promise<{ err
 
     const { error } = await getSupabaseAdmin().from("pricing_rules").upsert(
       {
-        crew_size: crewSize,
+        package_id: pkg.id,
+        truck_class: pkg.truckClass,
+        tonnage: pkg.tonnage,
+        crew_size: pkg.crewSize,
         rate_per_30_min_cents: Math.round(ratePer30Min * 100),
         minimum_billable_minutes: minimumBillableMinutes,
         call_out_fee_cents: Math.round(callOutFee * 100),
@@ -43,7 +49,7 @@ export async function upsertPricingRuleAction(formData: FormData): Promise<{ err
         public_holiday_multiplier: publicHolidayMultiplier,
         active: true,
       },
-      { onConflict: "crew_size" },
+      { onConflict: "package_id" },
     );
     if (error) throw error;
     revalidatePath("/admin/pricing");

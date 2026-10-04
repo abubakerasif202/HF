@@ -8,6 +8,7 @@ import { FinalizeJobForm } from "./FinalizeJobForm";
 import { AdminCard, AdminDataList, AdminDataRow, AdminPageHeader, formatAdelaide, formatMoney } from "../../../_components/ui";
 import { AdminStatusBadge } from "../../../_components/AdminStatusBadge";
 import { Icon } from "../../../_components/Icon";
+import { describePackage } from "../../../../../lib/booking/pricing.ts";
 import { googleCalendarEventLink } from "../../../../../lib/server/google-calendar.ts";
 
 export const dynamic = "force-dynamic";
@@ -32,6 +33,9 @@ export default async function AdminBookingDetailPage({ params }: { params: Promi
   const pickup = booking.pickup_address as { formattedAddress?: string; addressLine?: string; suburb?: string } | null;
   const destination = booking.destination_address as { formattedAddress?: string; addressLine?: string; suburb?: string } | null;
   const snapshot = (booking.pricing_snapshot ?? {}) as { package?: string; ratePer30MinCents?: number };
+  // Truck/package booked: by package id, falling back to crew size for historical bookings.
+  const pkg = describePackage({ packageId: booking.package_id as string | null, crewSize: booking.crew_size });
+  const packageSummary = pkg.truckCapacity ? `${pkg.packageName} — ${pkg.truckCapacity}` : pkg.packageName;
   // Money genuinely received before the job. Historical Stripe-era
   // bookings recorded a real $100; every no-advance-payment booking is 0.
   const paidBeforeJobCents: number = booking.deposit_paid_cents ?? 0;
@@ -67,6 +71,7 @@ export default async function AdminBookingDetailPage({ params }: { params: Promi
               <AdminDataRow label="Service" value={service?.name} />
               <AdminDataRow label="Pickup" value={pickup?.formattedAddress ?? `${pickup?.addressLine ?? ""} ${pickup?.suburb ?? ""}`.trim()} />
               <AdminDataRow label="Destination" value={destination?.formattedAddress ?? `${destination?.addressLine ?? ""} ${destination?.suburb ?? ""}`.trim()} />
+              <AdminDataRow label="Package / truck" value={packageSummary} tone="strong" />
               <AdminDataRow label="Crew size" value={String(booking.crew_size)} />
               <AdminDataRow label="Customer notes" value={booking.customer_notes} />
             </AdminDataList>
@@ -167,7 +172,7 @@ export default async function AdminBookingDetailPage({ params }: { params: Promi
 
           <AdminCard icon="pricing" title="Pricing">
             <AdminDataList>
-              <AdminDataRow label="Package" value={snapshot.package} />
+              <AdminDataRow label="Package" value={snapshot.package ?? packageSummary} />
               <AdminDataRow label="Rate" value={snapshot.ratePer30MinCents ? `${formatMoney(snapshot.ratePer30MinCents, { decimals: 0 })} / 30 min` : null} />
               <AdminDataRow label="Estimated / final total" value={formatMoney(booking.subtotal_cents)} tone="strong" />
             </AdminDataList>

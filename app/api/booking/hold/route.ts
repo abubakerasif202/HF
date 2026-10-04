@@ -4,7 +4,7 @@ import { withBookingSystemGuard, jsonError } from "../../../../lib/server/api-he
 import { enforceRateLimit } from "../../../../lib/server/rate-limit.ts";
 import {
   getBusinessSettings,
-  getActiveVehicleIds,
+  getActiveVehicles,
   getBusyIntervals,
   getBlockedIntervals,
   findOrCreateCustomer,
@@ -16,6 +16,9 @@ import { getSupabaseAdmin } from "../../../../lib/server/supabase.ts";
 import { pickFreeVehicle, withinBookingWindow } from "../../../../lib/booking/availability.ts";
 import { calculateQuote } from "../../../../lib/booking/pricing.ts";
 import { getPricingRule } from "../../../../lib/server/booking-repo.ts";
+import { compatibleVehicleIds } from "../../../../lib/booking/vehicles.ts";
+import { resolveRequestedPackage } from "../../../../lib/booking/package-request.ts";
+import { TRUCK_UNAVAILABLE_MESSAGE } from "../../../../lib/site-data.ts";
 
 export const dynamic = "force-dynamic";
 
@@ -33,7 +36,10 @@ const addressSchema = z.object({
 
 const bodySchema = z.object({
   serviceSlug: z.string().min(1),
-  crewSize: z.coerce.number().int().min(1).max(10),
+  // packageId is authoritative (HR / MR / Small share crewSize 2). crewSize alone is
+  // accepted only from clients built before truck options existed.
+  packageId: z.string().min(1).max(64).optional(),
+  crewSize: z.coerce.number().int().min(1).max(10).optional(),
   startsAt: z.string().datetime(),
   estimatedDurationMinutes: z.coerce.number().int().min(30).max(600).optional(),
   pickupAddress: addressSchema,
@@ -116,6 +122,9 @@ export async function POST(request: NextRequest) {
       return jsonError(400, "This service isn't available for online booking yet — please use Get a Quote.");
     }
 
+    const requestedPackage = resolveRequestedPackage({ packageId: input.packageId, crewSize: input.crewSize });
+    if (!requestedPackage.ok) return jsonError(400, requestedPackage.message);
+
     const settings = await getBusinessSettings();
     const startsAt = new Date(input.startsAt);
     // Scheduling occupancy uses the job's own duration only — the 1-hour
@@ -145,13 +154,18 @@ export async function POST(request: NextRequest) {
       return jsonError(409, "You already have a booking at this time. Check your email for the confirmation, or choose a different time.", { code: "duplicate_booking" });
     }
 
-    const [vehicleIds, busy, blocked] = await Promise.all([
-      getActiveVehicleIds(),
+    const [fleet, busy, blocked] = await Promise.all([
+      getActiveVehicles(),
       getBusyIntervals(startsAt, endsAt),
       getBlockedIntervals(startsAt, endsAt),
     ]);
+    if (fleet.length === 0) {
+      return jsonError(503, TRUCK_UNAVAILABLE_MESSAGE, { code: "no_compatible_vehicle" });
+    }
+    // The selected truck decides which vehicles may take this job.
+    const vehicleIds = compatibleVehicleIds(requestedPackage.packageId, fleet);
     if (vehicleIds.length === 0) {
-      return jsonError(503, "No vehicles are configured yet — an admin must add at least one vehicle before bookings can be taken.");
+      return jsonError(503, TRUCK_UNAVAILABLE_MESSAGE, { code: "no_compatible_vehicle" });
     }
 
     const vehicleId = pickFreeVehicle({ startsAt, endsAt }, vehicleIds, busy, blocked);
@@ -170,7 +184,9 @@ export async function POST(request: NextRequest) {
         startsAt,
         endsAt,
         estimatedDurationMinutes: durationMinutes,
-        crewSize: input.crewSize,
+        crewSize: requestedPackage.crewSize,
+        packageId: requestedPackage.packageId,
+        truckClass: requestedPackage.truckClass,
         vehicleId,
         pickupAddress: input.pickupAddress,
         destinationAddress: input.destinationAddress,
@@ -179,8 +195,8 @@ export async function POST(request: NextRequest) {
         holdMinutes: settings.bookingHoldMinutes,
       });
 
-      const rule = await getPricingRule(input.crewSize);
-      const quote = calculateQuote({ crewSize: input.crewSize, actualDurationMinutes: durationMinutes, startsAt }, rule, settings, settings.timezone);
+      const rule = await getPricingRule({ packageId: requestedPackage.packageId, crewSize: requestedPackage.crewSize });
+      const quote = calculateQuote({ packageId: requestedPackage.packageId, crewSize: requestedPackage.crewSize, actualDurationMinutes: durationMinutes, startsAt }, rule, settings, settings.timezone);
 
       return NextResponse.json({
         bookingId: booking.id,

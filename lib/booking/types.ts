@@ -20,6 +20,9 @@ export type BookingStatus =
 export type PaymentStatus = "pending" | "not_required" | "deposit_paid" | "paid" | "failed" | "refunded" | "partially_refunded";
 
 export interface PricingRule {
+  /** Stable package id (e.g. "hr-16t-2men"). Several packages can share a crew size,
+   * so pricing is keyed on this, never on crewSize alone. */
+  packageId: string;
   crewSize: number;
   ratePer30MinCents: number;
   /** Deprecated in favour of BusinessSettings.minimumBookingMinutes, which
@@ -56,6 +59,9 @@ export interface BusinessSettings {
 }
 
 export interface QuoteInput {
+  /** Stable package id. Omitted only for historical bookings made before truck
+   * options existed, which resolve by crewSize via the legacy packages. */
+  packageId?: string | null;
   crewSize: number;
   /** The actual/estimated job duration BEFORE the 3-hour minimum is
    * applied. Never includes the call-out — call-out is a pricing
@@ -66,6 +72,11 @@ export interface QuoteInput {
 }
 
 export interface QuoteResult {
+  packageId: string | null;
+  truckClass: string | null;
+  truckName: string | null;
+  truckCapacity: string | null;
+  crewSize: number;
   packageName: string;
   ratePer30MinCents: number;
   minimumBookingMinutes: number;
@@ -96,6 +107,11 @@ export interface QuoteResult {
  * `bookingConfirmationCents`; new ones carry `advancePaymentCents: 0`. */
 export interface PricingSnapshot {
   package?: string;
+  packageId?: string | null;
+  truckClass?: string | null;
+  truckName?: string | null;
+  truckTonnage?: number | null;
+  crewSize?: number;
   ratePer30MinCents?: number;
   minimumBookingMinutes?: number;
   calloutMinutes?: number;

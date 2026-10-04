@@ -1,8 +1,10 @@
 "use client";
 
-import { FormEvent, useEffect, useRef, useState } from "react";
+import { FormEvent, useEffect, useId, useRef, useState } from "react";
 import { usePathname } from "next/navigation";
-import { areas, business, entryLocalRate, findMovingPackage, interstatePricing, interstateRoutes, localPricing, quoteFormEndpoint, services, web3FormsAccessKey, type MovingPackageId } from "../../lib/site-data";
+import { areas, business, findMovingPackage, interstatePricing, interstateRoutes, quoteFormEndpoint, services, truckPricing, web3FormsAccessKey, type MovingPackageId } from "../../lib/site-data";
+import { setSelectedTruck, useSelectedTruck } from "../../lib/truck-selection";
+import { TruckHiddenFields, TruckPicker } from "./TruckPicker";
 
 
 declare global {
@@ -40,7 +42,7 @@ interface BookNowButtonProps {
  */
 export function BookNowButton({ location, packageId, className = "", children, onNavigate }: BookNowButtonProps) {
   const selectedPackage = packageId ? findMovingPackage({ id: packageId }) : undefined;
-  const href = selectedPackage ? `/book?crewSize=${selectedPackage.crewSize}` : "/book";
+  const href = selectedPackage ? `/book?package=${selectedPackage.id}` : "/book";
   return (
     <a
       className={`button button-ruby button-book-now ${className}`.trim()}
@@ -425,7 +427,7 @@ export function Header() {
 
 type FormDataShape = {
   name: string; phone: string; email: string; date: string; from: string; to: string;
-  moveType: string; movingPackage: string; propertySize: string; details: string; company: string; tab: "local" | "interstate";
+  moveType: string; propertySize: string; details: string; company: string; tab: "local" | "interstate";
   floorAccess: string; parkingAccess: string; boxesNeeded: string; services: string[];
 };
 
@@ -437,7 +439,7 @@ const ADDITIONAL_SERVICES = [
 
 const createEmptyForm = (): FormDataShape => ({
   name: "", phone: "", email: "", date: "", from: "", to: "",
-  moveType: "Residential (House / Unit)", movingPackage: entryLocalRate.name, propertySize: "2 Bedrooms", details: "", company: "", tab: "local",
+  moveType: "Residential (House / Unit)", propertySize: "2 Bedrooms", details: "", company: "", tab: "local",
   floorAccess: "Ground Floor / Driveway Access", parkingAccess: "On-Street Parking (Nearby)", boxesNeeded: "Not Sure Yet", services: []
 });
 
@@ -455,6 +457,8 @@ function getAdelaideDateInputValue(date = new Date()) {
 export function QuoteForm({ compact = false }: { compact?: boolean }) {
   const pathname = usePathname();
   const [form, setForm] = useState<FormDataShape>(() => createEmptyForm());
+  const selectedTruck = useSelectedTruck();
+  const truckFieldId = useId();
   const [status, setStatus] = useState("");
   const [loading, setLoading] = useState(false);
   const [statusKind, setStatusKind] = useState<"success" | "error" | "info">("info");
@@ -489,6 +493,7 @@ export function QuoteForm({ compact = false }: { compact?: boolean }) {
       return;
     }
     if (form.company) {
+      setSelectedTruck(null);
       setForm(createEmptyForm());
       setStatusKind("success");
       setStatus("Thank you. Your request has been received.");
@@ -516,6 +521,7 @@ export function QuoteForm({ compact = false }: { compact?: boolean }) {
       }
 
       quoteAttempt.current = null;
+      setSelectedTruck(null);
       setForm(createEmptyForm());
       setStatusKind("success");
       setStatus("Thank you. Your move details have been sent to HF Removals Adelaide. We’ll be in touch shortly.");
@@ -589,13 +595,16 @@ export function QuoteForm({ compact = false }: { compact?: boolean }) {
         </button>
       </div>
 
+      {form.tab === "local" && <TruckHiddenFields packageId={selectedTruck} />}
       <div className="form-rate-preview" aria-live="polite">
         {form.tab === "local" ? (
           <p>
             <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" style={{ display: "inline-block", verticalAlign: "-2px", marginRight: "5px" }}>
               <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />
             </svg>
-            <strong>Local Rate:</strong> {entryLocalRate.name} from <em>{entryLocalRate.halfHour} / 30 min</em> ({entryLocalRate.hourly}/hr) · Final quote confirms the move scope
+            <strong>Local Rates:</strong> {truckPricing.map((truck, index) => (
+              <span key={truck.id}>{index > 0 && " · "}{truck.name} <em>{truck.halfHour} / 30 min</em></span>
+            ))} · Final quote confirms the move scope
           </p>
         ) : (
           <p>
@@ -607,34 +616,9 @@ export function QuoteForm({ compact = false }: { compact?: boolean }) {
         )}
       </div>
 
-      <fieldset className="package-selection">
-        <legend className="field-label">Select Your Moving Package <b aria-hidden="true">*</b></legend>
-        <div className="package-options">
-          {localPricing.map((pricing) => {
-            const packageName = pricing.name;
-            return (
-              <label className="package-option" key={pricing.name}>
-                <input
-                  type="radio"
-                  name="moving_package"
-                  value={packageName}
-                  checked={form.movingPackage === packageName}
-                  onChange={(event) => update("movingPackage", event.target.value)}
-                  required
-                />
-                <span className="package-option-copy">
-                  <span className="package-option-heading">
-                    <strong>{packageName}</strong>
-
-                  </span>
-                  <small><mark>{pricing.halfHour}</mark> / 30 min · {pricing.hourly}/hr</small>
-                </span>
-                <span className="package-radio" aria-hidden="true" />
-              </label>
-            );
-          })}
-        </div>
-      </fieldset>
+      {form.tab === "local" && (
+        <TruckPicker name="truck_package_id" value={selectedTruck} onChange={setSelectedTruck} required legend="Choose Your Truck" idPrefix={truckFieldId} />
+      )}
 
       <fieldset className="form-grid form-core">
         <legend className="sr-only">Essential move details</legend>

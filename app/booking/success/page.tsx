@@ -2,6 +2,7 @@ import Link from "next/link";
 import { isBookingSystemLive } from "../../../lib/server/config.ts";
 import { getBookingByAccessToken } from "../../../lib/server/booking-repo.ts";
 import type { PricingSnapshot } from "../../../lib/booking/types.ts";
+import { describeBookedPackage } from "../../../lib/booked-package.ts";
 
 export const dynamic = "force-dynamic";
 export const metadata = { robots: { index: false, follow: false } };
@@ -44,6 +45,7 @@ export default async function BookingSuccessPage({ searchParams }: { searchParam
   }
 
   const snapshot = (booking.pricing_snapshot ?? {}) as PricingSnapshot;
+  const bookedPackage = describeBookedPackage(snapshot, { packageId: booking.package_id, crewSize: booking.crew_size });
   // Historical (Stripe-era) bookings genuinely paid a confirmation
   // amount; everything since pays nothing up-front. Read what was
   // actually recorded — never assume either way.
@@ -59,7 +61,8 @@ export default async function BookingSuccessPage({ searchParams }: { searchParam
       <dl className="mt-8 space-y-2 text-left">
         <Row label="Booking reference" value={booking.booking_number} />
         <Row label="Move date & time" value={new Date(booking.starts_at).toLocaleString("en-AU", { timeZone: "Australia/Adelaide", dateStyle: "full", timeStyle: "short" })} />
-        <Row label="Package" value={snapshot.package ?? "—"} />
+        <Row label="Package" value={bookedPackage.packageLine ?? "—"} />
+        {bookedPackage.crewLine && <Row label="Crew" value={bookedPackage.crewLine} />}
         <Row label="Package rate" value={snapshot.ratePer30MinCents ? `$${(snapshot.ratePer30MinCents / 100).toFixed(0)} / 30 min ($${((snapshot.ratePer30MinCents * 2) / 100).toFixed(0)}/hr)` : "—"} />
         <Row label="Pickup" value={addressLabel(booking.pickup_address)} />
         <Row label="Destination" value={addressLabel(booking.destination_address)} />

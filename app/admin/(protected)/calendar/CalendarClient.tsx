@@ -4,8 +4,8 @@ import Link from "next/link";
 import { useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { classifyBlockedTime } from "../../../../lib/booking/calendar-range.ts";
-import { packageNameForCrewSize } from "../../../../lib/booking/pricing.ts";
-import { movingPackages } from "../../../../lib/site-data.ts";
+import { describePackage } from "../../../../lib/booking/pricing.ts";
+import { movingPackages, legacyPackages } from "../../../../lib/site-data.ts";
 import { AdminPageHeader } from "../../_components/ui";
 import { AdminStatusBadge, statusStyle } from "../../_components/AdminStatusBadge";
 import { Icon } from "../../_components/Icon";
@@ -17,6 +17,7 @@ interface Booking {
   endsAt: string;
   status: string;
   crewSize: number;
+  packageId: string | null;
   vehicleId: string | null;
   crewId: string | null;
   vehicleName?: string;
@@ -45,8 +46,12 @@ interface Resource {
 // every event shows its status as text, never colour alone.
 const FILTERABLE_STATUSES = ["held", "pending_payment", "confirmed", "assigned", "in_progress", "completed"];
 
-function packageLabel(crewSize: number): string {
-  return packageNameForCrewSize(crewSize);
+// Every package a booking can carry, for the filter: bookable ones plus the retired legacy package.
+const FILTER_PACKAGES = [...movingPackages, ...legacyPackages];
+
+function packageLabel(packageId: string | null, crewSize: number): string {
+  const pkg = describePackage({ packageId, crewSize });
+  return pkg.truckCapacity ? `${pkg.packageName} · ${pkg.truckCapacity} · ${crewSize} men` : pkg.packageName;
 }
 
 function fmtTime(iso: string, timezone: string): string {
@@ -112,7 +117,7 @@ export function CalendarClient({
           (!vehicleFilter || b.vehicleId === vehicleFilter) &&
           (!crewFilter || b.crewId === crewFilter) &&
           (!statusFilter || b.status === statusFilter) &&
-          (!packageFilter || String(b.crewSize) === packageFilter),
+          (!packageFilter || b.packageId === packageFilter),
       ),
     [bookings, vehicleFilter, crewFilter, statusFilter, packageFilter],
   );
@@ -196,7 +201,7 @@ export function CalendarClient({
           </select>
           <select aria-label="Filter by package" value={packageFilter} onChange={(e) => setPackageFilter(e.target.value)} className="admin-input admin-input--compact">
             <option value="">All packages</option>
-            {movingPackages.map((item) => <option key={item.id} value={String(item.crewSize)}>{item.name}</option>)}
+            {FILTER_PACKAGES.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}
           </select>
         </div>
       </div>
@@ -241,7 +246,7 @@ function DayColumn({ dateKey, timezone, bookings, blocked }: { dateKey: string; 
           <Link key={b.id} href={`/admin/bookings/${b.id}`} className="admin-cal-event" data-tone={statusStyle("booking", b.status).tone}>
             <span className="admin-cal-event-time">{fmtTime(b.startsAt, timezone)}</span>{" "}
             <span className="admin-cal-event-name">{b.customerName ?? "—"}</span>
-            <span className="admin-cal-event-meta block">{packageLabel(b.crewSize)}</span>
+            <span className="admin-cal-event-meta block">{packageLabel(b.packageId, b.crewSize)}</span>
             <span className="admin-cal-event-meta block">{b.vehicleName ?? "No truck"} · {b.crewName ?? "No crew"}</span>
             <AdminStatusBadge status={b.status} />
           </Link>

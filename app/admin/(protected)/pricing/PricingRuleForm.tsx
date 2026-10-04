@@ -2,7 +2,8 @@
 
 import { useActionState, useTransition } from "react";
 import { upsertPricingRuleAction, setPricingRuleActiveAction } from "./actions.ts";
-import { packageNameForCrewSize } from "../../../../lib/booking/pricing.ts";
+import { describePackage } from "../../../../lib/booking/pricing.ts";
+import { truckPackages, crewUpgradePackages, legacyPackages, formatAud, formatTonnage } from "../../../../lib/site-data.ts";
 import { AdminAlert, AdminCard, AdminDataList, AdminDataRow, AdminEmptyState, formatMoney } from "../../_components/ui";
 import { AdminActiveBadge } from "../../_components/AdminStatusBadge";
 
@@ -13,6 +14,9 @@ interface SaveState {
 
 interface Rule {
   id: string;
+  package_id: string;
+  truck_class: string | null;
+  tonnage: number | null;
   crew_size: number;
   rate_per_30_min_cents: number;
   minimum_billable_minutes: number;
@@ -34,6 +38,13 @@ interface PricingRuleFormProps {
 // convenience, exactly as on the public site.
 const UNITS_PER_HOUR = 2;
 
+// Packages an admin can set a rate for: the trucks first, the crew upgrade, then the retired package.
+const PACKAGE_CHOICES = [
+  ...truckPackages.map((item) => ({ item, label: `${item.name} — ${formatTonnage(item.tonnage)}, ${item.crewSize} men` })),
+  ...crewUpgradePackages.map((item) => ({ item, label: item.name })),
+  ...legacyPackages.map((item) => ({ item, label: `${item.name} (retired — historical bookings only)` })),
+];
+
 function formatHours(minutes: number): string {
   const hours = minutes / 60;
   return `${Number.isInteger(hours) ? hours : hours.toFixed(1)} hour${hours === 1 ? "" : "s"}`;
@@ -52,7 +63,7 @@ export function PricingRuleForm({ existing, minimumBookingMinutes, calloutMinute
     <div className="grid gap-5">
       {existing.length === 0 ? (
         <AdminCard>
-          <AdminEmptyState icon="pricing" title="No pricing rules yet" description="Add a crew-size rate below so customers can get a quote." />
+          <AdminEmptyState icon="pricing" title="No pricing rules yet" description="Add a package rate below so customers can get a quote." />
         </AdminCard>
       ) : (
         <div className="grid gap-5 md:grid-cols-2">
@@ -64,16 +75,21 @@ export function PricingRuleForm({ existing, minimumBookingMinutes, calloutMinute
 
       <AdminCard
         icon="pricing"
-        title="Add or update a crew-size rate"
-        description="Saving a crew size that already exists updates its rate."
+        title="Add or update a package rate"
+        description="Saving a package that already has a rate updates it."
       >
         <form action={formAction} className="grid gap-4">
           {state?.error && <AdminAlert tone="error">{state.error}</AdminAlert>}
           {state?.saved && !pending && <AdminAlert tone="success">Pricing saved.</AdminAlert>}
           <div className="admin-form-grid admin-form-grid--2 admin-form-grid--3">
             <label className="admin-field">
-              <span className="admin-label">Crew size</span>
-              <input type="number" name="crew_size" min={1} required className="admin-input" />
+              <span className="admin-label">Package</span>
+              <select name="package_id" required defaultValue="" className="admin-input">
+                <option value="" disabled>Choose a package</option>
+                {PACKAGE_CHOICES.map(({ item, label }) => (
+                  <option key={item.id} value={item.id}>{label} · site rate {formatAud(item.ratePer30MinCents)} / 30 min</option>
+                ))}
+              </select>
             </label>
             <label className="admin-field">
               <span className="admin-label">Rate per 30 min ($)</span>
@@ -112,11 +128,14 @@ export function PricingRuleForm({ existing, minimumBookingMinutes, calloutMinute
 function RuleCard({ rule, minimumBookingMinutes, calloutMinutes }: { rule: Rule; minimumBookingMinutes: number; calloutMinutes: number }) {
   const [pending, startTransition] = useTransition();
   const rate = rule.rate_per_30_min_cents;
+  const pkg = describePackage({ packageId: rule.package_id, crewSize: rule.crew_size });
+  const truckClass = rule.truck_class ?? pkg.truckClass;
+  const tonnage = rule.tonnage ?? pkg.tonnage;
 
   return (
     <AdminCard
       icon="truck"
-      title={packageNameForCrewSize(rule.crew_size)}
+      title={pkg.packageName}
       actions={<AdminActiveBadge active={rule.active} />}
     >
       <p className="admin-price">
@@ -127,6 +146,8 @@ function RuleCard({ rule, minimumBookingMinutes, calloutMinutes }: { rule: Rule;
 
       <div className="mt-3">
         <AdminDataList>
+          <AdminDataRow label="Truck" value={truckClass ? `${truckClass}${tonnage ? ` — ${formatTonnage(tonnage)}` : ""}` : "Assigned to suit the load"} />
+          <AdminDataRow label="Crew" value={`${rule.crew_size} men`} />
           <AdminDataRow label="Minimum service" value={formatHours(minimumBookingMinutes)} />
           <AdminDataRow label="Call-out" value={`${formatHours(calloutMinutes)} at package rate`} />
           <AdminDataRow label="Weekend" value={`×${rule.weekend_multiplier}`} />

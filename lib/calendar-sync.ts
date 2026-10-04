@@ -7,6 +7,8 @@
 // only, and a failure here never changes the booking itself.
 
 import { packageNameForCrewSize } from "./booking/pricing.ts";
+import { describeBookedPackage } from "./booked-package.ts";
+import type { PricingSnapshot } from "./booking/types.ts";
 
 export const CALENDAR_TIME_ZONE = "Australia/Adelaide";
 
@@ -28,9 +30,10 @@ export interface CalendarBooking {
   starts_at: string;
   ends_at: string;
   crew_size: number;
+  package_id?: string | null;
   pickup_address: Address | null;
   destination_address: Address | null;
-  pricing_snapshot: { package?: string } | null;
+  pricing_snapshot: Pick<PricingSnapshot, "package" | "packageId" | "truckClass" | "truckName" | "truckTonnage" | "crewSize" | "ratePer30MinCents"> | null;
   google_calendar_event_id: string | null;
   customer: { name?: string | null; email?: string | null; phone?: string | null } | null;
 }
@@ -72,7 +75,9 @@ function surname(name: string | null | undefined): string {
  * excluded.
  */
 export function buildCalendarEvent(booking: CalendarBooking, options: { adminBaseUrl: string }): CalendarEventBody {
-  const packageName = booking.pricing_snapshot?.package ?? packageNameForCrewSize(booking.crew_size);
+  // Truck packages read e.g. "HR Truck — 16 Ton" from the frozen snapshot; older snapshots keep their stored name.
+  const bookedPackage = describeBookedPackage(booking.pricing_snapshot, { packageId: booking.package_id, crewSize: booking.crew_size });
+  const packageName = bookedPackage.packageLine ?? packageNameForCrewSize(booking.crew_size);
   const customer = booking.customer;
   const description = [
     `Booking reference: ${booking.booking_number}`,
@@ -82,6 +87,7 @@ export function buildCalendarEvent(booking: CalendarBooking, options: { adminBas
     `Pickup: ${addressLabel(booking.pickup_address)}`,
     `Destination: ${addressLabel(booking.destination_address)}`,
     `Package: ${packageName}`,
+    ...(bookedPackage.rateLine ? [`Rate: ${bookedPackage.rateLine}`] : []),
     `Crew size: ${booking.crew_size}`,
     `Booking status: ${booking.booking_status.replace(/_/g, " ")}`,
     `Admin: ${options.adminBaseUrl.replace(/\/$/, "")}/admin/bookings/${booking.id}`,

@@ -5,7 +5,8 @@ import { getStaffSession } from "../../../../../lib/server/supabase-ssr.ts";
 import { getSupabaseAdmin } from "../../../../../lib/server/supabase.ts";
 import { canTransition } from "../../../../../lib/booking/state-machine.ts";
 import { pickFreeVehicle } from "../../../../../lib/booking/availability.ts";
-import { getActiveVehicleIds, getBusyIntervals, getBlockedIntervals } from "../../../../../lib/server/booking-repo.ts";
+import { compatibleVehicleIds } from "../../../../../lib/booking/vehicles.ts";
+import { getActiveVehicles, getBusyIntervals, getBlockedIntervals } from "../../../../../lib/server/booking-repo.ts";
 import { reconcileBookingCalendar } from "../../../../../lib/server/google-calendar.ts";
 import { computeFinalBilling } from "../../../../../lib/booking/pricing.ts";
 import type { BookingStatus, PaymentStatus, PricingSnapshot } from "../../../../../lib/booking/types.ts";
@@ -63,11 +64,13 @@ export async function rescheduleBookingAction(bookingId: string, newStartsAtIso:
     const newStartsAt = new Date(newStartsAtIso);
     const newEndsAt = new Date(newStartsAt.getTime() + booking.estimated_duration_minutes * 60_000);
 
-    const [vehicleIds, busy, blocked] = await Promise.all([
-      getActiveVehicleIds(),
+    const [fleet, busy, blocked] = await Promise.all([
+      getActiveVehicles(),
       getBusyIntervals(newStartsAt, newEndsAt),
       getBlockedIntervals(newStartsAt, newEndsAt),
     ]);
+    // Truck packages only match vehicles of their truck class; 3-men / legacy / null package accept any vehicle.
+    const vehicleIds = compatibleVehicleIds(booking.package_id as string | null, fleet);
     // Exclude this booking's own current row from the busy set — otherwise
     // it would always conflict with itself when re-checking its own slot.
     const busyExcludingSelf = busy.filter((b) => !(b.vehicleId === booking.vehicle_id && b.startsAt.getTime() === new Date(booking.starts_at).getTime()));

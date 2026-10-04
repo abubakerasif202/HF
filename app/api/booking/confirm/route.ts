@@ -60,11 +60,13 @@ export async function POST(request: NextRequest) {
     }
 
     const settings = await getBusinessSettings();
-    const rule = await getPricingRule(booking.crew_size);
+    // Priced from the package frozen on the booking at hold time (null for bookings
+    // made before truck options, which fall back to their crew size).
+    const rule = await getPricingRule({ packageId: booking.package_id, crewSize: booking.crew_size });
     // The booking's own scheduled duration is the estimate at booking
     // time; the real figure is computed when staff finalise the job.
     const quote = calculateQuote(
-      { crewSize: booking.crew_size, actualDurationMinutes: booking.estimated_duration_minutes, startsAt: new Date(booking.starts_at) },
+      { packageId: booking.package_id, crewSize: booking.crew_size, actualDurationMinutes: booking.estimated_duration_minutes, startsAt: new Date(booking.starts_at) },
       rule,
       settings,
       settings.timezone,

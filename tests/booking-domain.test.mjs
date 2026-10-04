@@ -35,8 +35,8 @@ const settings = {
 const configuredSettings = { ...settings, depositType: "fixed", depositFixedAmountCents: 10000 };
 
 // Confirmed canonical rates: $79/30min (2 movers), $99/30min (3 movers).
-const rule2 = { crewSize: 2, ratePer30MinCents: 7900, minimumBillableMinutes: 60, weekendMultiplier: 1, publicHolidayMultiplier: 1 };
-const rule3 = { crewSize: 3, ratePer30MinCents: 9900, minimumBillableMinutes: 60, weekendMultiplier: 1, publicHolidayMultiplier: 1 };
+const rule2 = { packageId: "2-men", crewSize: 2, ratePer30MinCents: 7900, minimumBillableMinutes: 60, weekendMultiplier: 1, publicHolidayMultiplier: 1 };
+const rule3 = { packageId: "3-men", crewSize: 3, ratePer30MinCents: 9900, minimumBillableMinutes: 60, weekendMultiplier: 1, publicHolidayMultiplier: 1 };
 
 test("timezone: Adelaide is +9:30 in ACST (non-DST, e.g. July)", () => {
   const winter = new Date(Date.UTC(2026, 6, 15, 0, 0, 0));
@@ -282,6 +282,11 @@ test("pricing snapshot: freezes package, rate, minimum and call-out policy with 
   const quote = calculateQuote({ crewSize: 3, actualDurationMinutes: 180, startsAt: at }, rule3, configuredSettings, TZ);
   assert.deepEqual(buildPricingSnapshot(quote), {
     package: "3 Movers + Truck",
+    packageId: "3-men",
+    truckClass: null,
+    truckName: null,
+    truckTonnage: null,
+    crewSize: 3,
     ratePer30MinCents: 9900,
     minimumBookingMinutes: 180,
     calloutMinutes: 60,

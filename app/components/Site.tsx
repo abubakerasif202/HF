@@ -1,9 +1,18 @@
 import Image from "next/image";
-import { areas, business, ContentPage, entryLocalRate, googleReviews, guides, interstatePricing, interstateRoutes, localPricing, services, standardMoveFaqs } from "../../lib/site-data";
+import { areas, business, ContentPage, entryLocalRate, googleReviews, guides, interstatePricing, interstateRoutes, localPricing, services, standardMoveFaqs, truckPricing } from "../../lib/site-data";
 import { hfServiceAreaRecords } from "../../lib/hf-service-areas";
 import { ABDeveloperCredit } from "./ABDeveloperCredit";
 import { contentTrail, homeCrumb, sectionCrumbs, staticCrumbLabels, type Crumb } from "../../lib/breadcrumbs";
+import { HeroFleetPanel, TruckFitSection, TruckSection } from "./FleetSections";
+import { CrewUpgradeNote, TruckCards } from "./TruckChooser";
 import { BookNowButton, Header, MobileStickyCta, MotionExperience, QuoteForm, SideQuoteTab, UtilityBar } from "./SiteClient";
+
+const [HR_TRUCK, MR_TRUCK, SMALL_TRUCK] = truckPricing;
+const HERO_STORY = [
+  { question: "Big house?", answer: `${HR_TRUCK.name} — ${HR_TRUCK.capacity}.` },
+  { question: "Medium move?", answer: `${MR_TRUCK.name} — ${MR_TRUCK.capacity}.` },
+  { question: "Apartment or smaller move?", answer: `${SMALL_TRUCK.name} — ${SMALL_TRUCK.capacity}.` },
+];
 
 function CheckIcon({ size = 12, style }: { size?: number; style?: React.CSSProperties }) {
   return (
@@ -336,7 +345,7 @@ function BookingHowItWorksSection() {
   );
 }
 
-function PricingSection() {
+function PricingSection({ showTrucks = true }: { showTrucks?: boolean } = {}) {
   return (
     <section className="section pricing-section" id="pricing">
       <div className="container">
@@ -345,44 +354,37 @@ function PricingSection() {
           title={<>Published Reference Rates, <em>Clearly Explained</em></>}
           copy="Local Adelaide moves use published 30-minute billing increments. Interstate routes below show supplied per-cubic-metre reference rates."
         />
-        <div className="local-pricing">
-          {localPricing.map((item) => (
-            <article className="price-card" key={item.name}>
-              <span className="ruby-dot" aria-hidden="true" />
-              <h3>{item.name}</h3>
-              <div className="price-value">
-                <strong>{item.halfHour}</strong>
-                <span>/ 30 min</span>
-              </div>
-              <p className="price-hourly">{item.hourly} per hour</p>
-              <ul className="price-features">
-                <li>
-                  <CheckIcon size={13} style={{ display: "inline-block", verticalAlign: "-2px", marginRight: "7px" }} />
-                  Full truck equipped with blankets & straps
-                </li>
-                <li>
-                  <CheckIcon size={13} style={{ display: "inline-block", verticalAlign: "-2px", marginRight: "7px" }} />
-                  Complimentary mattress protection wrap
-                </li>
-                <li>
-                  <CheckIcon size={13} style={{ display: "inline-block", verticalAlign: "-2px", marginRight: "7px" }} />
-                  Final quote confirms access, inventory and move scope
-                </li>
-                <li>
-                  <CheckIcon size={13} style={{ display: "inline-block", verticalAlign: "-2px", marginRight: "7px" }} />
-                  {business.insurance}; terms apply
-                </li>
-              </ul>
-              <div className="package-cta-row">
-                <BookNowButton location="pricing" packageId={item.id}>
-                  Book Now <span>→</span>
-                </BookNowButton>
-                <a className="package-quote-link" href="/#quote">Not ready? Get a Quote instead</a>
-              </div>
-              <p className="package-trust-line">No advance payment required · final price calculated after completion</p>
-            </article>
-          ))}
-        </div>
+        {showTrucks ? (
+          <>
+            <TruckCards location="pricing" />
+            <CrewUpgradeNote />
+          </>
+        ) : (
+          <div className="rate-glance">
+            <table>
+              <caption className="sr-only">Local rates by truck</caption>
+              <thead>
+                <tr>
+                  <th scope="col">Truck</th>
+                  <th scope="col">Crew</th>
+                  <th scope="col">Per 30 min</th>
+                  <th scope="col">Per hour</th>
+                </tr>
+              </thead>
+              <tbody>
+                {localPricing.map((item) => (
+                  <tr key={item.id}>
+                    <th scope="row">{item.capacity ? `${item.name} (${item.capacity})` : item.name}</th>
+                    <td>{item.crewLabel}</td>
+                    <td><strong>{item.halfHour}</strong></td>
+                    <td>{item.hourly}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+            <a className="button button-ruby" href="#trucks">Choose your truck <span>→</span></a>
+          </div>
+        )}
         <p className="pricing-disclosure">
           3-hour minimum service + 1-hour call-out fee. The call-out covers truck fuel and basic transport charges.
           Additional service time is billed in 30-minute increments at your selected package rate. Your final price
@@ -836,31 +838,34 @@ export function HomePage() {
         <div className="hero-overlay" />
         <div className="container hero-grid">
           <div className="hero-copy">
-            <div className="hero-badge">
-              <StarIcon size={12} className="hero-badge-star" />
-              <span>{business.googleBusiness.rating.toFixed(1)} RATED ADELAIDE REMOVALISTS ({business.googleBusiness.reviewCount} REVIEWS)</span>
-            </div>
+            <p className="hero-eyebrow">A truck for every move</p>
             <h1>
-              Adelaide <em>Removalists</em>
-              <br />
-              You Can Rely On
+              Adelaide Removalists: <em>The Right Truck</em> for Every Move
             </h1>
-            <p className="hero-lead">
-              HF&apos;s removalists in Adelaide handle home, apartment, office and interstate moves, with published reference rates. Coverage includes {business.insurance}, subject to applicable policy terms.
-            </p>
-            <p className="hero-book-line">Book your move online in minutes — choose your date, confirm your booking, and we take it from there.</p>
+            <div className="hero-lead hero-fleet-copy">
+              {HERO_STORY.map((line) => (
+                <p key={line.question}>
+                  <strong>{line.question}</strong> {line.answer}
+                </p>
+              ))}
+            </div>
+            <p className="hero-book-line">No fake promises — just the right truck, the right crew and the same quality HF service.</p>
             <div className="hero-actions">
               <BookNowButton location="hero">
-                Book Now <span>→</span>
+                Book Your Move <span>→</span>
               </BookNowButton>
-              <a className="button button-outline" href={business.phones[0].href}>
-                Call {business.phones[0].display}
+              <a className="button button-outline" href="#quote">
+                Get a Quote
               </a>
             </div>
             <p className="hero-quote-fallback">
-              Not ready to book? <a href="#quote">Get a Free Quote</a>
+              Prefer to talk it through? <a href={business.phones[0].href}>Call {business.phones[0].display}</a>
             </p>
             <div className="hero-proof-pills">
+              <span>
+                <StarIcon size={12} className="hero-badge-star" />
+                {business.googleBusiness.rating.toFixed(1)} on Google ({business.googleBusiness.reviewCount} reviews)
+              </span>
               <span>
                 <CheckIcon size={12} />
                 Local Adelaide Crew
@@ -871,21 +876,38 @@ export function HomePage() {
               </span>
               <span>
                 <CheckIcon size={12} />
-                Free Mattress Wraps
-              </span>
-              <span>
-                <CheckIcon size={12} />
                 {business.googleBusiness.hoursLabel}
               </span>
+            </div>
+          </div>
+          <HeroFleetPanel />
+        </div>
+      </section>
+
+      <TrustBar />
+      <TruckSection />
+      <TruckFitSection />
+      <section className="section quote-section" aria-labelledby="quote-section-heading">
+        <div className="container quote-section-grid">
+          <div className="quote-section-copy">
+            <p className="eyebrow">Get your quote</p>
+            <h2 id="quote-section-heading">
+              Tell us about <em>your move</em>
+            </h2>
+            <p>Pick your truck, share your route and date, and HF will scope the job around your inventory and access. Ready to lock in a time instead? You can book online with no advance payment.</p>
+            <div className="quote-section-actions">
+              <BookNowButton location="quote_section">
+                Book Your Move <span>→</span>
+              </BookNowButton>
+              <a className="button button-outline" href={business.phones[0].href}>
+                Call {business.phones[0].display}
+              </a>
             </div>
           </div>
           <QuoteForm />
         </div>
       </section>
-
-      <TrustBar />
       <ServiceTicker />
-      <ServicesGrid />
       <section className="section home-intent-section">
         <div className="container">
           <SectionHeading
@@ -900,14 +922,14 @@ export function HomePage() {
             <a href="/services/interstate-removals"><strong>Adelaide interstate removals</strong><span>Route, inventory, volume and access planning for longer moves.</span></a>
             <a href="/services/packing-unpacking"><strong>Packing services Adelaide</strong><span>Prepare, protect and label belongings before moving day.</span></a>
             <a href="/areas"><strong>Local removals Adelaide</strong><span>Browse the service-area directory and nearby planning pages.</span></a>
-            <a href="/pricing"><strong>Adelaide removalist prices</strong><span>Compare crew rates, minimum service and call-out fees.</span></a>
+            <a href="/pricing"><strong>Adelaide removalist prices</strong><span>Compare HR, MR and Small truck rates, minimum service and call-out fees.</span></a>
             <a href="/services/backloading"><strong>Backloading enquiries</strong><span>Share your destination, volume and date flexibility for review.</span></a>
           </div>
         </div>
       </section>
       <BookingHowItWorksSection />
       <ApartmentAccessSection />
-      <PricingSection />
+      <PricingSection showTrucks={false} />
       <VolumeGuidanceSection />
       <ServicePhotosSection />
       <ProcessSection />
@@ -1356,14 +1378,14 @@ export function StaticPage({ type }: { type: "about" | "contact" | "pricing" | "
   if (type === "pricing")
     return (
       <SiteFrame>
-        <PageHero breadcrumbs={[homeCrumb, { label: staticCrumbLabels.pricing }]} eyebrow="Clear billing units" title="Adelaide Removalist Prices & Hourly Rates" description="Compare the published rates for 2 or 3 movers and a truck, understand minimum service and call-out fees, and request a quote for your inventory and access." />
+        <PageHero breadcrumbs={[homeCrumb, { label: staticCrumbLabels.pricing }]} eyebrow="Clear billing units" title="Adelaide Removalist Prices & Hourly Rates" description="Compare the HR, MR and Small truck rates, each with a 2-man crew, understand minimum service and call-out fees, and request a quote for your inventory and access." />
         <PricingSection />
         <section className="section detail-section">
           <div className="container">
             <div className="editorial-sections">
-              <article><h2>How your local removalist cost is calculated</h2><p>Choose the crew package that suits your move. A 3-hour minimum service and a separate 1-hour call-out fee apply at the selected package rate. The call-out covers truck fuel and basic transport charges; it is not an extra hour of moving labour. Additional service time is billed in 30-minute increments. The final price is calculated after the move is completed.</p></article>
+              <article><h2>How your local removalist cost is calculated</h2><p>Choose the truck that suits your move. A 3-hour minimum service and a separate 1-hour call-out fee apply at the selected package rate. The call-out covers truck fuel and basic transport charges; it is not an extra hour of moving labour. Additional service time is billed in 30-minute increments. The final price is calculated after the move is completed.</p></article>
               <article><h2>What affects the time needed for your move?</h2><p>Prepare a room-by-room inventory, including garage and outdoor items. Tell HF about stairs, lift bookings, parking, the distance between the truck and each door, and furniture that needs special access planning. Loading, travel between addresses and unloading all need to be considered when discussing your move scope.</p></article>
-              <article><h2>Compare the crew and packing requirements</h2><p>The published packages include 2 movers and a truck or 3 movers and a truck. Share your property size and inventory rather than choosing a package on price alone. Tell HF which items are already packed and whether you need <a href="/services/packing-unpacking">packing and unpacking support</a>, so the scope can be confirmed.</p></article>
+              <article><h2>Compare the crew and packing requirements</h2><p>Choose from the 16 ton HR, 12 ton MR or 8 ton Small truck, each with a 2-man crew, with a third mover available on request. Share your property size and inventory so the truck can be matched to the load rather than chosen on price alone. Tell HF which items are already packed and whether you need <a href="/services/packing-unpacking">packing and unpacking support</a>, so the scope can be confirmed.</p></article>
               <article><h2>Interstate reference rates need a route and volume</h2><p>Interstate rates use cubic metres rather than the local hourly model. Provide both addresses, an item list, bulky-item dimensions, access notes and your preferred dates. Review <a href="/services/interstate-removals">interstate removal planning</a> and the route pages above; reference rates are not a fixed quote or a confirmed delivery schedule.</p></article>
               <article><h2>Get a quote for your Adelaide move</h2><p>Send both addresses, your preferred date, property size, inventory and access notes through the <a href="/#quote">move quote form</a>. For examples of how to compare estimates, read <a href="/guides/how-removalist-pricing-works">how removalist pricing works</a>. This page remains the place to check HF’s published rates.</p></article>
             </div>

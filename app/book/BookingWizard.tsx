@@ -3,7 +3,9 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { trackBookingEvent } from "../../lib/booking-analytics";
-import { findMovingPackage, localPricing, minimumServiceMinutes } from "../../lib/site-data";
+import { crewUpgradePricing, formatAud, isBookablePackageId, minimumServiceMinutes, truckPricing, TRUCK_UNAVAILABLE_MESSAGE, type MovingPackageId } from "../../lib/site-data";
+import { setSelectedTruck, useSelectedTruck } from "../../lib/truck-selection";
+import { TruckPicker } from "../components/TruckPicker";
 
 type Step = "details" | "locations" | "schedule" | "customer" | "review";
 
@@ -44,15 +46,56 @@ export function BookingWizard() {
   const [submitting, setSubmitting] = useState(false);
 
   const searchParams = useSearchParams();
-  // crewSize is the stable package key shared with the booking API and the
-  // pricing_rules table; only sizes that exist in the canonical package table count.
-  const preselectedCrewSize = findMovingPackage({ crewSize: Number(searchParams.get("crewSize")) })?.crewSize ?? null;
+  // The stable package id is shared with the booking API and the pricing_rules table
+  // (HR / MR / Small all have a 2-man crew, so crew size can't identify a truck).
+  // Only ids in the canonical package table count. /book?package=<id> preselects a
+  // truck; the old /book?crewSize=3 link still maps to the 3-mover upgrade.
+  const queryPackage = searchParams.get("package");
+  const legacyCrew = Number(searchParams.get("crewSize"));
+  const preselectedPackageId: MovingPackageId | null =
+    queryPackage && isBookablePackageId(queryPackage) ? queryPackage : legacyCrew === 3 ? "3-men" : null;
   const [serviceSlug, setServiceSlug] = useState(SERVICES[0].slug);
-  // Optional preselection from a "Book Now" link on a specific package
-  // card (e.g. /book?crewSize=3) — a UX nicety only; the customer can
-  // still change it on this step, and no separate booking path exists.
-  const [crewSize, setCrewSize] = useState<number>(preselectedCrewSize ?? localPricing[0].crewSize);
-  const selectedPackage = localPricing.find((item) => item.crewSize === crewSize) ?? localPricing[0];
+  // Explicit choice made in this wizard wins, then the link's package, then a truck
+  // picked earlier on the homepage (sessionStorage; null during server render).
+  const rememberedTruck = useSelectedTruck();
+  const [chosenPackageId, setChosenPackageId] = useState<MovingPackageId | null>(null);
+  const packageId: MovingPackageId | null = chosenPackageId ?? preselectedPackageId ?? rememberedTruck;
+  const allRows = [...truckPricing, ...crewUpgradePricing];
+  const selectedPackage = allRows.find((item) => item.id === packageId) ?? null;
+  const [noCompatibleVehicle, setNoCompatibleVehicle] = useState(false);
+  // Packages with no compatible active vehicle, so the picker can say so up front.
+  const [unavailableIds, setUnavailableIds] = useState<string[]>([]);
+  const packageUnavailable = packageId !== null && unavailableIds.includes(packageId);
+
+  useEffect(() => {
+    if (preselectedPackageId) setSelectedTruck(preselectedPackageId);
+  }, [preselectedPackageId]);
+
+  useEffect(() => {
+    let cancelled = false;
+    fetch("/api/booking/fleet")
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data: { unavailablePackageIds?: string[] } | null) => {
+        if (!cancelled && data?.unavailablePackageIds) setUnavailableIds(data.unavailablePackageIds);
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  function choosePackage(next: MovingPackageId) {
+    if (next === packageId) return;
+    setChosenPackageId(next);
+    setSelectedTruck(next);
+    // A different truck means different vehicles and a different rate: drop any slot
+    // and hold made for the previous choice so nothing stale reaches the booking.
+    setHold(null);
+    setSelectedSlot(null);
+    setSlots([]);
+    setNoCompatibleVehicle(false);
+    setError(null);
+  }
   const [propertySize, setPropertySize] = useState("");
   const [customerNotes, setCustomerNotes] = useState("");
 
@@ -69,6 +112,10 @@ export function BookingWizard() {
 
   interface Quote {
     packageName: string;
+    packageId: string | null;
+    truckName: string | null;
+    truckCapacity: string | null;
+    crewSize: number;
     ratePer30MinCents: number;
     minimumBookingMinutes: number;
     calloutMinutes: number;
@@ -101,9 +148,11 @@ export function BookingWizard() {
     }
     setLoadingSlots(true);
     try {
-      const res = await fetch(`/api/booking/availability?date=${nextDate}&crewSize=${crewSize}`);
+      if (!packageId) throw new Error("Please choose a truck first.");
+      const res = await fetch(`/api/booking/availability?date=${nextDate}&packageId=${encodeURIComponent(packageId)}`);
       const data = await res.json();
       if (!res.ok) throw new Error(data.error ?? "Could not load availability");
+      setNoCompatibleVehicle(data.hasCompatibleVehicle === false);
       setSlots(data.slots);
       trackBookingEvent("availability_checked", {
         slots_available: (data.slots as Slot[]).filter((s) => s.state !== "unavailable").length,
@@ -117,9 +166,9 @@ export function BookingWizard() {
   }
 
   async function submitHold() {
-    if (!selectedSlot) return;
+    if (!selectedSlot || !packageId) return;
     if (hold && hold.startsAt === selectedSlot.startsAt) {
-      trackBookingEvent("booking_reviewed", { package: crewSize });
+      trackBookingEvent("booking_reviewed", { package: packageId });
       return;
     }
     setSubmitting(true);
@@ -130,7 +179,7 @@ export function BookingWizard() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           serviceSlug,
-          crewSize,
+          packageId,
           startsAt: selectedSlot.startsAt,
           pickupAddress,
           destinationAddress,
@@ -152,8 +201,8 @@ export function BookingWizard() {
         throw new Error(data.error ?? "Could not hold this booking");
       }
       setHold({ bookingId: data.bookingId, accessToken: data.accessToken, quote: data.quote, startsAt: selectedSlot.startsAt });
-      trackBookingEvent("booking_hold_created", { package: crewSize, service: serviceSlug });
-      trackBookingEvent("booking_reviewed", { package: crewSize });
+      trackBookingEvent("booking_hold_created", { package: packageId, service: serviceSlug });
+      trackBookingEvent("booking_reviewed", { package: packageId });
     } catch (err) {
       setError((err as Error).message);
     } finally {
@@ -189,7 +238,7 @@ export function BookingWizard() {
         }
         throw new Error(data.error ?? "Could not confirm your booking");
       }
-      trackBookingEvent("booking_confirmed", { package: crewSize, service: serviceSlug });
+      trackBookingEvent("booking_confirmed", { package: packageId ?? "unknown", service: serviceSlug });
       window.location.href = data.successUrl;
     } catch (err) {
       setError((err as Error).message);
@@ -221,6 +270,16 @@ export function BookingWizard() {
         ))}
       </ol>
 
+      {selectedPackage && (
+        <p className="wizard-truck-bar" aria-live="polite">
+          <span>Your truck</span>
+          <strong>{selectedPackage.name}{selectedPackage.capacity ? ` — ${selectedPackage.capacity}` : ""}</strong>
+          <span>{selectedPackage.crewLabel}</span>
+          <span className="wizard-truck-rate"><b>{selectedPackage.halfHour}</b> / 30 min</span>
+          <span>{selectedPackage.hourly}/hr</span>
+        </p>
+      )}
+
       {error && <p className="mt-6 rounded-lg bg-red-50 px-4 py-3 text-red-700">{error}</p>}
 
       {step === "details" && (
@@ -233,18 +292,12 @@ export function BookingWizard() {
               ))}
             </select>
           </label>
-          <label className="block">
-            <span className="text-sm font-medium">Package</span>
-            <select className="mt-1 w-full rounded-lg border px-3 py-2" value={crewSize} onChange={(e) => setCrewSize(Number(e.target.value))}>
-              {localPricing.map((item) => (
-                <option key={item.id} value={item.crewSize}>{item.name} — {item.halfHour} / 30 min ({item.hourly}/hr)</option>
-              ))}
-            </select>
-          </label>
+          <TruckPicker name="truck_package_id" value={packageId} onChange={choosePackage} required legend="Choose your truck" idPrefix="wizard-truck" unavailableIds={unavailableIds} />
+          {packageUnavailable && <p className="rounded-lg bg-red-50 px-4 py-3 text-red-700" role="alert">{TRUCK_UNAVAILABLE_MESSAGE}</p>}
           <div className="rounded-lg bg-neutral-50 px-4 py-3 text-sm text-neutral-600">
             <p><strong>Minimum service:</strong> {minimumServiceMinutes / 60} hours</p>
             <p className="mt-1">
-              <strong>Call-out:</strong> 1 hour — {selectedPackage.callout}
+              <strong>Call-out:</strong> 1 hour{selectedPackage ? ` — ${selectedPackage.callout}` : " at your selected truck rate"}
               <br />Includes truck fuel and basic transport charges
             </p>
           </div>
@@ -256,7 +309,7 @@ export function BookingWizard() {
             <span className="text-sm font-medium">Anything else we should know?</span>
             <textarea className="mt-1 w-full rounded-lg border px-3 py-2" rows={3} value={customerNotes} onChange={(e) => setCustomerNotes(e.target.value)} />
           </label>
-          <button className="button button-ruby" onClick={() => setStep("locations")}>Continue</button>
+          <button className="button button-ruby" disabled={!packageId || packageUnavailable} onClick={() => setStep("locations")}>Continue</button>
         </section>
       )}
 
@@ -277,6 +330,11 @@ export function BookingWizard() {
             <span className="text-sm font-medium">Choose a date</span>
             <input type="date" className="mt-1 w-full rounded-lg border px-3 py-2" value={date} onChange={(e) => loadSlots(e.target.value)} />
           </label>
+          {noCompatibleVehicle && (
+            <p className="rounded-lg bg-red-50 px-4 py-3 text-red-700">
+              {TRUCK_UNAVAILABLE_MESSAGE}
+            </p>
+          )}
           {loadingSlots && <p className="text-neutral-500">Checking availability…</p>}
           {!loadingSlots && date && slots.length === 0 && <p className="text-neutral-500">No available times on this date.</p>}
           <div className="grid grid-cols-3 gap-2 sm:grid-cols-4">
@@ -365,10 +423,12 @@ export function BookingWizard() {
             <div className="rounded-xl border p-4">
               <h3 className="font-medium">Booking summary</h3>
               <dl className="mt-3 space-y-2 text-sm">
-                <Row label="Package" value={hold.quote.packageName} />
-                <Row label="Rate" value={`$${(hold.quote.ratePer30MinCents / 100).toFixed(0)} / 30 min ($${((hold.quote.ratePer30MinCents * 2) / 100).toFixed(0)}/hr)`} />
+                <Row label="Selected truck" value={hold.quote.truckName ? `${hold.quote.truckName}${hold.quote.truckCapacity ? ` — ${hold.quote.truckCapacity}` : ""}` : hold.quote.packageName} />
+                <Row label="Crew" value={`${hold.quote.crewSize} Men`} />
+                <Row label="Rate" value={`${formatAud(hold.quote.ratePer30MinCents)} / 30 min`} />
+                <Row label="Hourly equivalent" value={`${formatAud(hold.quote.ratePer30MinCents * 2)}/hr`} />
                 <Row label="Minimum service" value={`${hold.quote.minimumBookingMinutes / 60} hours`} />
-                <Row label="Call-out" value={`1 hour — $${(hold.quote.calloutFeeCents / 100).toFixed(0)}`} />
+                <Row label="Call-out" value={`1 hour — ${formatAud(hold.quote.calloutFeeCents)}`} />
                 <Row label="Estimated minimum" value={`$${(hold.quote.finalTotalCents / 100).toFixed(2)}`} />
                 <Row label="Advance payment" value="Not required" />
               </dl>

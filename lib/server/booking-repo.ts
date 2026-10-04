@@ -1,6 +1,8 @@
 import "server-only";
 import { getSupabaseAdmin } from "./supabase.ts";
 import type { BusinessSettings, BusyInterval, PricingRule, PricingSnapshot } from "../booking/types.ts";
+import type { FleetVehicle } from "../booking/vehicles.ts";
+import { findMovingPackage } from "../site-data.ts";
 import type { ConfirmRpcResult } from "../booking/confirmation.ts";
 import { LIVE_STATUSES } from "../booking/state-machine.ts";
 
@@ -45,16 +47,24 @@ export async function getBusinessSettings(): Promise<BusinessSettings> {
   };
 }
 
-export async function getPricingRule(crewSize: number): Promise<PricingRule | undefined> {
+/**
+ * Pricing rule for a package. Keyed on the stable package id; a booking made before
+ * truck options existed has no package id and resolves through its crew size to the
+ * legacy "2-men" / "3-men" rule.
+ */
+export async function getPricingRule(by: { packageId?: string | null; crewSize: number }): Promise<PricingRule | undefined> {
+  const packageId = by.packageId ?? findMovingPackage({ crewSize: by.crewSize })?.id;
+  if (!packageId) return undefined;
   const { data, error } = await getSupabaseAdmin()
     .from("pricing_rules")
     .select("*")
-    .eq("crew_size", crewSize)
+    .eq("package_id", packageId)
     .eq("active", true)
     .maybeSingle();
   if (error) throw error;
   if (!data) return undefined;
   return {
+    packageId: data.package_id,
     crewSize: data.crew_size,
     ratePer30MinCents: data.rate_per_30_min_cents,
     minimumBillableMinutes: data.minimum_billable_minutes,
@@ -63,10 +73,14 @@ export async function getPricingRule(crewSize: number): Promise<PricingRule | un
   };
 }
 
-export async function getActiveVehicleIds(): Promise<string[]> {
-  const { data, error } = await getSupabaseAdmin().from("vehicles").select("id").eq("active", true);
+export async function getActiveVehicles(): Promise<FleetVehicle[]> {
+  const { data, error } = await getSupabaseAdmin().from("vehicles").select("id, vehicle_type").eq("active", true);
   if (error) throw error;
-  return (data ?? []).map((row) => row.id as string);
+  return (data ?? []).map((row) => ({ id: row.id as string, vehicleType: (row.vehicle_type as string | null) ?? null }));
+}
+
+export async function getActiveVehicleIds(): Promise<string[]> {
+  return (await getActiveVehicles()).map((vehicle) => vehicle.id);
 }
 
 export async function getBusyIntervals(rangeStart: Date, rangeEnd: Date): Promise<BusyInterval[]> {
@@ -143,6 +157,8 @@ export interface CreateHoldInput {
   endsAt: Date;
   estimatedDurationMinutes: number;
   crewSize: number;
+  packageId: string | null;
+  truckClass: string | null;
   vehicleId: string;
   pickupAddress: unknown;
   destinationAddress: unknown;
@@ -172,6 +188,8 @@ export async function createBookingHold(input: CreateHoldInput) {
     p_move_details: input.moveDetails,
     p_customer_notes: input.customerNotes ?? null,
     p_hold_minutes: input.holdMinutes,
+    p_package_id: input.packageId,
+    p_truck_class: input.truckClass,
   });
   if (error) {
     if (error.code === "23P01" || /slot_unavailable/.test(error.message)) {

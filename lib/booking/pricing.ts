@@ -1,12 +1,26 @@
 import type { BusinessSettings, FinalBilling, PaymentStatus, PricingRule, PricingSnapshot, QuoteInput, QuoteResult } from "./types.ts";
 import { instantToZonedParts } from "./timezone.ts";
-import { findMovingPackage } from "../site-data.ts";
+import { findMovingPackage, formatTonnage } from "../site-data.ts";
 
 /** Confirmed HF Removals Adelaide package names, derived from crew size via the
  * canonical package table in lib/site-data.ts — never duplicated as strings here
- * or in the database. */
+ * or in the database. Only meaningful for crew-size-keyed (historical) bookings;
+ * new bookings carry a package id and use packageNameForPackage. */
 export function packageNameForCrewSize(crewSize: number): string {
   return findMovingPackage({ crewSize })?.name ?? `${crewSize} Movers + Truck`;
+}
+
+/** Package details for a booking/quote: by package id when present, else the legacy crew-size lookup. */
+export function describePackage(by: { packageId?: string | null; crewSize: number }) {
+  const found = (by.packageId ? findMovingPackage({ id: by.packageId }) : undefined) ?? (by.packageId ? undefined : findMovingPackage({ crewSize: by.crewSize }));
+  return {
+    packageId: found?.id ?? by.packageId ?? null,
+    packageName: found?.name ?? `${by.crewSize} Movers + Truck`,
+    truckClass: found?.truckClass ?? null,
+    truckName: found?.truckClass ? found.name : null,
+    tonnage: found?.tonnage ?? null,
+    truckCapacity: found?.tonnage ? formatTonnage(found.tonnage) : null,
+  };
 }
 
 /** Customer-facing pricing policy line, shown alongside every quote. */
@@ -17,9 +31,10 @@ export const PRICING_POLICY_NOTE =
  * Server-authoritative price calculation for the confirmed HF Removals
  * Adelaide booking policy:
  *
- *   - Canonical rate: $79/30min (2 movers) or $99/30min (3 movers), i.e.
- *     7900 / 9900 cents — the ONLY rate figures stored; every other
- *     display (hourly, minimum, call-out) is derived from this.
+ *   - Canonical rate: the selected PACKAGE's rate per 30 minutes (HR $79,
+ *     MR $74, Small $69, 3 movers $99), from the canonical package table
+ *     in lib/site-data.ts / the pricing_rules row for that package id. Every
+ *     other display (hourly, minimum, call-out) is derived from this.
  *   - Every job is billed for a 180-minute (3-hour) minimum, regardless
  *     of actual duration.
  *   - A 1-hour call-out (truck fuel + basic transport) is added to every
@@ -40,9 +55,13 @@ export function calculateQuote(
 ): QuoteResult {
   const caveats: string[] = [PRICING_POLICY_NOTE];
 
+  const pkg = describePackage(input);
+  const identity = { packageId: pkg.packageId, truckClass: pkg.truckClass, truckName: pkg.truckName, truckCapacity: pkg.truckCapacity, crewSize: input.crewSize };
+
   if (!rule) {
     return {
-      packageName: packageNameForCrewSize(input.crewSize),
+      ...identity,
+      packageName: pkg.packageName,
       ratePer30MinCents: 0,
       minimumBookingMinutes: settings.minimumBookingMinutes,
       calloutMinutes: settings.calloutMinutes,
@@ -55,7 +74,7 @@ export function calculateQuote(
       estimatedBalanceCents: 0,
       currency: "aud",
       isFullyConfigured: false,
-      caveats: [`No pricing rule configured for a crew of ${input.crewSize}.`, ...caveats],
+      caveats: [`No pricing rule configured for ${pkg.packageName}.`, ...caveats],
     };
   }
 
@@ -80,7 +99,8 @@ export function calculateQuote(
   const finalTotalCents = serviceChargeCents + calloutFeeCents;
 
   return {
-    packageName: packageNameForCrewSize(input.crewSize),
+    ...identity,
+    packageName: pkg.packageName,
     ratePer30MinCents: rule.ratePer30MinCents,
     minimumBookingMinutes: settings.minimumBookingMinutes,
     calloutMinutes: settings.calloutMinutes,
@@ -108,8 +128,14 @@ function billableMinutes(actualDurationMinutes: number, minimumBookingMinutes: n
  * change can't rewrite a booking's price.
  */
 export function buildPricingSnapshot(quote: QuoteResult): PricingSnapshot {
+  const pkg = describePackage({ packageId: quote.packageId, crewSize: quote.crewSize });
   return {
     package: quote.packageName,
+    packageId: quote.packageId,
+    truckClass: quote.truckClass,
+    truckName: quote.truckName,
+    truckTonnage: pkg.tonnage,
+    crewSize: quote.crewSize,
     ratePer30MinCents: quote.ratePer30MinCents,
     minimumBookingMinutes: quote.minimumBookingMinutes,
     calloutMinutes: quote.calloutMinutes,

@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useTransition } from "react";
 import { assignVehicleAction, assignCrewAction, cancelBookingAction } from "../../actions.ts";
+import { describePackage } from "../../../../lib/booking/pricing.ts";
 import { AdminStatusBadge } from "../../_components/AdminStatusBadge";
 import { formatAdelaide, formatMoney } from "../../_components/ui";
 
@@ -17,6 +18,8 @@ interface Booking {
   starts_at: string;
   booking_status: string;
   payment_status: string;
+  crew_size: number;
+  package_id: string | null;
   vehicle_id: string | null;
   crew_id: string | null;
   subtotal_cents: number;
@@ -29,6 +32,8 @@ interface Booking {
 
 export function BookingRow({ booking, vehicles, crews }: { booking: Booking; vehicles: Resource[]; crews: Resource[] }) {
   const [pending, startTransition] = useTransition();
+  const pkg = describePackage({ packageId: booking.package_id, crewSize: booking.crew_size });
+  const packageLabel = pkg.truckCapacity ? `${pkg.packageName} · ${pkg.truckCapacity}` : pkg.packageName;
 
   return (
     <tr>
@@ -50,6 +55,7 @@ export function BookingRow({ booking, vehicles, crews }: { booking: Booking; veh
       <td data-label="Route">{booking.pickup_address?.suburb ?? "—"} → {booking.destination_address?.suburb ?? "—"}</td>
       <td data-label="Truck & crew">
         <div className="admin-resource-stack">
+          <div className="admin-cell-sub font-semibold">{packageLabel}</div>
           <select
             disabled={pending}
             defaultValue={booking.vehicle_id ?? ""}

@@ -506,3 +506,10 @@ textarea.admin-input { min-height: 88px; resize: vertical; }
 @media (prefers-reduced-motion: reduce) {
   .admin-shell *, .admin-shell *::before, .admin-shell *::after { transition-duration: 0.01ms !important; animation-duration: 0.01ms !important; }
 }
+
+/* Vehicle edit + unclassified warning */
+.vehicle-class-warning { color: var(--admin-ruby-text); }
+.vehicle-edit { flex: 1 1 100%; }
+.vehicle-edit > summary { display: inline-flex; cursor: pointer; list-style: none; }
+.vehicle-edit > summary::-webkit-details-marker { display: none; }
+.vehicle-edit-form { display: grid; gap: 12px; max-width: 420px; margin-top: 12px; padding: 14px; border: 1px solid var(--admin-border); border-radius: 10px; }

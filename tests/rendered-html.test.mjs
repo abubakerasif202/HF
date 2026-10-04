@@ -50,7 +50,7 @@ test("renders the premium HF homepage without placeholder claims", async () => {
   const response = await render();
   assert.equal(response.status, 200);
   const html = await response.text();
-  assert.match(html, /Adelaide[\s\S]*Removalists[\s\S]*You Can[\s\S]*Rely On/i);
+  assert.match(html, /Adelaide Removalists[\s\S]*The Right Truck[\s\S]*for Every Move/i);
   assert.match(html, /Tell us about your move/i);
   assert.match(html, /id="services"/i);
   assert.match(html, /id="pricing"/i);
@@ -71,8 +71,14 @@ test("renders the premium HF homepage without placeholder claims", async () => {
   assert.match(html, /\$79/);
   assert.match(html, /\$119\.43/);
   assert.match(html, /5\.0 Google rating/i);
-  assert.match(html, /HF&#x27;s removalists in Adelaide handle home, apartment, office and interstate moves/);
-  assert.match(html, /<h1>Adelaide <em>Removalists<\/em><br\/>You Can Rely On<\/h1>/);
+  assert.match(html, /<h1>Adelaide Removalists: <em>The Right Truck<\/em> for Every Move<\/h1>/);
+  const plain = html.replace(/<!-- -->/g, "");
+  assert.match(plain, /Big house\?<\/strong> HR Truck — 16 Ton\./);
+  assert.match(plain, /Medium move\?<\/strong> MR Truck — 12 Ton\./);
+  assert.match(plain, /Apartment or smaller move\?<\/strong> Small Truck — 8 Ton\./);
+  assert.match(plain, /No fake promises — just the right truck, the right crew and the same quality HF service\./);
+  assert.match(html, /Choose the Right Truck/);
+  for (const price of ["$79", "$74", "$69"]) assert.ok(html.includes(price), `${price} / 30 min rendered on the homepage`);
   assert.match(html, /455(?:<!-- -->)? reviews/i);
   assert.doesNotMatch(html, /\b451\b/);
   assert.match(html, /Open 24 hours/);
@@ -169,11 +175,14 @@ test("renders one coherent, accessible Web3Forms quote flow", async () => {
     assert.match(html, /name="from_name"[^>]+value="HF Removals Adelaide Website"/i, path);
     assert.match(html, /name="source_page"/i, path);
     assert.match(html, /<input(?=[^>]*name="botcheck")(?=[^>]*type="checkbox")(?=[^>]*tabindex="-1")[^>]*>/i, path);
-    for (const field of ["name", "phone", "email", "moving_from", "moving_to", "move_type", "moving_package", "property_size", "preferred_moving_date", "details"]) {
+    for (const field of ["name", "phone", "email", "moving_from", "moving_to", "move_type", "truck_package_id", "property_size", "preferred_moving_date", "details"]) {
       assert.match(html, new RegExp(`name="${field}"`, "i"), `${path}: ${field}`);
     }
-    assert.match(html, /name="moving_package"[^>]+value="2 Movers \+ Truck"/i, path);
-    assert.match(html, /name="moving_package"[^>]+value="3 Movers \+ Truck"/i, path);
+    // The truck choice is a real, required radio group (fieldset + legend) with one radio per package.
+    assert.match(html, /<fieldset class="truck-picker"><legend[^>]*>Choose Your Truck/i, path);
+    for (const id of ["hr-16t-2men", "mr-12t-2men", "small-8t-2men", "3-men"]) {
+      assert.match(html, new RegExp(`<input(?=[^>]*type="radio")(?=[^>]*name="truck_package_id")(?=[^>]*value="${id}")(?=[^>]*required)[^>]*>`, "i"), `${path}: ${id} radio`);
+    }
   }
 
   const client = await readFile(new URL("../app/components/SiteClient.tsx", import.meta.url), "utf8");
@@ -226,15 +235,32 @@ test("keeps verified rates, coverage wording and canonical route inventory centr
   }
 });
 
-test("pricing page renders canonical package rates and package-specific booking links", async () => {
-  const { localPricing } = await import("../lib/site-data.ts");
+test("pricing page renders canonical truck rates and package-specific booking links", async () => {
+  const { truckPricing } = await import("../lib/site-data.ts");
   const html = await (await render("/pricing")).text();
-  for (const item of localPricing) {
+  for (const item of truckPricing) {
     assert.ok(html.includes(item.name), `${item.name} rendered`);
-    assert.ok(html.includes(`${item.halfHour}</strong>`), `${item.halfHour} rendered`);
+    assert.ok(html.includes(`>${item.halfHour}</span>`), `${item.halfHour} rendered as the headline price`);
     assert.ok(html.includes(`${item.hourly}<!-- --> per hour`) || html.includes(`${item.hourly} per hour`), `${item.hourly} per hour rendered`);
-    assert.match(html, new RegExp(`href="/book\\?crewSize=${item.crewSize}"`));
+    assert.match(html, new RegExp(`href="/book\\?package=${item.id}"`));
   }
+});
+
+test("homepage truck cards lead with the 30-minute rate and never promote the hourly figure", async () => {
+  const { truckPricing } = await import("../lib/site-data.ts");
+  const html = await (await render("/")).text();
+  const cards = html.slice(html.indexOf('class="truck-cards"'), html.indexOf("truck-announce"));
+  assert.ok(cards.length > 0, "truck cards rendered");
+  for (const item of truckPricing) {
+    assert.ok(cards.includes(`<span class="truck-price-amount">${item.halfHour}</span>`), `${item.name} amount`);
+    assert.ok(cards.replace(/<!-- -->/g, "").includes(`Select ${item.name}`), `Select ${item.name} CTA`);
+    assert.ok(cards.includes(`${item.capacity}`), `${item.name} capacity`);
+    assert.ok(cards.includes(`/book?package=${item.id}`), `${item.name} booking link`);
+    // Hourly is rendered only as small supporting text, never as the amount element.
+    assert.ok(!cards.includes(`<span class="truck-price-amount">${item.hourly}</span>`), `${item.name} hourly must not be the headline`);
+  }
+  const hr = cards.indexOf("HR Truck");
+  assert.ok(hr > -1 && hr < cards.indexOf("MR Truck") && cards.indexOf("MR Truck") < cards.indexOf("Small Truck"), "HR, MR, Small order");
 });
 
 test("structured data stays within the canonical business configuration", async () => {

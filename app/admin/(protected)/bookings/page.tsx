@@ -10,7 +10,7 @@ export default async function AdminBookingsPage() {
   const [{ data: bookings }, { data: vehicles }, { data: crews }] = await Promise.all([
     supabase
       .from("bookings")
-      .select("id, booking_number, starts_at, booking_status, payment_status, crew_size, vehicle_id, crew_id, subtotal_cents, deposit_paid_cents, balance_due_cents, pickup_address, destination_address, customers(name, email, phone)")
+      .select("id, booking_number, starts_at, booking_status, payment_status, crew_size, package_id, vehicle_id, crew_id, subtotal_cents, deposit_paid_cents, balance_due_cents, pickup_address, destination_address, customers(name, email, phone)")
       .order("starts_at", { ascending: true })
       .limit(100),
     supabase.from("vehicles").select("id, name").eq("active", true),

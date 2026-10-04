@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import Script from "next/script";
 import { Inter } from "next/font/google";
 import "./globals.css";
+import "./components/fleet.css";
 import { business } from "../lib/site-data";
 
 // Inter is self-hosted at build time (no runtime request to Google; CSP font-src 'self'

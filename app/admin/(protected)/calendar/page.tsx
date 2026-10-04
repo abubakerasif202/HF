@@ -1,5 +1,6 @@
 import { getSupabaseAdmin } from "../../../../lib/server/supabase.ts";
 import { getBusinessSettings } from "../../../../lib/server/booking-repo.ts";
+import { findMovingPackage } from "../../../../lib/site-data.ts";
 import { getRangeForView, type CalendarView } from "../../../../lib/booking/calendar-range.ts";
 import { CalendarClient } from "./CalendarClient";
 
@@ -39,7 +40,7 @@ export default async function AdminCalendarPage({
   const [{ data: bookings }, { data: blockedTimes }, { data: vehicles }, { data: crews }] = await Promise.all([
     supabase
       .from("bookings")
-      .select("id, booking_number, starts_at, ends_at, booking_status, crew_size, vehicle_id, crew_id, vehicles(name), crews(name), customers(name)")
+      .select("id, booking_number, starts_at, ends_at, booking_status, crew_size, package_id, vehicle_id, crew_id, vehicles(name), crews(name), customers(name)")
       .not("booking_status", "in", "(cancelled,expired,draft)")
       .lt("starts_at", end.toISOString())
       .gt("ends_at", start.toISOString())
@@ -60,6 +61,8 @@ export default async function AdminCalendarPage({
     endsAt: b.ends_at,
     status: b.booking_status,
     crewSize: b.crew_size,
+    // Historical bookings have no package_id; resolve them from crew size so the package filter still works.
+    packageId: (b.package_id as string | null) ?? findMovingPackage({ crewSize: b.crew_size })?.id ?? null,
     vehicleId: b.vehicle_id,
     crewId: b.crew_id,
     vehicleName: Array.isArray(b.vehicles) ? b.vehicles[0]?.name : (b.vehicles as { name: string } | null)?.name,

@@ -4,6 +4,7 @@ import { getResend } from "./resend.ts";
 import { getSupabaseAdmin } from "./supabase.ts";
 import { business } from "../site-data.ts";
 
+import { describeBookedPackage } from "../booked-package.ts";
 import type { PricingSnapshot } from "../booking/types.ts";
 
 interface Address {
@@ -20,6 +21,8 @@ interface BookingRow {
   pickup_address: Address | null;
   destination_address: Address | null;
   deposit_paid_cents: number;
+  package_id?: string | null;
+  crew_size?: number | null;
   subtotal_cents?: number;
   balance_due_cents?: number;
   pricing_snapshot?: PricingSnapshot | null;
@@ -81,6 +84,7 @@ export async function sendBookingConfirmedEmail(booking: BookingRow): Promise<vo
 
   try {
     const snapshot = booking.pricing_snapshot ?? {};
+    const bookedPackage = describeBookedPackage(snapshot, { packageId: booking.package_id, crewSize: booking.crew_size });
     const rateLine = snapshot.ratePer30MinCents
       ? `$${(snapshot.ratePer30MinCents / 100).toFixed(0)} / 30 min ($${((snapshot.ratePer30MinCents * 2) / 100).toFixed(0)}/hr)`
       : "—";
@@ -96,8 +100,9 @@ export async function sendBookingConfirmedEmail(booking: BookingRow): Promise<vo
         <li>Move date/time: ${new Date(booking.starts_at).toLocaleString("en-AU", { timeZone: "Australia/Adelaide" })}</li>
         <li>Pickup: ${addressLine(booking.pickup_address)}</li>
         <li>Destination: ${addressLine(booking.destination_address)}</li>
-        <li>Package: ${snapshot.package ?? "—"}</li>
-        <li>Rate per 30 minutes: ${rateLine}</li>
+        <li>Package: ${escapeHtml(bookedPackage.packageLine ?? "—")}</li>
+${bookedPackage.crewLine ? `        <li>Crew: ${bookedPackage.crewLine}</li>
+` : ""}        <li>Rate per 30 minutes: ${rateLine}</li>
         <li>Minimum service: ${snapshot.minimumBookingMinutes ? snapshot.minimumBookingMinutes / 60 : 3} hours</li>
         <li>Call-out: ${snapshot.calloutMinutes ? snapshot.calloutMinutes / 60 : 1} hour${snapshot.ratePer30MinCents && snapshot.calloutMinutes ? ` — $${((snapshot.ratePer30MinCents * (snapshot.calloutMinutes / 30)) / 100).toFixed(0)}` : ""} — includes truck fuel and basic transport charges</li>
         <li>Estimated minimum: $${((booking.subtotal_cents ?? 0) / 100).toFixed(2)}</li>

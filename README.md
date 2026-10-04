@@ -41,8 +41,12 @@ The site ships with an online booking system (`/book`) that is **disabled by def
 
 These are the real, verified HF Removals Adelaide policy, encoded server-side (`lib/booking/pricing.ts`) and in `business_settings`/`pricing_rules` — never invented, never duplicated as a second source of truth:
 
-- **2 Movers + Truck:** $79 / 30 min ($158/hr)
-- **3 Movers + Truck:** $99 / 30 min ($198/hr)
+- **HR Truck (16 Ton, 2 Men):** $79 / 30 min ($158/hr)
+- **MR Truck (12 Ton, 2 Men):** $74 / 30 min ($148/hr)
+- **Small Truck (8 Ton, 2 Men):** $69 / 30 min ($138/hr)
+- **3 Movers + Truck** (crew upgrade): $99 / 30 min ($198/hr)
+
+Packages are keyed by a stable id (`hr-16t-2men`, `mr-12t-2men`, `small-8t-2men`, `3-men`) defined once in `lib/site-data.ts` (`truckPackages`); crew size is not a pricing key. Migration `0015_truck_packages.sql` keys `pricing_rules` on `package_id` and records `package_id`/`truck_class` on bookings. Set each vehicle's type to HR / MR / Small in `/admin/vehicles`: a truck booking is only assigned a matching vehicle.
 - **Minimum booking:** 3 hours (180 min), enforced regardless of actual job length
 - **Call-out:** 1 hour, billed at the job's own per-30-minute rate (never a separate flat fee) — includes truck fuel and basic transport charges
 - **No advance payment:** customers confirm their booking online without paying anything up-front — no deposit, no card, no Stripe. The final balance of a new booking is the full final job total
@@ -138,7 +142,7 @@ Once Supabase is configured, staff sign in at `/admin/login`. All routes are `no
 | `/admin/vehicles` | Add/activate/deactivate vehicles |
 | `/admin/crews` | Add/activate/deactivate crews and crew members |
 | `/admin/availability` | Block time (whole business, one vehicle, or one crew) |
-| `/admin/pricing` | Per-crew-size rate CRUD (does not affect already-confirmed bookings — see pricing snapshots above) |
+| `/admin/pricing` | Per-package rate CRUD (does not affect already-confirmed bookings — see pricing snapshots above) |
 | `/admin/settings` | Hours, hold/lead/horizon/buffer, booking-number prefix (no deposit settings — advance payment is not required) |
 
 ### Internal admin calendar (`/admin/calendar`)

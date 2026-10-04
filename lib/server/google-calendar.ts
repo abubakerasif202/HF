@@ -45,7 +45,7 @@ function adminBaseUrl(): string {
 async function loadCalendarBooking(bookingId: string): Promise<CalendarBooking | null> {
   const { data, error } = await getSupabaseAdmin()
     .from("bookings")
-    .select("id, booking_number, booking_status, starts_at, ends_at, crew_size, pickup_address, destination_address, pricing_snapshot, google_calendar_event_id, customers(name, email, phone)")
+    .select("id, booking_number, booking_status, starts_at, ends_at, crew_size, package_id, pickup_address, destination_address, pricing_snapshot, google_calendar_event_id, customers(name, email, phone)")
     .eq("id", bookingId)
     .maybeSingle();
   if (error) throw error;
