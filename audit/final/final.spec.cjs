@@ -194,6 +194,9 @@ test('quote form validation, package selection, success, failure and double-subm
   await form.getByLabel('Moving To (Suburb/City)').fill('Marion SA');
   await form.getByLabel('Email Address').fill('qa.test@example.invalid');
   await form.getByLabel('Preferred Moving Date').fill('2099-01-01');
+  // A successful submission clears the truck choice, so choose one again for the retry.
+  await expect(form.getByRole('radio', { name: /HR Truck/ })).not.toBeChecked();
+  await form.getByRole('radio', { name: /HR Truck/ }).check({ force: true });
   await page.unroute('https://api.web3forms.com/submit');
   await page.route('https://api.web3forms.com/submit', (route) =>
     route.fulfill({ status: 500, contentType: 'application/json', body: JSON.stringify({ success: false, message: 'Controlled QA failure' }) })
