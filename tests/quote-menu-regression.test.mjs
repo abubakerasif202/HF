@@ -129,6 +129,7 @@ test("truck card selection flows into the quote form radio and the submitted lea
   });
   try {
     await page.goto(runtime.base);
+    await page.waitForLoadState("networkidle");
     await page.getByRole("button", { name: "Select HR Truck" }).click();
     await expect(page.getByRole("button", { name: /Selected: HR Truck/ })).toHaveAttribute("aria-pressed", "true");
     await expect(page.locator('input[type="radio"][name="truck_package_id"][value="hr-16t-2men"]')).toBeChecked();
@@ -156,7 +157,10 @@ test("truck chosen on the homepage persists into the booking wizard and its avai
   });
   try {
     await page.goto(runtime.base);
+    await page.waitForLoadState("networkidle");
     await page.getByRole("button", { name: "Select Small Truck" }).click();
+    // Only leave once the selection has registered (a click before hydration would be lost).
+    await expect(page.getByRole("button", { name: /Selected: Small Truck/ })).toHaveAttribute("aria-pressed", "true");
     await page.goto(`${runtime.base}/book`);
     const bar = page.locator(".wizard-truck-bar");
     await expect(bar).toContainText("Small Truck");
