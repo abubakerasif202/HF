@@ -157,12 +157,8 @@
   line-height: 1.3;
 }
 
-.truck-card-art {
-  margin: 14px 0 6px;
-  max-width: 100%;
-  transition: transform 0.4s var(--ease-premium);
-}
-.truck-art { display: block; width: 100%; height: auto; overflow: visible; }
+
+
 .truck-card-headline {
   margin: 8px 0 8px;
   color: var(--hf-green-900);
@@ -245,7 +241,6 @@
     border-color: var(--hf-gold-500);
     box-shadow: 0 30px 62px rgba(0, 0, 0, 0.5), 0 0 0 1px var(--hf-gold-500);
   }
-  .truck-card:hover .truck-card-art { transform: translateX(6px); }
   .truck-card.is-selected:hover { border-color: var(--hf-green-700); }
 }
 
@@ -386,25 +381,13 @@
   letter-spacing: 0.16em;
   text-transform: uppercase;
 }
-.hero-fleet-lineup { display: flex; align-items: flex-end; gap: clamp(6px, 1vw, 14px); }
-.hero-fleet-item { min-width: 0; }
-.hero-fleet-label {
-  display: flex;
-  flex-direction: column;
-  margin: 8px 0 0;
-  line-height: 1.25;
-  text-align: center;
-}
-.hero-fleet-label strong { font-size: clamp(0.95rem, 1.3vw, 1.2rem); }
-.hero-fleet-label span { color: var(--hf-gold-300); font-size: 0.72rem; letter-spacing: 0.12em; text-transform: uppercase; }
-.hero-fleet-link {
-  display: inline-block;
-  margin-top: 20px;
-  color: var(--hf-white);
-  font-weight: 800;
-  border-bottom: 1px solid var(--accent);
-}
-.hero-fleet-note { margin: 12px 0 0; color: var(--muted); font-size: 0.72rem; line-height: 1.4; }
+
+
+
+
+
+
+
 
 /* ---------- Rate table (home) ---------- */
 .rate-glance {
@@ -544,21 +527,18 @@
     column-gap: 12px;
   }
   .truck-pick-price { grid-row: 1 / span 3; grid-column: 2; flex-direction: column; align-items: flex-end; gap: 0; margin: 0; }
-  .truck-pick-hourly { display: none; }
   .truck-pick-check { top: 8px; right: auto; left: auto; display: none; }
   .truck-pick-upgrade .truck-pick-body { display: flex; }
   .truck-values { grid-template-columns: minmax(0, 1fr); }
   .truck-values li { border-left: 0; border-top: 1px solid var(--border-gold); }
   .truck-values li:first-child { border-top: 0; }
   .truck-fit-grid { grid-template-columns: minmax(0, 1fr); }
-  .hero-fleet-lineup { gap: 4px; }
   .truck-price-amount { font-size: clamp(3.6rem, 18vw, 4.4rem); }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .truck-card, .truck-card-art, .truck-fit-card, .truck-pick-body { transition: none; }
+  .truck-card, .truck-fit-card, .truck-pick-body { transition: none; }
   .truck-card:hover, .truck-fit-card:hover { transform: none; }
-  .truck-card:hover .truck-card-art { transform: none; }
 }
 
 /* Truck with no compatible active vehicle: visible but not selectable */
@@ -566,3 +546,168 @@
 .truck-pick.is-unavailable .truck-pick-input { cursor: not-allowed; }
 .truck-pick.is-unavailable .truck-pick-body { opacity: 0.6; background: #e9e5d8; }
 .truck-pick-unavailable { margin-top: 4px; color: var(--hf-ruby-700); font-size: 0.74rem; font-weight: 900; letter-spacing: 0.04em; text-transform: uppercase; }
+
+/* ==========================================================================
+   PHOTOGRAPHIC IMAGE METHOD — branded photography replaces the old illustrations.
+   (Overrides above where the card structure changed.)
+   ========================================================================== */
+
+.truck-card { padding: 0; overflow: hidden; }
+.truck-card::before { z-index: 2; border-radius: 0; }
+.truck-card-photo {
+  position: relative;
+  aspect-ratio: 16 / 10;
+  overflow: hidden;
+  background: var(--hf-green-900);
+}
+.truck-card-photo img { transition: transform 0.6s var(--ease-premium); }
+.truck-card-photo::after {
+  content: "";
+  position: absolute;
+  inset: 45% 0 0;
+  background: linear-gradient(180deg, transparent, rgba(2, 14, 9, 0.82));
+  pointer-events: none;
+}
+.truck-card-story {
+  position: absolute;
+  z-index: 1;
+  left: 16px;
+  right: 16px;
+  bottom: 12px;
+  margin: 0;
+  color: var(--hf-white);
+  font: 600 clamp(1.05rem, 1.5vw, 1.3rem) / 1.2 var(--font-display);
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.55);
+}
+.truck-card-story strong { color: var(--hf-gold-400); font-weight: 700; }
+.truck-card-ribbon { z-index: 1; top: 14px; right: 14px; }
+.truck-card-body { display: flex; flex: 1; flex-direction: column; padding: clamp(18px, 2vw, 26px); }
+.truck-card-head { margin-bottom: 12px; }
+.truck-card h3 { font-size: clamp(1.8rem, 2.4vw, 2.3rem); }
+
+/* Ruby price panel: the 30-minute rate leads, hourly stays small. */
+.truck-price {
+  margin: 0 0 14px;
+  padding: 14px 18px 12px;
+  color: var(--hf-white);
+  background: linear-gradient(135deg, var(--hf-ruby-800), var(--hf-ruby-600));
+  border-radius: var(--radius-xl);
+  box-shadow: 0 10px 24px color-mix(in srgb, var(--hf-ruby-700) 40%, transparent), inset 0 1px 0 rgba(255, 255, 255, 0.18);
+}
+.truck-price-amount { color: var(--hf-white); font-size: clamp(3.4rem, 5vw, 4.6rem); }
+.truck-price-unit { color: var(--hf-white); }
+.truck-price-hourly {
+  margin: 8px 0 0;
+  padding-top: 8px;
+  color: rgba(255, 255, 255, 0.92);
+  border-top: 1px solid rgba(255, 255, 255, 0.28);
+  font-size: 0.86rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+.truck-card-headline { margin: 0 0 16px; font-size: 1.04rem; }
+.truck-card-cta { margin-top: auto; }
+
+@media (hover: hover) and (pointer: fine) {
+  .truck-card:hover .truck-card-photo img { transform: scale(1.04); }
+}
+
+/* Hero photo panel */
+.hero-fleet { padding: 10px; }
+.hero-fleet-photo {
+  overflow: hidden;
+  border-radius: calc(var(--radius-3xl) - 8px);
+  line-height: 0;
+}
+.hero-fleet-photo img { display: block; width: 100%; height: auto; }
+.hero-fleet-chips {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+  margin: 10px 0 2px;
+  padding: 0;
+  list-style: none;
+}
+.hero-fleet-chips a {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 10px 6px;
+  color: var(--hf-white);
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid var(--border-gold);
+  border-radius: var(--radius-lg);
+  line-height: 1.25;
+  transition: border-color 0.25s, background 0.25s;
+}
+.hero-fleet-chips a:hover, .hero-fleet-chips a:focus-visible { border-color: var(--hf-gold-500); background: rgba(223, 183, 92, 0.14); }
+.hero-fleet-chips strong { font-size: 1.05rem; }
+.hero-fleet-chips span { color: var(--hf-gold-300); font-size: 0.72rem; letter-spacing: 0.1em; text-transform: uppercase; }
+
+/* Same-service band: photo gallery */
+.truck-band-gallery { display: grid; grid-template-columns: 1fr 1.15fr; gap: 12px; align-items: stretch; }
+.truck-band-gallery figure { position: relative; margin: 0; overflow: hidden; border: 1px solid var(--hf-gold-500); border-radius: var(--radius-2xl); box-shadow: var(--shadow-overlay); }
+.truck-band-gallery img { display: block; width: 100%; height: 100%; object-fit: cover; }
+.truck-band-main img { object-position: 50% 25%; }
+.truck-band-side img { object-position: 40% 40%; }
+.truck-band-gallery { aspect-ratio: 16 / 9; }
+
+/* Pillar icons (people / scale / dollar / box / shield — never a vehicle) */
+.truck-value-icon { display: inline-flex; width: 44px; height: 44px; align-items: center; justify-content: center; margin-bottom: 4px; color: var(--hf-gold-500); border: 1.5px solid var(--border-gold); border-radius: var(--radius-round); }
+.truck-values li > span:last-child { color: var(--text-secondary); }
+
+/* Picker + wizard thumbnails */
+.truck-pick-body { position: relative; padding-top: 0; overflow: hidden; }
+.truck-pick-thumb { position: relative; display: block; aspect-ratio: 16 / 9; margin: 0 -14px 10px; background: var(--hf-green-900); }
+.truck-pick-upgrade .truck-pick-body { padding-top: 10px; }
+.truck-pick-upgrade .truck-pick-thumb { display: none; }
+.wizard-truck-thumb { position: relative; display: block; flex: 0 0 72px; width: 72px; height: 48px; overflow: hidden; border-radius: var(--radius-md); background: var(--hf-green-900); align-self: center; }
+@media (max-width: 640px) {
+  .truck-pick-thumb { grid-column: 1 / -1; aspect-ratio: 16 / 7; margin: 0 -14px 10px; }
+  .truck-pick-body { display: grid; padding-top: 0; }
+  .truck-pick-upgrade .truck-pick-body { display: flex; }
+}
+
+/* Protection, reviews and service-area photography */
+.packing-side { display: grid; gap: 18px; }
+.packing-photo { position: relative; margin: 0; overflow: hidden; border: 1px solid var(--hf-gold-500); border-radius: var(--radius-2xl); box-shadow: var(--shadow-overlay); }
+.packing-photo img { display: block; width: 100%; height: auto; }
+.reviews-photo { position: relative; margin: 0 0 clamp(20px, 3vw, 32px); overflow: hidden; border: 1px solid var(--border-gold); border-radius: var(--radius-2xl); aspect-ratio: 21 / 8; }
+.reviews-photo img { display: block; width: 100%; height: 100%; object-fit: cover; object-position: 50% 35%; }
+.areas-split { display: grid; grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.4fr); gap: clamp(18px, 3vw, 36px); align-items: start; }
+.areas-photo { position: relative; margin: 0; overflow: hidden; border: 1px solid var(--hf-gold-500); border-radius: var(--radius-2xl); box-shadow: var(--shadow-overlay); }
+.areas-photo img { display: block; width: 100%; height: auto; }
+.areas-photo figcaption { padding: 12px 16px; color: var(--text-secondary); background: var(--hf-green-900); font-size: 0.9rem; }
+.areas-split .area-links { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.portrait-wrap img { object-fit: cover; }
+
+@media (max-width: 900px) {
+  .areas-split { grid-template-columns: minmax(0, 1fr); }
+  .areas-split .area-links { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .truck-band-gallery { aspect-ratio: auto; }
+  .reviews-photo { aspect-ratio: 16 / 9; }
+}
+@media (max-width: 560px) {
+  .areas-split .area-links { grid-template-columns: minmax(0, 1fr); }
+  .truck-band-gallery { grid-template-columns: minmax(0, 1fr); }
+  .truck-band-gallery figure { aspect-ratio: 16 / 10; }
+}
+
+/* Gentle reveal for photographs (disabled for reduced motion) */
+@media (prefers-reduced-motion: no-preference) {
+  .truck-card-photo img, .hero-fleet-photo img { animation: fleetImageIn 0.9s var(--ease-premium) both; }
+  @keyframes fleetImageIn { from { opacity: 0; transform: scale(1.03); } to { opacity: 1; transform: none; } }
+}
+@media (prefers-reduced-motion: reduce) {
+  .truck-card-photo img { transition: none; }
+  .truck-card:hover .truck-card-photo img { transform: none; }
+}
+
+/* Card photo matches the source crop (4:3) so the truck stays in frame; slimmer on phones. */
+.truck-card-photo { aspect-ratio: 4 / 3; }
+@media (max-width: 640px) { .truck-card-photo { aspect-ratio: 16 / 10; } }
+
+/* The native radio sits above the card body so the whole card is the click/focus target. */
+.truck-pick-input { z-index: 1; }
+.truck-pick-check { pointer-events: none; z-index: 2; }

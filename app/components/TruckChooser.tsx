@@ -4,7 +4,7 @@ import { useState } from "react";
 import { crewUpgradePricing, findMovingPackage, truckPricing, type MovingPackageId } from "../../lib/site-data";
 import { setSelectedTruck, useSelectedTruck } from "../../lib/truck-selection";
 import { trackBookNowClick } from "./SiteClient";
-import { TruckIllustration, truckWidthRatio } from "./FleetVisuals";
+import Image from "next/image";
 
 /**
  * Price block shared by every truck surface. The 30-minute rate is the headline
@@ -17,7 +17,7 @@ function PriceBlock({ halfHour, hourly, size = "lg" }: { halfHour: string; hourl
         <span className="truck-price-amount">{halfHour}</span>
         <span className="truck-price-unit">/ 30 min</span>
       </p>
-      <p className="truck-price-hourly">{hourly} per hour</p>
+      <p className="truck-price-hourly">{hourly} / hr</p>
     </div>
   );
 }
@@ -52,30 +52,36 @@ export function TruckCards({ location }: { location: string }) {
           const isSelected = selected === truck.id;
           return (
             <li className={`truck-card truck-card-${truck.truckClass?.toLowerCase()} ${isSelected ? "is-selected" : ""} ${index === 0 ? "is-featured" : ""}`} key={truck.id}>
-              {index === 0 && <span className="truck-card-ribbon">Largest truck</span>}
-              <div className="truck-card-head">
-                <p className="truck-card-size">{truck.sizeLabel} move</p>
-                <h3>{truck.name}</h3>
-                <p className="truck-card-spec">
-                  <strong>{truck.capacity}</strong> · {truck.crewLabel}
+              <div className="truck-card-photo">
+                <Image
+                  src={truck.image.src}
+                  alt={truck.alt}
+                  fill
+                  sizes="(max-width: 900px) 92vw, 32vw"
+                  quality={80}
+                  style={{ objectFit: "cover", objectPosition: truck.image.objectPosition }}
+                />
+                {index === 0 && <span className="truck-card-ribbon">Largest truck</span>}
+                <p className="truck-card-story">
+                  <strong>{truck.story.question}</strong> {truck.story.answer}
                 </p>
               </div>
-              <PriceBlock halfHour={truck.halfHour} hourly={truck.hourly} />
-              <div className="truck-card-art" style={{ width: `${Math.round(truckWidthRatio(truck.truckClass!) * 100)}%` }}>
-                <TruckIllustration truckClass={truck.truckClass!} label={truck.alt} />
-              </div>
-              <p className="truck-card-headline">{truck.headline}</p>
-              <ul className="truck-card-list">
-                {truck.bestFor.map((item) => (
-                  <li key={item}>{item}</li>
-                ))}
-              </ul>
+              <div className="truck-card-body">
+                <div className="truck-card-head">
+                  <h3>{truck.name}</h3>
+                  <p className="truck-card-spec">
+                    <strong>{truck.capacity}</strong> · {truck.crewLabel}
+                  </p>
+                </div>
+                <PriceBlock halfHour={truck.halfHour} hourly={truck.hourly} />
+                <p className="truck-card-headline">{truck.bestForLine}</p>
               <button type="button" className="button button-ruby truck-card-cta" aria-pressed={isSelected} onClick={() => choose(truck.id)}>
                 {isSelected ? <>Selected: {truck.name} <span aria-hidden="true">✓</span></> : <>Select {truck.name}</>}
               </button>
               <a className="truck-card-book" href={`/book?package=${truck.id}`} onClick={() => trackBookNowClick(location, truck.id)}>
                 Or book {truck.name} online <span aria-hidden="true">→</span>
               </a>
+              </div>
             </li>
           );
         })}

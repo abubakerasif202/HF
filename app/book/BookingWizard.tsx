@@ -3,8 +3,9 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { trackBookingEvent } from "../../lib/booking-analytics";
-import { crewUpgradePricing, formatAud, isBookablePackageId, minimumServiceMinutes, truckPricing, TRUCK_UNAVAILABLE_MESSAGE, type MovingPackageId } from "../../lib/site-data";
+import { crewUpgradeImage, crewUpgradePricing, formatAud, isBookablePackageId, minimumServiceMinutes, truckPricing, TRUCK_UNAVAILABLE_MESSAGE, type MovingPackageId } from "../../lib/site-data";
 import { setSelectedTruck, useSelectedTruck } from "../../lib/truck-selection";
+import Image from "next/image";
 import { TruckPicker } from "../components/TruckPicker";
 
 type Step = "details" | "locations" | "schedule" | "customer" | "review";
@@ -62,6 +63,7 @@ export function BookingWizard() {
   const packageId: MovingPackageId | null = chosenPackageId ?? preselectedPackageId ?? rememberedTruck;
   const allRows = [...truckPricing, ...crewUpgradePricing];
   const selectedPackage = allRows.find((item) => item.id === packageId) ?? null;
+  const selectedImage = selectedPackage && "image" in selectedPackage ? selectedPackage.image : crewUpgradeImage;
   const [noCompatibleVehicle, setNoCompatibleVehicle] = useState(false);
   // Packages with no compatible active vehicle, so the picker can say so up front.
   const [unavailableIds, setUnavailableIds] = useState<string[]>([]);
@@ -272,6 +274,9 @@ export function BookingWizard() {
 
       {selectedPackage && (
         <p className="wizard-truck-bar" aria-live="polite">
+          <span className="wizard-truck-thumb" aria-hidden="true">
+            <Image src={selectedImage.src} alt="" fill sizes="96px" quality={70} style={{ objectFit: "cover", objectPosition: selectedImage.objectPosition }} />
+          </span>
           <span>Your truck</span>
           <strong>{selectedPackage.name}{selectedPackage.capacity ? ` — ${selectedPackage.capacity}` : ""}</strong>
           <span>{selectedPackage.crewLabel}</span>

@@ -241,7 +241,7 @@ test("pricing page renders canonical truck rates and package-specific booking li
   for (const item of truckPricing) {
     assert.ok(html.includes(item.name), `${item.name} rendered`);
     assert.ok(html.includes(`>${item.halfHour}</span>`), `${item.halfHour} rendered as the headline price`);
-    assert.ok(html.includes(`${item.hourly}<!-- --> per hour`) || html.includes(`${item.hourly} per hour`), `${item.hourly} per hour rendered`);
+    assert.ok(html.includes(`${item.hourly}<!-- --> / hr`) || html.includes(`${item.hourly} / hr`), `${item.hourly} / hr rendered as supporting text`);
     assert.match(html, new RegExp(`href="/book\\?package=${item.id}"`));
   }
 });

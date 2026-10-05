@@ -1,5 +1,5 @@
 import Image from "next/image";
-import { areas, business, ContentPage, entryLocalRate, googleReviews, guides, interstatePricing, interstateRoutes, localPricing, services, standardMoveFaqs, truckPricing } from "../../lib/site-data";
+import { areas, business, ContentPage, hfImages, entryLocalRate, googleReviews, guides, interstatePricing, interstateRoutes, localPricing, services, standardMoveFaqs, truckPricing } from "../../lib/site-data";
 import { hfServiceAreaRecords } from "../../lib/hf-service-areas";
 import { ABDeveloperCredit } from "./ABDeveloperCredit";
 import { contentTrail, homeCrumb, sectionCrumbs, staticCrumbLabels, type Crumb } from "../../lib/breadcrumbs";
@@ -163,7 +163,7 @@ function ServicesGrid() {
       <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M9 3v18"/><path d="M15 3v18"/><path d="M3 9h18"/><path d="M3 15h18"/></svg>
     ),
     "interstate-removals": (
-      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M3 6h11v11H3Zm11 4h4l3 3v4h-7M7 20a2 2 0 1 0 0-4 2 2 0 0 0 0 4Zm11 0a2 2 0 1 0 0-4 2 2 0 0 0 0 4Z"/></svg>
+      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="6" cy="18" r="2"/><circle cx="18" cy="6" r="2"/><path d="M8 18h6a3.5 3.5 0 0 0 0-7h-4a3.5 3.5 0 0 1 0-7h6"/></svg>
     ),
     backloading: (
       <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="m7.5 4.27 9 5.15"/><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/></svg>
@@ -475,6 +475,10 @@ function ReviewsSection() {
           </div>
         </div>
 
+        <figure className="reviews-photo">
+          <Image src={hfImages.customersCrew.src} alt={hfImages.customersCrew.alt} width={hfImages.customersCrew.width} height={hfImages.customersCrew.height} sizes="(max-width: 900px) 92vw, 80vw" />
+        </figure>
+
         <div className="reviews-cards-grid" aria-label="Customer reviews verified from supplied Google screenshots">
           {googleReviews.map((review) => (
             <article className="review-card" key={review.name}>
@@ -509,7 +513,7 @@ function LeadershipSection() {
       <div className="container leadership-grid">
         <div className="portrait-wrap">
           <div className="portrait-backdrop" />
-          <img src={business.ceoImage} alt="Muhammad Rasheed, CEO of HF Removals Adelaide" width="800" height="1000" loading="lazy" />
+          <Image src={business.ceoImage} alt="Muhammad Rasheed, Company Director of HF Removals Adelaide" width={800} height={1000} sizes="(max-width: 900px) 90vw, 40vw" quality={85} style={{ objectPosition: "50% 12%" }} />
           <span className="portrait-accent" />
         </div>
         <div>
@@ -556,11 +560,16 @@ function PackingSection() {
           </div>
           <a className="button button-ruby" href="/services/packing-unpacking">Explore Packing Services</a>
         </div>
-        <div className="insurance-panel">
-          <span className="panel-number">VERIFIED BUSINESS COVERAGE</span>
-          <strong>Up to<br /><em>{business.insuranceAmount}</em></strong>
-          <h3>Public Liability & Transit Insurance</h3>
-          <p>{business.insuranceQualifier}</p>
+        <div className="packing-side">
+          <figure className="packing-photo">
+            <Image src={hfImages.carefulHandling.src} alt={hfImages.carefulHandling.alt} width={hfImages.carefulHandling.width} height={hfImages.carefulHandling.height} sizes="(max-width: 900px) 92vw, 42vw" />
+          </figure>
+          <div className="insurance-panel">
+            <span className="panel-number">VERIFIED BUSINESS COVERAGE</span>
+            <strong>Up to<br /><em>{business.insuranceAmount}</em></strong>
+            <h3>Public Liability & Transit Insurance</h3>
+            <p>{business.insuranceQualifier}</p>
+          </div>
         </div>
       </div>
     </section>
@@ -655,6 +664,11 @@ function AreasSection() {
           copy="Explore local planning pages for Adelaide's northern growth corridor, the north-east, the Hills, southern suburbs and western areas."
           light
         />
+        <div className="areas-split">
+        <figure className="areas-photo">
+          <Image src={hfImages.serviceArea.src} alt={hfImages.serviceArea.alt} width={hfImages.serviceArea.width} height={hfImages.serviceArea.height} sizes="(max-width: 900px) 92vw, 34vw" />
+          <figcaption>From the northern suburbs to the Hills, the coast and the south.</figcaption>
+        </figure>
         <div className="area-links">
           {homepageAreas.map((area) => (
             <a key={area.slug} href={`/areas/${area.slug}`}>
@@ -668,6 +682,7 @@ function AreasSection() {
             <span>Adelaide Metro Hub</span>
             <b>↗</b>
           </a>
+        </div>
         </div>
       </div>
     </section>

@@ -56,7 +56,7 @@ export const business = {
     "South Australia",
     "Interstate Australia",
   ],
-  ceo: { name: "Muhammad Rasheed", title: "CEO, HF Removals Adelaide" },
+  ceo: { name: "Muhammad Rasheed", title: "Company Director" },
   insuranceAmount: "$1,000,000",
   insurance: "Up to $1,000,000 Public Liability & Transit Insurance",
   insuranceQualifier:
@@ -158,6 +158,19 @@ export const calloutMinutes = 60;
 
 export type TruckClass = "HR" | "MR" | "Small";
 
+/**
+ * Branded marketing imagery (cropped from the supplied HF concept artwork, with all
+ * poster text removed). Presented as branded visuals, not documentary proof of the
+ * exact physical fleet. Important copy is always rebuilt as HTML around these images.
+ */
+export const hfImages = {
+  heroFleet: { src: "/images/hf/hero/hf-hero-fleet-crew.webp", width: 667, height: 360, alt: "HF Removals green truck and two movers carrying wrapped furniture outside a modern Adelaide home" },
+  crewService: { src: "/images/hf/crew/hf-crew-service.webp", width: 442, height: 535, alt: "Smiling HF Removals mover carrying an HF-branded moving box with a crew mate and furniture behind" },
+  carefulHandling: { src: "/images/hf/protection/hf-careful-handling.webp", width: 460, height: 372, alt: "Two HF Removals movers carrying a mattress wrapped in protective film past stacked HF boxes and moving blankets" },
+  customersCrew: { src: "/images/hf/crew/hf-customers-crew.webp", width: 622, height: 310, alt: "HF Removals truck and crew carrying wrapped furniture at a customer's home" },
+  serviceArea: { src: "/images/hf/locations/hf-adelaide-service-area.webp", width: 430, height: 300, alt: "HF Removals truck driving along an Adelaide road" },
+} as const;
+
 /** Customer-facing message when no active vehicle of the chosen class can take an online booking. */
 export const TRUCK_UNAVAILABLE_MESSAGE = `This truck is currently unavailable for online booking. Please call ${business.phones[0].display} or choose another truck.`;
 
@@ -173,7 +186,10 @@ export const truckPackages = [
     sizeLabel: "Large",
     headline: "Larger houses and bigger loads",
     bestFor: ["Larger houses", "Larger furniture loads", "Bigger residential moves"],
-    alt: "HR 16 ton truck, our largest option",
+    alt: "HF Removals HR 16 ton truck and two movers carrying wrapped furniture outside a large Adelaide home",
+    image: { src: "/images/hf/fleet/hf-hr-truck-16-ton.webp", width: 657, height: 480, objectPosition: "50% 40%" },
+    story: { question: "Big house?", answer: "We have a big truck." },
+    bestForLine: "Bigger houses and larger moves.",
   },
   {
     id: "mr-12t-2men",
@@ -185,7 +201,10 @@ export const truckPackages = [
     sizeLabel: "Medium",
     headline: "Medium house moves",
     bestFor: ["Medium-size house moves", "Medium furniture loads", "Customers who don't need the largest truck"],
-    alt: "MR 12 ton truck, our mid-size option",
+    alt: "HF Removals MR 12 ton truck with two movers carrying wrapped furniture in a suburban street",
+    image: { src: "/images/hf/fleet/hf-mr-truck-12-ton.webp", width: 622, height: 450, objectPosition: "50% 40%" },
+    story: { question: "Medium move?", answer: "We have the right truck." },
+    bestForLine: "Ideal for medium-size moves.",
   },
   {
     id: "small-8t-2men",
@@ -197,7 +216,10 @@ export const truckPackages = [
     sizeLabel: "Small",
     headline: "Apartments and smaller moves",
     bestFor: ["Apartments and units", "Smaller moves", "Selected furniture and smaller loads"],
-    alt: "Small 8 ton truck, our compact option",
+    alt: "HF Removals crew carrying wrapped furniture past the Small 8 ton truck outside an Adelaide apartment building",
+    image: { src: "/images/hf/fleet/hf-small-truck-8-ton.webp", width: 547, height: 460, objectPosition: "50% 35%" },
+    story: { question: "Apartment or small move?", answer: "We have a smaller truck." },
+    bestForLine: "Perfect for apartments and smaller moves.",
   },
 ] as const;
 
@@ -208,6 +230,9 @@ export const truckPackages = [
 export const crewUpgradePackages = [
   { id: "3-men", truckClass: null, name: "3 Movers + Truck", tonnage: null, crewSize: 3, ratePer30MinCents: 9900 },
 ] as const;
+
+/** Thumbnail for pickers/summaries; the crew-upgrade has no truck of its own, so it shows the crew. */
+export const crewUpgradeImage = { src: "/images/hf/crew/hf-crew-service.webp", width: 442, height: 535, objectPosition: "50% 30%" } as const;
 
 /**
  * Retired package, kept ONLY so historical bookings/holds made before the truck
@@ -297,7 +322,10 @@ export const truckPricing = truckPackages.map((item) => ({
   sizeLabel: item.sizeLabel,
   headline: item.headline,
   bestFor: item.bestFor,
+  bestForLine: item.bestForLine,
+  story: item.story,
   alt: item.alt,
+  image: item.image,
 }));
 
 /** Display rows for every bookable package (trucks + crew upgrade). */

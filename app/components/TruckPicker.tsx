@@ -1,6 +1,7 @@
 "use client";
 
-import { crewUpgradePricing, findMovingPackage, truckPricing, type MovingPackageId } from "../../lib/site-data";
+import Image from "next/image";
+import { crewUpgradeImage, crewUpgradePricing, findMovingPackage, truckPricing, type MovingPackageId } from "../../lib/site-data";
 
 /**
  * Accessible truck picker for the quote form and booking wizard: a real radio group
@@ -36,6 +37,7 @@ export function TruckPicker({
       <div className="truck-picker-options">
         {rows.map((row) => {
           const isUpgrade = row.truckClass === null;
+          const thumb = "image" in row ? row.image : crewUpgradeImage;
           const inputId = `${idPrefix}-${row.id}`;
           const unavailable = unavailableIds.includes(row.id);
           return (
@@ -52,6 +54,9 @@ export function TruckPicker({
                 onChange={() => onChange(row.id as MovingPackageId)}
               />
               <span className="truck-pick-body">
+                <span className="truck-pick-thumb" aria-hidden="true">
+                  <Image src={thumb.src} alt="" fill sizes="120px" quality={70} style={{ objectFit: "cover", objectPosition: thumb.objectPosition }} />
+                </span>
                 <span className="truck-pick-name">{row.name}</span>
                 <span className="truck-pick-spec">{row.capacity ? `${row.capacity} · ` : ""}{row.crewLabel}</span>
                 <span className="truck-pick-price">

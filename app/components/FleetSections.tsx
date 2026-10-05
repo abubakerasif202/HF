@@ -1,39 +1,89 @@
-import { truckPricing, services } from "../../lib/site-data";
-import { TruckIllustration, truckWidthRatio } from "./FleetVisuals";
+import Image from "next/image";
+import { hfImages, truckPricing, services } from "../../lib/site-data";
 import { CrewUpgradeNote, TruckCards } from "./TruckChooser";
 
 const SIZE_STEPS = [...truckPricing].reverse();
 
-/** Hero (right-hand side): the three truck sizes drawn to scale. Illustration, not fleet photography. */
+/** Hero (right-hand side): a branded photograph of the crew and truck, with the three sizes as quick links. */
 export function HeroFleetPanel() {
   return (
     <aside className="hero-fleet" aria-label="Our three truck sizes">
-      <p className="hero-fleet-kicker">Three trucks · one standard of service</p>
-      <div className="hero-fleet-lineup">
-        {SIZE_STEPS.map((truck) => (
-          <div className="hero-fleet-item" key={truck.id} style={{ flexBasis: `${truckWidthRatio(truck.truckClass!) * 100}%` }}>
-            <TruckIllustration truckClass={truck.truckClass!} label={truck.alt} />
-            <p className="hero-fleet-label">
-              <strong>{truck.capacity}</strong>
-              <span>{truck.sizeLabel}</span>
-            </p>
-          </div>
-        ))}
+      <div className="hero-fleet-photo">
+        <Image
+          src={hfImages.heroFleet.src}
+          alt={hfImages.heroFleet.alt}
+          width={hfImages.heroFleet.width}
+          height={hfImages.heroFleet.height}
+          sizes="(max-width: 900px) 92vw, 42vw"
+          quality={80}
+        />
       </div>
-      <a className="hero-fleet-link" href="#trucks">
-        Compare the trucks and rates <span aria-hidden="true">↓</span>
-      </a>
-      <p className="hero-fleet-note">Illustration of truck sizes, drawn to scale against each other.</p>
+      <ul className="hero-fleet-chips">
+        {SIZE_STEPS.map((truck) => (
+          <li key={truck.id}>
+            <a href="#trucks">
+              <strong>{truck.capacity}</strong>
+              <span>{truck.name}</span>
+            </a>
+          </li>
+        ))}
+      </ul>
     </aside>
   );
 }
 
-const VALUE_POINTS = [
-  { title: "Professional crew", copy: "A trained 2-man crew comes with every truck." },
-  { title: "Right truck size", copy: "Choose the truck that suits your move." },
-  { title: "Clear pricing", copy: "See the 30-minute rate before you enquire." },
-  { title: "Careful handling", copy: "The same HF service whichever truck you choose." },
-  { title: "No fake promises", copy: "Choose what your move actually needs." },
+type ValueIconName = "crew" | "scale" | "price" | "care" | "promise";
+
+/** Non-vehicle pillar icons: people, size scale, dollar, box and shield. */
+function ValueIcon({ name }: { name: ValueIconName }) {
+  const common = { width: 26, height: 26, viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: 1.8, strokeLinecap: "round" as const, strokeLinejoin: "round" as const, "aria-hidden": true };
+  switch (name) {
+    case "crew":
+      return (
+        <svg {...common}>
+          <circle cx="9" cy="8" r="3" />
+          <path d="M3 20v-1a5 5 0 0 1 5-5h2a5 5 0 0 1 5 5v1" />
+          <circle cx="17" cy="9" r="2.4" />
+          <path d="M17 14a4 4 0 0 1 4 4v2" />
+        </svg>
+      );
+    case "scale":
+      return (
+        <svg {...common}>
+          <path d="M4 20V4m0 16h16" />
+          <path d="M8 16v-4M12 16V8M16 16V5" />
+        </svg>
+      );
+    case "price":
+      return (
+        <svg {...common}>
+          <circle cx="12" cy="12" r="9" />
+          <path d="M14.8 9.2c-.5-1-1.5-1.5-2.8-1.5-1.6 0-2.7.8-2.7 2s1 1.7 2.7 2.1c1.7.4 2.9.9 2.9 2.2s-1.2 2-2.9 2c-1.4 0-2.5-.6-3-1.7M12 6v1.7M12 16.3V18" />
+        </svg>
+      );
+    case "care":
+      return (
+        <svg {...common}>
+          <path d="M21 8 12 3 3 8v8l9 5 9-5Z" />
+          <path d="m3 8 9 5 9-5M12 13v8" />
+        </svg>
+      );
+    default:
+      return (
+        <svg {...common}>
+          <path d="M12 21s8-3.6 8-10V5l-8-3-8 3v6c0 6.4 8 10 8 10Z" />
+          <path d="m8.5 11.5 2.5 2.5 4.5-4.5" />
+        </svg>
+      );
+  }
+}
+
+const VALUE_POINTS: { icon: ValueIconName; title: string; copy: string }[] = [
+  { icon: "crew", title: "Professional crew", copy: "A trained 2-man crew comes with every truck." },
+  { icon: "scale", title: "Right truck size", copy: "Choose the truck that suits your move." },
+  { icon: "price", title: "Clear pricing", copy: "See the 30-minute rate before you enquire." },
+  { icon: "care", title: "Careful handling", copy: "The same HF service whichever truck you choose." },
+  { icon: "promise", title: "No fake promises", copy: "Choose what your move actually needs." },
 ];
 
 export function TruckSection() {
@@ -63,15 +113,6 @@ export function TruckSection() {
         <TruckCards location="home_trucks" />
         <CrewUpgradeNote />
 
-        <ul className="truck-values">
-          {VALUE_POINTS.map((point) => (
-            <li key={point.title}>
-              <strong>{point.title}</strong>
-              <span>{point.copy}</span>
-            </li>
-          ))}
-        </ul>
-
         <div className="truck-band">
           <div className="truck-band-copy">
             <p className="eyebrow">Same team quality</p>
@@ -79,20 +120,30 @@ export function TruckSection() {
               Different truck. <em>Same HF service.</em>
             </h3>
             <p>
-              Big house? {truckPricing[0].name} — {truckPricing[0].capacity}. Medium move? {truckPricing[1].name} — {truckPricing[1].capacity}. Apartment or smaller move? {truckPricing[2].name} — {truckPricing[2].capacity}. No fake promises — just the right truck, the right crew and the same quality HF service.
+              Whether you choose our HR, MR or Small Truck, you get the same HF service every time: professional crew, careful handling and clear pricing.
             </p>
           </div>
-          <picture className="truck-band-photo">
-            <img
-              src="/images/hf-furniture-removals.webp"
-              alt="HF Removals crew carrying a wrapped sofa into an Adelaide home with the truck loading in the background"
-              width="1672"
-              height="941"
-              loading="lazy"
-              decoding="async"
-            />
-          </picture>
+          <div className="truck-band-gallery">
+            <figure className="truck-band-main">
+              <Image src={hfImages.crewService.src} alt={hfImages.crewService.alt} width={hfImages.crewService.width} height={hfImages.crewService.height} sizes="(max-width: 900px) 92vw, 30vw" />
+            </figure>
+            <figure className="truck-band-side">
+              <Image src={hfImages.carefulHandling.src} alt={hfImages.carefulHandling.alt} width={hfImages.carefulHandling.width} height={hfImages.carefulHandling.height} sizes="(max-width: 900px) 92vw, 30vw" />
+            </figure>
+          </div>
         </div>
+
+        <ul className="truck-values">
+          {VALUE_POINTS.map((point) => (
+            <li key={point.title}>
+              <span className="truck-value-icon">
+                <ValueIcon name={point.icon} />
+              </span>
+              <strong>{point.title}</strong>
+              <span>{point.copy}</span>
+            </li>
+          ))}
+        </ul>
       </div>
     </section>
   );
