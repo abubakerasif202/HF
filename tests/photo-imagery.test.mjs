@@ -76,3 +76,18 @@ test("Muhammad Rasheed section uses the real portrait file and the Company Direc
   assert.match(site, /src=\{business\.ceoImage\}/);
   assert.doesNotMatch(site, /Meet the Director of HF Removals/);
 });
+
+test("low-resolution crops are framed at native size, never stretched into wide banners", async () => {
+  const css = await read("app/components/fleet.css");
+  assert.match(css, /\.reviews-feature \{[^}]*minmax\(0, 620px\)/, "review photo is capped near its 622px source width");
+  assert.match(css, /\.areas-photo \{ max-width: 400px; \}/, "service-area photo is capped near its 390px source width");
+  assert.doesNotMatch(css, /\.reviews-photo \{[^}]*aspect-ratio: 21/, "the review photo must not be cropped into a full-width banner");
+});
+
+test("unavailable truck radios stay visually hidden and notices are readable", async () => {
+  const css = await read("app/components/fleet.css");
+  assert.match(css, /\.truck-pick-input:disabled \{ opacity: 0 !important/);
+  assert.match(css, /\.wizard-notice \{[^}]*background: var\(--hf-ivory\)/);
+  const wizard = await read("app/book/BookingWizard.tsx");
+  assert.doesNotMatch(wizard, /bg-red-50/, "pale-red notices were unreadable on the dark booking page");
+});

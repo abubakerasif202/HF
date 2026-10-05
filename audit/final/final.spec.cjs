@@ -161,7 +161,7 @@ test('quote form validation, package selection, success, failure and double-subm
   await expect(form.locator('.form-status')).toContainText('Please complete the required fields');
 
   const packageThree = form.getByRole('radio', { name: /3 Movers \+ Truck/ });
-  await packageThree.check({ force: true });
+  await packageThree.check();
   await expect(packageThree).toBeChecked();
   await form.getByText('More Details', { exact: false }).click();
   const email = form.getByLabel('Email Address');
@@ -196,7 +196,7 @@ test('quote form validation, package selection, success, failure and double-subm
   await form.getByLabel('Preferred Moving Date').fill('2099-01-01');
   // A successful submission clears the truck choice, so choose one again for the retry.
   await expect(form.getByRole('radio', { name: /HR Truck/ })).not.toBeChecked();
-  await form.getByRole('radio', { name: /HR Truck/ }).check({ force: true });
+  await form.getByRole('radio', { name: /HR Truck/ }).check();
   await page.unroute('https://api.web3forms.com/submit');
   await page.route('https://api.web3forms.com/submit', (route) =>
     route.fulfill({ status: 500, contentType: 'application/json', body: JSON.stringify({ success: false, message: 'Controlled QA failure' }) })

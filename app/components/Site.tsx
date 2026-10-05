@@ -462,22 +462,24 @@ function ReviewsSection() {
               View the current rating and customer feedback directly on Google before choosing your mover.
             </p>
           </div>
-          <div className="rating-card-compact">
-            <div className="rating-card-top">
-              <span className="google-badge-pill">Google Verified</span>
-              <span className="rating-stars" aria-hidden="true" style={{ display: "inline-flex", gap: "2px" }}>{[...Array(5)].map((_, i) => <StarIcon key={i} size={14} />)}</span>
-            </div>
-            <strong>{google.rating.toFixed(1)} / 5.0</strong>
-            <p>Based on {google.reviewCount} customer reviews</p>
-            <a href={google.listingUrl} target="_blank" rel="noopener noreferrer" className="google-review-link">
-              Read all reviews on Google <span>→</span>
-            </a>
-          </div>
         </div>
 
-        <figure className="reviews-photo">
-          <Image src={hfImages.customersCrew.src} alt={hfImages.customersCrew.alt} width={hfImages.customersCrew.width} height={hfImages.customersCrew.height} sizes="(max-width: 900px) 92vw, 80vw" />
-        </figure>
+        <div className="reviews-feature">
+          <figure className="reviews-photo">
+            <Image src={hfImages.customersCrew.src} alt={hfImages.customersCrew.alt} width={hfImages.customersCrew.width} height={hfImages.customersCrew.height} sizes="(max-width: 900px) 92vw, 80vw" />
+          </figure>
+            <div className="rating-card-compact">
+              <div className="rating-card-top">
+                <span className="google-badge-pill">Google Verified</span>
+                <span className="rating-stars" aria-hidden="true" style={{ display: "inline-flex", gap: "2px" }}>{[...Array(5)].map((_, i) => <StarIcon key={i} size={14} />)}</span>
+              </div>
+              <strong>{google.rating.toFixed(1)} / 5.0</strong>
+              <p>Based on {google.reviewCount} customer reviews</p>
+              <a href={google.listingUrl} target="_blank" rel="noopener noreferrer" className="google-review-link">
+                Read all reviews on Google <span>→</span>
+              </a>
+            </div>
+        </div>
 
         <div className="reviews-cards-grid" aria-label="Customer reviews verified from supplied Google screenshots">
           {googleReviews.map((review) => (
@@ -513,7 +515,9 @@ function LeadershipSection() {
       <div className="container leadership-grid">
         <div className="portrait-wrap">
           <div className="portrait-backdrop" />
-          <Image src={business.ceoImage} alt="Muhammad Rasheed, Company Director of HF Removals Adelaide" width={800} height={1000} sizes="(max-width: 900px) 90vw, 40vw" quality={85} style={{ objectPosition: "50% 12%" }} />
+          <div className="portrait-frame">
+            <Image src={business.ceoImage} alt="Muhammad Rasheed, Company Director of HF Removals Adelaide" width={800} height={1000} sizes="(max-width: 900px) 90vw, 40vw" quality={85}  />
+          </div>
           <span className="portrait-accent" />
         </div>
         <div>

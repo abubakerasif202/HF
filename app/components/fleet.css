@@ -526,7 +526,7 @@
     align-items: center;
     column-gap: 12px;
   }
-  .truck-pick-price { grid-row: 1 / span 3; grid-column: 2; flex-direction: column; align-items: flex-end; gap: 0; margin: 0; }
+  .truck-pick-price { grid-row: 2 / span 3; grid-column: 2; flex-direction: column; align-items: flex-end; gap: 0; margin: 0; }
   .truck-pick-check { top: 8px; right: auto; left: auto; display: none; }
   .truck-pick-upgrade .truck-pick-body { display: flex; }
   .truck-values { grid-template-columns: minmax(0, 1fr); }
@@ -673,8 +673,6 @@
 .packing-side { display: grid; gap: 18px; }
 .packing-photo { position: relative; margin: 0; overflow: hidden; border: 1px solid var(--hf-gold-500); border-radius: var(--radius-2xl); box-shadow: var(--shadow-overlay); }
 .packing-photo img { display: block; width: 100%; height: auto; }
-.reviews-photo { position: relative; margin: 0 0 clamp(20px, 3vw, 32px); overflow: hidden; border: 1px solid var(--border-gold); border-radius: var(--radius-2xl); aspect-ratio: 21 / 8; }
-.reviews-photo img { display: block; width: 100%; height: 100%; object-fit: cover; object-position: 50% 35%; }
 .areas-split { display: grid; grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.4fr); gap: clamp(18px, 3vw, 36px); align-items: start; }
 .areas-photo { position: relative; margin: 0; overflow: hidden; border: 1px solid var(--hf-gold-500); border-radius: var(--radius-2xl); box-shadow: var(--shadow-overlay); }
 .areas-photo img { display: block; width: 100%; height: auto; }
@@ -686,7 +684,6 @@
   .areas-split { grid-template-columns: minmax(0, 1fr); }
   .areas-split .area-links { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .truck-band-gallery { aspect-ratio: auto; }
-  .reviews-photo { aspect-ratio: 16 / 9; }
 }
 @media (max-width: 560px) {
   .areas-split .area-links { grid-template-columns: minmax(0, 1fr); }
@@ -711,3 +708,39 @@
 /* The native radio sits above the card body so the whole card is the click/focus target. */
 .truck-pick-input { z-index: 1; }
 .truck-pick-check { pointer-events: none; z-index: 2; }
+
+/* ===== Final polish pass ===== */
+.hero h1 { text-wrap: balance; }
+
+/* Reviews: the photo is framed at its native size beside the rating card (never stretched full-width). */
+.reviews-header-grid { grid-template-columns: minmax(0, 1fr); margin-bottom: 28px; }
+.reviews-feature { display: grid; grid-template-columns: minmax(0, 620px) minmax(0, 360px); gap: clamp(20px, 3vw, 40px); align-items: center; justify-content: start; margin: 0 0 clamp(24px, 3vw, 36px); }
+.reviews-photo { margin: 0; aspect-ratio: auto; overflow: hidden; border: 1px solid var(--hf-gold-500); border-radius: var(--radius-2xl); box-shadow: var(--shadow-overlay); line-height: 0; }
+.reviews-photo img { display: block; width: 100%; height: auto; object-fit: initial; }
+@media (max-width: 900px) { .reviews-feature { grid-template-columns: minmax(0, 1fr); } }
+
+/* Service-area photo stays at roughly native size */
+.areas-photo { max-width: 400px; }
+
+/* Director portrait: the real photo, cropped in a frame so the face reads clearly. */
+.portrait-wrap { place-items: center; }
+.portrait-frame { position: relative; width: min(100%, 380px); aspect-ratio: 380 / 450; overflow: hidden; border: 1px solid var(--hf-gold-300); border-radius: 190px 190px 14px 14px; background: #cfd3d6; }
+.portrait-frame img { position: absolute; top: -1%; left: -22%; width: 144%; max-width: none; height: auto; border: 0; border-radius: 0; }
+
+/* Review avatars: ".review-author-wrap span" was overriding the avatar's centring. */
+.review-author-wrap .review-avatar { display: grid; place-items: center; flex: 0 0 34px; width: 34px; height: 34px; margin: 0; color: var(--on-primary); font-size: 0.8rem; font-weight: 900; line-height: 1; }
+
+/* Rating card balances the photo instead of floating beside empty space. */
+@media (min-width: 901px) { .reviews-feature { grid-template-columns: minmax(0, 620px) minmax(0, 1fr); } }
+.reviews-feature .rating-card-compact { width: 100%; max-width: 440px; justify-self: center; }
+@media (max-width: 900px) { .reviews-feature .rating-card-compact { max-width: none; } }
+
+/* Disabled (unavailable) radios must stay invisible: the card itself shows the state. */
+.truck-pick-input, .truck-pick-input:disabled { opacity: 0 !important; appearance: none; -webkit-appearance: none; }
+
+/* Readable notices on the dark booking page (was pale red on pink). */
+.wizard-notice { padding: 12px 16px; color: var(--hf-ruby-900); background: var(--hf-ivory); border: 1px solid var(--hf-ruby-600); border-left-width: 5px; border-radius: var(--radius-lg); font-weight: 600; line-height: 1.5; }
+
+@media (max-width: 380px) {
+  .hero-fleet-chips span { font-size: 0.62rem; letter-spacing: 0.04em; }
+}

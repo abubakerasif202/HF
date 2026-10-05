@@ -165,10 +165,10 @@ export type TruckClass = "HR" | "MR" | "Small";
  */
 export const hfImages = {
   heroFleet: { src: "/images/hf/hero/hf-hero-fleet-crew.webp", width: 667, height: 360, alt: "HF Removals green truck and two movers carrying wrapped furniture outside a modern Adelaide home" },
-  crewService: { src: "/images/hf/crew/hf-crew-service.webp", width: 442, height: 535, alt: "Smiling HF Removals mover carrying an HF-branded moving box with a crew mate and furniture behind" },
+  crewService: { src: "/images/hf/crew/hf-crew-service.webp", width: 380, height: 535, alt: "Smiling HF Removals mover carrying an HF-branded moving box with a crew mate and furniture behind" },
   carefulHandling: { src: "/images/hf/protection/hf-careful-handling.webp", width: 460, height: 372, alt: "Two HF Removals movers carrying a mattress wrapped in protective film past stacked HF boxes and moving blankets" },
   customersCrew: { src: "/images/hf/crew/hf-customers-crew.webp", width: 622, height: 310, alt: "HF Removals truck and crew carrying wrapped furniture at a customer's home" },
-  serviceArea: { src: "/images/hf/locations/hf-adelaide-service-area.webp", width: 430, height: 300, alt: "HF Removals truck driving along an Adelaide road" },
+  serviceArea: { src: "/images/hf/locations/hf-adelaide-service-area.webp", width: 390, height: 262, alt: "HF Removals truck driving along an Adelaide road" },
 } as const;
 
 /** Customer-facing message when no active vehicle of the chosen class can take an online booking. */
@@ -232,7 +232,7 @@ export const crewUpgradePackages = [
 ] as const;
 
 /** Thumbnail for pickers/summaries; the crew-upgrade has no truck of its own, so it shows the crew. */
-export const crewUpgradeImage = { src: "/images/hf/crew/hf-crew-service.webp", width: 442, height: 535, objectPosition: "50% 30%" } as const;
+export const crewUpgradeImage = { src: "/images/hf/crew/hf-crew-service.webp", width: 380, height: 535, objectPosition: "50% 30%" } as const;
 
 /**
  * Retired package, kept ONLY so historical bookings/holds made before the truck

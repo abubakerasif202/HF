@@ -285,7 +285,7 @@ export function BookingWizard() {
         </p>
       )}
 
-      {error && <p className="mt-6 rounded-lg bg-red-50 px-4 py-3 text-red-700">{error}</p>}
+      {error && <p className="wizard-notice mt-6" role="alert">{error}</p>}
 
       {step === "details" && (
         <section className="mt-8 space-y-4">
@@ -298,7 +298,7 @@ export function BookingWizard() {
             </select>
           </label>
           <TruckPicker name="truck_package_id" value={packageId} onChange={choosePackage} required legend="Choose your truck" idPrefix="wizard-truck" unavailableIds={unavailableIds} />
-          {packageUnavailable && <p className="rounded-lg bg-red-50 px-4 py-3 text-red-700" role="alert">{TRUCK_UNAVAILABLE_MESSAGE}</p>}
+          {packageUnavailable && <p className="wizard-notice" role="alert">{TRUCK_UNAVAILABLE_MESSAGE}</p>}
           <div className="rounded-lg bg-neutral-50 px-4 py-3 text-sm text-neutral-600">
             <p><strong>Minimum service:</strong> {minimumServiceMinutes / 60} hours</p>
             <p className="mt-1">
@@ -336,7 +336,7 @@ export function BookingWizard() {
             <input type="date" className="mt-1 w-full rounded-lg border px-3 py-2" value={date} onChange={(e) => loadSlots(e.target.value)} />
           </label>
           {noCompatibleVehicle && (
-            <p className="rounded-lg bg-red-50 px-4 py-3 text-red-700">
+            <p className="wizard-notice" role="alert">
               {TRUCK_UNAVAILABLE_MESSAGE}
             </p>
           )}
