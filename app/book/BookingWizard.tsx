@@ -260,7 +260,7 @@ export function BookingWizard() {
 
   return (
     <main className="mx-auto max-w-3xl px-6 py-16">
-      <h1 className="text-3xl font-semibold">Book Your Move</h1>
+      <h2 className="text-3xl font-semibold">Your move details</h2>
       <ol className="mt-6 flex flex-wrap gap-2 text-sm">
         {STEPS.map((s, i) => (
           <li

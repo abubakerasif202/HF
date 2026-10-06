@@ -76,7 +76,7 @@ test("renders the premium HF homepage without placeholder claims", async () => {
   assert.match(plain, /Big house\?<\/strong> HR Truck — 16 Ton\./);
   assert.match(plain, /Medium move\?<\/strong> MR Truck — 12 Ton\./);
   assert.match(plain, /Apartment or smaller move\?<\/strong> Small Truck — 8 Ton\./);
-  assert.match(plain, /No fake promises — just the right truck, the right crew and the same quality HF service\./);
+  assert.match(plain, /Local house, furniture and office moves, plus interstate moving support\./);
   assert.match(html, /Choose the Right Truck/);
   for (const price of ["$79", "$74", "$69"]) assert.ok(html.includes(price), `${price} / 30 min rendered on the homepage`);
   assert.match(html, /455(?:<!-- -->)? reviews/i);
@@ -112,7 +112,7 @@ test("renders the premium HF homepage without placeholder claims", async () => {
 
 test("renders service, area, route, guide and contact routes", async () => {
   const paths = [
-    ["/services/residential-removals", /House Removalists Adelaide/i],
+    ["/services/residential-removals", /House Removals Adelaide/i],
     ["/areas/salisbury", /Coordinate homes, units and workplaces/i],
     ["/interstate/adelaide-perth", /\$186\.06/i],
     ["/guides/office-relocation-checklist", /Office Relocation Checklist/i],
@@ -454,20 +454,23 @@ test("canonical routes normalize trailing slashes instead of serving duplicates"
 
 test("priority pages keep distinct metadata and useful page-level schema", async () => {
   const home = await (await render("/")).text();
-  assert.match(home, /name="description" content="Adelaide removalists for house, apartment, furniture and office moves, plus interstate routes\./i);
+  assert.match(home, /name="description" content="Adelaide removalists for house, furniture, office and interstate moves\./i);
   assert.doesNotMatch(home, /"priceRange":"\$\$"/);
 
   const servicesHtml = await (await render("/services")).text();
-  assert.match(servicesHtml, /<title>Adelaide Moving Services \| Compare Removal Options \| HF Removals Adelaide<\/title>/i);
+  assert.match(servicesHtml, /<title>Adelaide Moving Services \| HF Removals Adelaide<\/title>/i);
   assert.match(servicesHtml, /"@type":"CollectionPage"/);
   assert.match(servicesHtml, /"@type":"ItemList"/);
   assert.match(servicesHtml, /"@type":"BreadcrumbList"/);
   assert.match(servicesHtml, /alt="HF Removals Adelaide logo"/);
 
   const houseHtml = await (await render("/services/residential-removals")).text();
-  assert.match(houseHtml, /<title>House Removalists Adelaide \| HF Removals Adelaide<\/title>/i);
-  assert.match(houseHtml, /<h1>House Removalists Adelaide<\/h1>/i);
-  assert.match(houseHtml, /House removals for homes, apartments and townhouses across Adelaide/i);
+  assert.match(houseHtml, /<title>House Removals Adelaide \| Home Movers \| HF Removals<\/title>/i);
+  assert.match(houseHtml, /<h1>House Removals Adelaide<\/h1>/i);
+  assert.match(houseHtml, /Moving house in Adelaide\?/i);
+  assert.match(houseHtml, /href="\/guides\/adelaide-moving-checklist"/i);
+  assert.match(houseHtml, /href="\/guides\/apartment-moving-preparation"/i);
+  assert.match(houseHtml, /href="\/services\/interstate-removals"/i);
   assert.match(houseHtml, /href="\/adelaide-removalists"/i);
   assert.match(houseHtml, /href="\/services\/packing-unpacking"/i);
   assert.match(houseHtml, /Useful next steps for your move/i);

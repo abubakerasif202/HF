@@ -5,7 +5,7 @@ This map separates broad Adelaide moving intent from service-specific and planni
 | URL | Primary intent | Supporting language | Internal-link role |
 | --- | --- | --- | --- |
 | `/` | Adelaide removalists, Adelaide movers, moving company Adelaide | moving services Adelaide, local removals Adelaide, house moving Adelaide | Broad entry point to residential, office, interstate and packing services |
-| `/services/residential-removals` | house removalists Adelaide, house movers Adelaide, residential removals Adelaide | house moving Adelaide, furniture-moving support | Residential detail page; links back to the Adelaide hub and planning resources |
+| `/services/residential-removals` | house removals Adelaide, house movers Adelaide, residential removalists Adelaide | home removals Adelaide, house moving Adelaide, furniture-moving support | Residential detail page; links to the moving checklist, apartment preparation, interstate service and Adelaide planning hub |
 | `/services/furniture-removals` | furniture removalists Adelaide, furniture movers Adelaide, furniture removal Adelaide | bulky furniture, access, protection and destination placement | Furniture-specific service page; links to residential, packing and quote planning |
 | `/services/office-commercial-removals` | office removalists Adelaide, commercial removalists Adelaide, office movers Adelaide | commercial relocation Adelaide, workplace relocation, office furniture and equipment planning | Workplace-specific service page; does not compete for the homepage’s broad primary phrase |
 | `/services/interstate-removals` | interstate removalists Adelaide, interstate movers Adelaide, Adelaide interstate removals | route planning, inventory, volume, per-m³ reference pricing, access and packing | Interstate service hub linking to all four route pages |
@@ -22,6 +22,10 @@ This map separates broad Adelaide moving intent from service-specific and planni
 | `/interstate/adelaide-perth` | Adelaide to Perth removals | route-specific inventory, access and reference pricing | Route detail linking back to the interstate hub |
 
 The homepage retains the broad `Adelaide removalists` / `Adelaide movers` role. Dedicated pages use their own service or route qualifiers rather than repeating that broad phrase as their primary target.
+
+## 2026-10-06 export refresh
+
+The complete HF query/page exports in `C:/Users/abuba/Desktop/GSC-All-Sites-2026-10-06/hfremovalsadelaide.com.au/` informed the latest house-removals priority. Their daily period spans 2025-06-06 to 2026-10-05; aggregate rows are not a recent 28-day comparison. House removals records 3,608 impressions/1 click and house movers 2,834 impressions/2 clicks, with most query-page visibility on the homepage host variants. Preserve homepage authority and strengthen the existing residential URL. See `docs/SEO-2026-10-06-AUDIT.md` for the complete refreshed mapping, changes and limitations. No area consolidation is justified by these aggregate totals alone.
 
 ## 2026-10-02 GSC priorities
 

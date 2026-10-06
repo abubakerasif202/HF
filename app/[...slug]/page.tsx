@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { DetailPage, ListingPage, StaticPage } from "../components/Site";
 import { breadcrumbSchema, contentTrail, homeCrumb, sectionCrumbs, staticCrumbLabels } from "../../lib/breadcrumbs";
-import { areas, business, canonical, findContentPage, guides, indexablePaths, interstateRoutes, services, truckPricing, standardMoveFaqs } from "../../lib/site-data";
+import { areas, business, canonical, entryLocalRate, findContentPage, guides, indexablePaths, interstateRoutes, services, standardMoveFaqs } from "../../lib/site-data";
 
 type Props = { params: Promise<{ slug: string[] }> };
 type ListingKind = "services" | "areas" | "interstate" | "guides";
@@ -10,14 +10,14 @@ type ListingKind = "services" | "areas" | "interstate" | "guides";
 const staticPages: Record<string, { type: "about" | "contact" | "pricing" | "adelaide" | "privacy" | "terms"; title: string; description: string; schema: string }> = {
   about: { type: "about", title: "About Our Adelaide Removalists", description: "Meet Muhammad Rasheed and learn how HF Removals Adelaide plans local, house, office and interstate moves around each customer's requirements.", schema: "AboutPage" },
   contact: { type: "contact", title: "Contact HF Removals Adelaide", description: "Contact HF Removals Adelaide to discuss a local, house, office or interstate move and request a quote based on your inventory and access details.", schema: "ContactPage" },
-  pricing: { type: "pricing", title: "Removalist Pricing Adelaide", description: `Compare Adelaide removalist rates by truck: ${truckPricing.map((truck) => `${truck.name} ${truck.halfHour}/30 min`).join(", ")}, each with a 2-man crew. See minimum service and call-out fees, then request a quote.`, schema: "WebPage" },
-  "adelaide-removalists": { type: "adelaide", title: "Adelaide Moving Services, Pricing & Planning Guide | HF Removals", description: "Compare Adelaide moving services, supplied reference pricing and practical planning guidance for house, office, interstate and packing enquiries.", schema: "WebPage" },
+  pricing: { type: "pricing", title: "Removalist Pricing Adelaide", description: `Compare Adelaide moving rates from ${entryLocalRate.halfHour}/30 min. Choose your truck and crew; minimum service and a separate call-out fee apply. Request a quote.`, schema: "WebPage" },
+  "adelaide-removalists": { type: "adelaide", title: "Adelaide Moving Services, Pricing & Planning Guide | HF Removals", description: "Compare Adelaide moving services, published rates and practical planning guidance for house, office, interstate and packing enquiries.", schema: "WebPage" },
   privacy: { type: "privacy", title: "Privacy", description: "How HF Removals Adelaide handles website enquiry information.", schema: "WebPage" },
   terms: { type: "terms", title: "Website Terms", description: "General website, pricing and insurance wording terms for HF Removals Adelaide.", schema: "WebPage" },
 };
 
 const listingPages: Record<string, { kind: ListingKind; title: string; description: string }> = {
-  services: { kind: "services", title: "Adelaide Moving Services | Compare Removal Options", description: "Compare residential, furniture, office, interstate, backloading and packing services, then share the details HF needs for your quote." },
+  services: { kind: "services", title: "Adelaide Moving Services", description: "Compare house, furniture, office, interstate, backloading and packing services from HF Removals Adelaide. Find the moving support you need and request a quote." },
   areas: { kind: "areas", title: "Adelaide Service Areas", description: "Move planning information for listed HF Removals Adelaide service areas." },
   interstate: { kind: "interstate", title: "Interstate Removal Routes", description: "Adelaide interstate route reference rates and practical volume planning." },
   guides: { kind: "guides", title: "Moving Guides", description: "Practical moving, packing, pricing, apartment, office and interstate guides." },
@@ -28,7 +28,7 @@ function contentTitle(page: NonNullable<ReturnType<typeof findContentPage>>) {
   if (page.kind === "area") return `${page.eyebrow.replace(/ removals| moving support/i, "")} Removalists`;
   if (page.kind === "service") {
     const titles: Record<string, string> = {
-      "residential-removals": "House Removalists Adelaide | HF Removals Adelaide",
+      "residential-removals": "House Removals Adelaide | Home Movers | HF Removals",
       "furniture-removals": "Furniture Removalists Adelaide | HF Removals Adelaide",
       "office-commercial-removals": "Office & Commercial Removalists Adelaide | HF Removals Adelaide",
       "interstate-removals": "Interstate Removalists Adelaide | HF Removals Adelaide",

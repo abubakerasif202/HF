@@ -202,7 +202,7 @@ function ServicesGrid() {
                 ))}
               </ul>
               <span className="card-link">
-                Explore service <b>→</b>
+                Explore {service.eyebrow.toLowerCase()} <b>→</b>
               </span>
             </a>
           ))}
@@ -868,7 +868,7 @@ export function HomePage() {
                 </p>
               ))}
             </div>
-            <p className="hero-book-line">No fake promises — just the right truck, the right crew and the same quality HF service.</p>
+            <p className="hero-book-line">Local house, furniture and office moves, plus interstate moving support. Choose the truck and crew that fit your move.</p>
             <div className="hero-actions">
               <BookNowButton location="hero">
                 Book Your Move <span>→</span>
@@ -1162,6 +1162,9 @@ function relatedLinksFor(page: ContentPage): RelatedLink[] {
       { href: "/adelaide-removalists", label: "Adelaide removalist services", description: "Compare local, apartment, office, interstate and packing support from HF." },
       { href: "/services/furniture-removals", label: "Furniture removalists", description: "Plan large furniture, access, protection and destination placement." },
       { href: "/services/packing-unpacking", label: "Packing support", description: "Prepare cartons, furniture and high-care items before moving day." },
+      { href: "/guides/adelaide-moving-checklist", label: "Your house-moving checklist", description: "Prepare your inventory, access details and moving-day essentials." },
+      { href: "/guides/apartment-moving-preparation", label: "Prepare an apartment move", description: "Check lifts, loading access and building requirements before moving day." },
+      { href: "/services/interstate-removals", label: "Moving home interstate", description: "Plan the destination route, volume and access for a longer-distance move." },
       { href: "/areas", label: "Adelaide service areas", description: "Find local planning pages for the suburb and property access involved in your move." },
       homeLink("Removalists in Adelaide"),
       ...shared,
@@ -1263,7 +1266,7 @@ const BOOKABLE_SERVICE_SLUGS = new Set(["residential-removals", "furniture-remov
 export function DetailPage({ page }: { page: ContentPage }) {
   const area = page.kind === "area" ? hfServiceAreaRecords.find((item) => item.slug === page.slug) : undefined;
   const serviceHeadings: Record<string, string> = {
-    "residential-removals": "House Removalists Adelaide",
+    "residential-removals": "House Removals Adelaide",
     "furniture-removals": "Furniture Removalists Adelaide",
     "office-commercial-removals": "Office & Commercial Removalists Adelaide",
     "interstate-removals": "Interstate Removalists Adelaide",
@@ -1286,7 +1289,7 @@ export function DetailPage({ page }: { page: ContentPage }) {
             <article>
               <p className="eyebrow">What to plan</p>
               <h2>
-                Practical details make a <em>clearer move</em>
+                {page.slug === "residential-removals" ? <>Plan your <em>house move</em></> : <>Practical details make a <em>clearer move</em></>}
               </h2>
               <div className="detail-bars">
                 {page.highlights.map((item, index) => (
@@ -1464,7 +1467,7 @@ export function StaticPage({ type }: { type: "about" | "contact" | "pricing" | "
   if (type === "adelaide")
     return (
       <SiteFrame>
-        <PageHero breadcrumbs={[homeCrumb, { label: staticCrumbLabels.adelaide }]} eyebrow="Adelaide moving guide" title="Adelaide moving services, pricing and planning" description="Compare HF's Adelaide moving services, supplied reference rates, packing support and practical move-planning resources before requesting a tailored quote." />
+        <PageHero breadcrumbs={[homeCrumb, { label: staticCrumbLabels.adelaide }]} eyebrow="Adelaide moving guide" title="Adelaide moving services, pricing and planning" description="Compare HF's Adelaide moving services, published rates, packing support and practical move-planning resources before requesting a tailored quote." />
         <ServicesGrid />
         <ApartmentAccessSection />
         <PricingSection />

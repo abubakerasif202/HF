@@ -204,7 +204,7 @@ export function TruckFitSection() {
             return (
               <li key={card.title}>
                 <a className="truck-fit-card" href={valid ? href : "/services/residential-removals"}>
-                  <img src={card.image} alt={card.alt} width="1672" height="941" loading="lazy" decoding="async" />
+                  <Image src={card.image} alt={card.alt} width={1672} height={941} sizes="(max-width: 640px) calc(100vw - 32px), (max-width: 1100px) 50vw, (max-width: 1488px) 25vw, 342px" loading="lazy" />
                   <span className="truck-fit-body">
                     <span className="truck-fit-chip">{card.trucks}</span>
                     <strong>{card.title}</strong>

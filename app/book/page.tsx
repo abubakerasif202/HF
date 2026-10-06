@@ -24,6 +24,7 @@ export default function BookPage() {
         <Link href="/contact" className="button button-ruby mt-8">
           Get a Quote
         </Link>
+        <p className="mt-4"><a href={business.phones[0].href}>Call {business.phones[0].display}</a></p>
       </main>
     );
   }
@@ -44,6 +45,7 @@ export default function BookPage() {
           Your final price is calculated once your move is completed. 3-hour minimum service + separate 1-hour
           call-out fee applies.
         </p>
+        <p className="mt-4 text-sm"><a href={business.phones[0].href}>Need help? Call {business.phones[0].display}</a></p>
       </div>
       <BookingWizard />
       <div className="mx-auto mt-4 max-w-3xl px-6 pb-24">

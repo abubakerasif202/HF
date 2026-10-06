@@ -405,9 +405,9 @@ export const services: ContentPage[] = [
     kind: "service",
     eyebrow: "House removals",
     title: "A practical plan for moving home",
-    description: "Residential removalists in Adelaide for homes, apartments and townhouses. Plan house moving, furniture protection, packing support and destination placement with HF Removals Adelaide.",
+    description: "House removals in Adelaide for homes, apartments and townhouses. Plan furniture protection, packing and access with HF Removals. Request your moving quote.",
     intro:
-      "HF Removals Adelaide provides house removals for homes, apartments and townhouses across Adelaide. We plan around your inventory, property access, furniture protection and destination placement so the quote reflects the actual move.",
+      "Moving house in Adelaide? HF Removals plans home, apartment and townhouse moves around your room-by-room inventory, access at both properties, furniture protection and destination placement. Our house movers help you choose the truck and moving support that fit the job, with the scope confirmed in your quote.",
     highlights: ["Homes, apartments and townhouses", "Room-by-room inventory", "Packing and protective wraps", "Placement at your destination"],
     sections: [
       { title: "Choose support for a whole-home move", body: "Use residential removals when you need to coordinate belongings from several rooms, including cartons, furniture and appliances, in one move plan. For a few selected bulky pieces, a furniture-removal enquiry may be a better starting point. For a home moving interstate, include the destination route so the quote can be assessed using the appropriate scope." },
@@ -415,12 +415,14 @@ export const services: ContentPage[] = [
       { title: "Homes, apartments and townhouses", body: "Share the property type, entry path, lift or loading-zone requirements and any tight access before moving day so loading can be planned around the building." },
       { title: "Furniture moving and placement", body: "List lounges, beds, tables, appliances and other large furniture. Available protection includes moving blankets, shrink wrap, bubble wrap, mattress protection and side-table protective wrapping; label destination rooms and identify priority items for the unload." },
       { title: "Agree the preparation and moving-day sequence", body: "Decide whether you need full or partial packing and discuss furniture dismantling before moving day. Keep keys and essentials with you, make the agreed entry path accessible and prepare room labels for arrival." },
+      { title: "Choose a truck for your house move", body: "HF offers Small, MR and HR trucks, each with a 2-man crew, plus a 3-mover option. Compare the published rates and share your furniture and carton list before choosing. Truck size should reflect the load and access at both homes; the local minimum service and separate call-out fee still apply." },
       { title: "Request a house removals quote", body: "Send the pickup and delivery addresses, preferred date, property sizes, room inventory and access notes. Explain whether the move includes selected rooms, the whole home or apartment access so HF can review the team, truck and work required." },
     ],
     faqs: [
       { question: "What should I include in a house moving quote?", answer: "Share both addresses, your preferred date, property type and a room-by-room inventory. Include garage and outdoor contents, stairs, lifts, parking and furniture that may need dismantling." },
       { question: "Can you help with apartment and townhouse moves?", answer: "Yes. Include any lift booking, loading-zone restrictions, stairs and narrow entries at both buildings so the move can be planned around the access available." },
       { question: "Can I request packing help for my home move?", answer: "Full or partial packing and unpacking support is available. Tell HF which rooms or items need help, and keep documents, medication, keys and first-night essentials with you." },
+      { question: "How do I choose a truck for my house move?", answer: "Use your furniture and carton inventory, rather than bedroom count alone, to compare the Small, MR and HR trucks. Include garage and outdoor items, bulky furniture and access restrictions at both homes. If you are unsure, send the list with your quote request so HF can review the truck and crew required." },
       { question: "How is a local house move charged?", answer: `Pick the truck that fits the move, each with a 2-man crew: ${truckRateSummary}. A 3-hour minimum service and a separate 1-hour call-out fee apply. The call-out covers truck fuel and basic transport charges, not extra labour. Additional service time is billed in 30-minute increments, with the final amount calculated when the job is complete.` },
       { question: "What furniture protection is provided for a home move?", answer: "Moving blankets, heavy-duty tie-down straps and trolleys are standard on every truck, with complimentary mattress protection and side-table protective wrapping. Identify fragile belongings and ask about any additional packing work or materials needed for your inventory." },
     ],
