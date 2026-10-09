@@ -9,7 +9,7 @@ export function NoteForm({ bookingId }: { bookingId: string }) {
 
   return (
     <form
-      className="mt-4 grid gap-3"
+      className="a-bk-panel a-bk-panel--flat"
       onSubmit={(e) => {
         e.preventDefault();
         const note = ref.current?.value.trim();

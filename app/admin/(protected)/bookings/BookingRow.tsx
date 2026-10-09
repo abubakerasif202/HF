@@ -5,14 +5,16 @@ import { useTransition } from "react";
 import { assignVehicleAction, assignCrewAction, cancelBookingAction } from "../../actions.ts";
 import { describePackage } from "../../../../lib/booking/pricing.ts";
 import { AdminStatusBadge } from "../../_components/AdminStatusBadge";
+import { Icon } from "../../_components/Icon";
 import { formatAdelaide, formatMoney } from "../../_components/ui";
+import { shortPlace, type AddressJson } from "./places";
 
 interface Resource {
   id: string;
   name: string;
 }
 
-interface Booking {
+export interface BookingListItem {
   id: string;
   booking_number: string;
   starts_at: string;
@@ -25,37 +27,60 @@ interface Booking {
   subtotal_cents: number;
   deposit_paid_cents: number;
   balance_due_cents: number;
-  pickup_address: { suburb?: string } | null;
-  destination_address: { suburb?: string } | null;
+  pickup_address: AddressJson;
+  destination_address: AddressJson;
   customers: { name: string; email: string; phone: string | null } | null;
 }
 
-export function BookingRow({ booking, vehicles, crews }: { booking: Booking; vehicles: Resource[]; crews: Resource[] }) {
+const CANCELLABLE = ["held", "pending_payment", "confirmed", "assigned"];
+const INACTIVE = ["cancelled", "expired"];
+
+export function BookingRow({ booking, vehicles, crews, index = 0 }: { booking: BookingListItem; vehicles: Resource[]; crews: Resource[]; index?: number }) {
   const [pending, startTransition] = useTransition();
   const pkg = describePackage({ packageId: booking.package_id, crewSize: booking.crew_size });
   const packageLabel = pkg.truckCapacity ? `${pkg.packageName} · ${pkg.truckCapacity}` : pkg.packageName;
+  const owing = booking.balance_due_cents > 0;
 
   return (
-    <tr>
-      <td data-label="Booking" className="admin-cell-strong">
-        <Link href={`/admin/bookings/${booking.id}`} className="admin-link">{booking.booking_number}</Link>
-      </td>
-      <td data-label="Date" className="whitespace-nowrap">
-        <div>
-          <div>{formatAdelaide(booking.starts_at, { dateStyle: "medium" })}</div>
-          <div className="admin-cell-sub">{formatAdelaide(booking.starts_at, { timeStyle: "short" })}</div>
+    <li
+      className="a-bk-row a-reveal"
+      data-dim={INACTIVE.includes(booking.booking_status) ? "true" : undefined}
+      style={{ "--i": Math.min(index, 10) } as React.CSSProperties}
+    >
+      <div className="a-bk-when">
+        <span className="a-bk-wday">{formatAdelaide(booking.starts_at, { weekday: "short" })}</span>
+        <span className="a-bk-day">{formatAdelaide(booking.starts_at, { day: "numeric" })}</span>
+        <span className="a-bk-mon">{formatAdelaide(booking.starts_at, { month: "short" })}</span>
+        <span className="a-bk-time">{formatAdelaide(booking.starts_at, { timeStyle: "short" })}</span>
+      </div>
+
+      <div className="a-bk-main">
+        <div className="a-bk-who">
+          <Link href={`/admin/bookings/${booking.id}`} className="a-bk-name">{booking.customers?.name ?? "Customer"}</Link>
+          <span className="a-id">{booking.booking_number}</span>
         </div>
-      </td>
-      <td data-label="Customer">
-        <div>
-          <div className="font-semibold">{booking.customers?.name ?? "—"}</div>
-          <div className="admin-cell-sub">{booking.customers?.email}</div>
+        {booking.customers?.email && <div className="a-bk-contact">{booking.customers.email}</div>}
+        <div className="a-bk-route" aria-label="Route">
+          <span className="a-bk-stop">{shortPlace(booking.pickup_address)}</span>
+          <Icon name="arrowRight" size={14} />
+          <span className="a-bk-stop">{shortPlace(booking.destination_address)}</span>
         </div>
-      </td>
-      <td data-label="Route">{booking.pickup_address?.suburb ?? "—"} → {booking.destination_address?.suburb ?? "—"}</td>
-      <td data-label="Truck & crew">
-        <div className="admin-resource-stack">
-          <div className="admin-cell-sub font-semibold">{packageLabel}</div>
+        <div className="a-bk-pkg"><Icon name="truck" size={14} />{packageLabel}</div>
+      </div>
+
+      <div className="a-bk-status">
+        <AdminStatusBadge status={booking.booking_status} />
+        <AdminStatusBadge kind="payment" status={booking.payment_status} />
+        <div className="a-bk-money">
+          {booking.deposit_paid_cents > 0 ? `${formatMoney(booking.deposit_paid_cents, { decimals: 0 })} paid` : "No advance payment"}
+          {" · "}
+          <span data-owing={owing || undefined}>{formatMoney(booking.balance_due_cents, { decimals: 0 })} due</span>
+        </div>
+      </div>
+
+      <div className="a-bk-assign">
+        <label className="a-bk-field" data-missing={(!booking.vehicle_id && ["held", "confirmed", "assigned"].includes(booking.booking_status)) || undefined}>
+          <span className="a-bk-field-label"><Icon name="truck" size={13} />Truck</span>
           <select
             disabled={pending}
             defaultValue={booking.vehicle_id ?? ""}
@@ -74,6 +99,9 @@ export function BookingRow({ booking, vehicles, crews }: { booking: Booking; veh
               <option key={v.id} value={v.id}>{v.name}</option>
             ))}
           </select>
+        </label>
+        <label className="a-bk-field" data-missing={(!booking.crew_id && booking.booking_status === "confirmed") || undefined}>
+          <span className="a-bk-field-label"><Icon name="crew" size={13} />Crew</span>
           <select
             disabled={pending || booking.booking_status !== "confirmed"}
             defaultValue={booking.crew_id ?? ""}
@@ -93,22 +121,15 @@ export function BookingRow({ booking, vehicles, crews }: { booking: Booking; veh
               <option key={c.id} value={c.id}>{c.name}</option>
             ))}
           </select>
-        </div>
-      </td>
-      <td data-label="Payment">
-        <div>
-          <AdminStatusBadge kind="payment" status={booking.payment_status} />
-          <div className="admin-cell-sub whitespace-nowrap">
-            {booking.deposit_paid_cents > 0 ? `${formatMoney(booking.deposit_paid_cents, { decimals: 0 })} paid` : "No advance payment"} ·{" "}
-            <span className={booking.balance_due_cents > 0 ? "font-bold text-[var(--admin-ruby-text)]" : undefined}>
-              {formatMoney(booking.balance_due_cents, { decimals: 0 })} due
-            </span>
-          </div>
-        </div>
-      </td>
-      <td data-label="Status"><AdminStatusBadge status={booking.booking_status} /></td>
-      <td>
-        {["held", "pending_payment", "confirmed", "assigned"].includes(booking.booking_status) && (
+        </label>
+      </div>
+
+      <div className="a-bk-actions">
+        <Link href={`/admin/bookings/${booking.id}`} className="admin-btn admin-btn--secondary admin-btn--sm" aria-label={`Open booking ${booking.booking_number}`}>
+          Open
+          <Icon name="chevronRight" size={15} />
+        </Link>
+        {CANCELLABLE.includes(booking.booking_status) && (
           <button
             type="button"
             disabled={pending}
@@ -123,7 +144,7 @@ export function BookingRow({ booking, vehicles, crews }: { booking: Booking; veh
             Cancel
           </button>
         )}
-      </td>
-    </tr>
+      </div>
+    </li>
   );
 }
