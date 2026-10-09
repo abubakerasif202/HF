@@ -2,6 +2,7 @@ import "server-only";
 import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
 import { supabaseConfig } from "./config.ts";
+import { isAuthorizedAdmin, isAdminEmail } from "../admin-access.ts";
 
 /**
  * Cookie-backed Supabase client for staff authentication (admin login),
@@ -40,8 +41,8 @@ export async function getSupabaseForServerAction() {
 export async function getStaffSession() {
   const supabase = await getSupabaseForServerComponent();
   const { data } = await supabase.auth.getUser();
-  if (!data.user) return null;
+  if (!data.user || !isAdminEmail(data.user.email)) return null;
   const { data: staff } = await supabase.from("staff").select("id, full_name, role, active").eq("id", data.user.id).maybeSingle();
-  if (!staff || !staff.active) return null;
+  if (!isAuthorizedAdmin(data.user.email, staff)) return null;
   return { userId: data.user.id, email: data.user.email, ...staff };
 }
