@@ -19,7 +19,7 @@ export function FinalizeJobForm({ bookingId, bookingStatus }: { bookingId: strin
 
   return (
     <form
-      className="grid gap-3"
+      className="a-bk-panel a-bk-panel--flat"
       onSubmit={(e) => {
         e.preventDefault();
         const value = Number(minutes);
