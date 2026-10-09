@@ -35,7 +35,8 @@
 }
 
 /* Fleet */
-.a-fleet { display: grid; gap: 10px; margin: 0; padding: 0; list-style: none; }
+.a-dash-cols > * { min-width: 0; }
+.a-fleet { display: grid; grid-template-columns: minmax(0, 1fr); gap: 10px; margin: 0; padding: 0; list-style: none; }
 .a-fleet-item { display: flex; align-items: center; gap: 14px; padding: 14px 16px; border: 1px solid var(--a-line); border-radius: var(--a-r-md); background: var(--a-surface-2); }
 .a-fleet-icon { display: grid; place-items: center; flex: 0 0 auto; width: 42px; height: 42px; border-radius: 12px; background: var(--a-brand-soft); color: var(--a-brand); }
 .a-fleet-item[data-state="busy"] .a-fleet-icon { background: var(--a-info-soft); color: var(--a-info); }
@@ -47,6 +48,14 @@
 .a-fleet-summary { display: flex; align-items: center; gap: 22px; margin-bottom: 20px; }
 .admin-shell .a-fleet-big { color: var(--a-ink); font-family: var(--a-font-display); font-size: 3.2rem; font-weight: 450; line-height: 0.9; letter-spacing: -0.04em; font-variant-numeric: lining-nums tabular-nums; }
 .admin-shell .a-fleet-big small { color: var(--a-muted); font-family: var(--a-font-ui); font-size: 1rem; font-weight: 650; letter-spacing: 0; }
+
+/* Pipeline summary strip */
+.a-pipe-summary { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; margin-top: 26px; padding-top: 22px; border-top: 1px solid var(--a-line); }
+.a-pipe-stat { padding: 14px 14px 12px; border: 1px solid var(--a-line); border-radius: var(--a-r-md); background: var(--a-surface-2); }
+.admin-shell .a-pipe-stat-value { color: var(--a-ink); font-family: var(--a-font-display); font-size: 1.9rem; font-weight: 450; line-height: 1; letter-spacing: -0.03em; font-variant-numeric: lining-nums tabular-nums; }
+.admin-shell .a-pipe-stat-label { margin-top: 6px; color: var(--a-muted); font-size: 0.68rem; font-weight: 800; letter-spacing: 0.1em; text-transform: uppercase; }
+.admin-shell .a-pipe-note { margin-top: 16px; color: var(--a-muted); font-size: 0.86rem; line-height: 1.55; }
+.admin-shell .a-pipe-note strong { color: var(--a-ink); }
 
 /* Activity feed */
 .a-activity { margin: 0; padding: 4px 26px 24px; list-style: none; }

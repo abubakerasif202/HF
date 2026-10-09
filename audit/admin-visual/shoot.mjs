@@ -16,6 +16,7 @@ const label = args.find((a, i) => !a.startsWith("--") && !args[i - 1]?.startsWit
 const base = flag("--base", "http://127.0.0.1:3200");
 const widths = flag("--widths", "390,768,1440,1920").split(",").map(Number);
 const only = flag("--only", "")?.split(",").filter(Boolean) ?? [];
+const theme = flag("--theme", "light");
 const supabaseUrl = `http://127.0.0.1:${process.env.MOCK_PORT ?? 54399}`;
 
 const AUTHED_ROUTES = [
@@ -24,6 +25,9 @@ const AUTHED_ROUTES = [
   ["booking-detail", `/admin/bookings/${FEATURED_BOOKING_ID}`],
   ["booking-detail-finalised", `/admin/bookings/${FINALISED_BOOKING_ID}`],
   ["quotes", "/admin/quotes"],
+  ["quotes-drawer", "/admin/quotes", async (page) => { await page.locator(".a-lead").first().click(); await page.waitForSelector(".a-drawer"); await page.waitForTimeout(600); }],
+  ["sidebar-collapsed", "/admin", async (page) => { const c = page.locator(".a-collapse").first(); if (!(await c.isVisible())) return; await c.click(); await page.waitForTimeout(600); }],
+  ["mobile-menu", "/admin", async (page) => { const b = page.locator(".a-menu-btn"); if (await b.isVisible()) { await b.click(); await page.waitForTimeout(600); } }],
   ["calendar", "/admin/calendar"],
   ["calendar-month", "/admin/calendar?view=month"],
   ["availability", "/admin/availability"],
@@ -35,16 +39,34 @@ const AUTHED_ROUTES = [
 const LOGIN_ROUTE = ["login", "/admin/login"];
 
 const outDir = path.join(here, "screens", label);
+
+// Horizontal-overflow probe: reports document overflow plus the elements poking past the viewport.
+const probeOverflow = () => {
+  const vw = document.documentElement.clientWidth;
+  const offenders = [];
+  for (const el of document.querySelectorAll("body *")) {
+    const rect = el.getBoundingClientRect();
+    if (rect.width === 0 || rect.right <= vw + 4) continue;
+    let clipped = false;
+    for (let p = el.parentElement; p && p !== document.body; p = p.parentElement) {
+      const overflowX = getComputedStyle(p).overflowX;
+      if (overflowX !== "visible" && p.getBoundingClientRect().right <= vw + 1) { clipped = true; break; }
+    }
+    if (!clipped) offenders.push(`${el.tagName.toLowerCase()}.${String(el.className).split(" ").slice(0, 2).join(".")} right=${Math.round(rect.right)}`);
+  }
+  return { scrollWidth: document.documentElement.scrollWidth, clientWidth: vw, overflow: document.documentElement.scrollWidth > vw + 1 || offenders.length > 0, offenders: offenders.slice(0, 8) };
+};
 mkdirSync(outDir, { recursive: true });
 
 const browser = await chromium.launch();
 const report = { label, base, takenAt: new Date().toISOString(), pages: [] };
 let failures = 0;
 
-async function shootRoute(context, [slug, route], { expectLogin }) {
+async function shootRoute(context, [slug, route, interact], { expectLogin }) {
   if (only.length && !only.includes(slug)) return;
   for (const width of widths) {
     const page = await context.newPage();
+    await page.addInitScript((t) => { try { localStorage.setItem("hf-admin-theme", t); } catch {} }, theme);
     await page.setViewportSize({ width, height: width <= 768 ? 900 : 1000 });
     const entry = { slug, route, width, status: null, finalUrl: null, consoleErrors: [], pageErrors: [], failedRequests: [], badResponses: [], ok: true };
     page.on("console", (m) => { if (m.type() === "error") entry.consoleErrors.push(m.text().slice(0, 400)); });
@@ -60,7 +82,10 @@ async function shootRoute(context, [slug, route], { expectLogin }) {
       const landedOnLogin = new URL(entry.finalUrl).pathname === "/admin/login";
       if (entry.status !== 200) { entry.ok = false; entry.problem = `HTTP ${entry.status}`; }
       if (landedOnLogin && !expectLogin) { entry.ok = false; entry.problem = "redirected to /admin/login (auth mock failed)"; }
-      await page.screenshot({ path: path.join(outDir, `${slug}-${width}.png`), fullPage: true });
+      if (interact) await interact(page);
+      entry.overflow = await page.evaluate(probeOverflow);
+      if (entry.overflow.overflow) { entry.ok = false; entry.problem = `horizontal overflow ${entry.overflow.scrollWidth}>${entry.overflow.clientWidth}: ${entry.overflow.offenders.join(" | ")}`; }
+      await page.screenshot({ path: path.join(outDir, `${slug}-${width}.png`), fullPage: !interact });
     } catch (error) {
       entry.ok = false;
       entry.problem = String(error).slice(0, 300);

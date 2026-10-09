@@ -41,8 +41,8 @@
 }
 @media (min-width: 768px) { .a-hero { padding: 48px 48px 40px; } }
 .a-hero-art { position: absolute; inset: 0; z-index: -1; width: 100%; height: 100%; pointer-events: none; }
-.a-hero-art .road { stroke: rgba(225, 200, 149, 0.34); stroke-width: 1.5; fill: none; }
-.a-hero-art .road-dash { stroke: rgba(225, 200, 149, 0.55); stroke-width: 1.5; stroke-dasharray: 3 12; fill: none; stroke-linecap: round; }
+.a-hero-art .road { stroke: rgba(225, 200, 149, 0.24); stroke-width: 1.5; fill: none; }
+.a-hero-art .road-dash { stroke: rgba(225, 200, 149, 0.4); stroke-width: 1.5; stroke-dasharray: 3 12; fill: none; stroke-linecap: round; }
 .a-hero-art .ring { stroke: rgba(225, 200, 149, 0.1); stroke-width: 1; fill: none; }
 .a-hero-top { display: flex; flex-wrap: wrap; align-items: flex-start; justify-content: space-between; gap: 18px; }
 .admin-shell .a-hero .a-eyebrow { display: inline-flex; align-items: center; gap: 12px; color: var(--a-accent-2); }
@@ -158,7 +158,8 @@
   font-variant-numeric: lining-nums tabular-nums;
 }
 .admin-shell .a-metric-hint { margin-top: 10px; color: var(--a-muted); font-size: 0.82rem; line-height: 1.45; }
-.a-metric-art { position: absolute; right: -6px; bottom: -6px; width: 56%; height: 62%; pointer-events: none; opacity: 0.9; }
+.a-metric-art { position: absolute; right: 0; bottom: 0; width: 52%; height: 44%; pointer-events: none; opacity: 0.85; }
+.a-metric[data-art="true"] .a-metric-hint { max-width: 54%; }
 .a-metric > :not(.a-metric-art) { position: relative; z-index: 1; }
 
 /* Variants: feature (dark emerald, gold number) · porcelain · gold · alert */

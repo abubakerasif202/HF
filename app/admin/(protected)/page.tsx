@@ -146,6 +146,8 @@ export default async function AdminDashboardPage() {
   const totalEnquiries = stageCounts.reduce((sum, stage) => sum + stage.count, 0);
   const newEnquiries = stageOf("new");
   const followUps = stageOf("follow_up");
+  const openLeads = stageOf("new") + stageOf("quote_sent") + stageOf("follow_up");
+  const wonLeads = stageOf("booked") + stageOf("completed");
 
   /* ---- Enquiries received: last 14 days + week-on-week comparison ---- */
   const dayBuckets: BarDatum[] = Array.from({ length: 14 }, (_, index) => {
@@ -366,7 +368,17 @@ export default async function AdminDashboardPage() {
           {totalEnquiries === 0 ? (
             <AdminEmptyState icon="inbox" title="No enquiries captured yet" description="Website quote requests appear here once the quote form mirrors a submission." />
           ) : (
-            <PipelineBars stages={stageCounts.map((stage) => ({ label: stage.label, count: stage.count, color: stage.color }))} />
+            <>
+              <PipelineBars stages={stageCounts.map((stage) => ({ label: stage.label, count: stage.count, color: stage.color }))} />
+              <div className="a-pipe-summary">
+                <div className="a-pipe-stat"><div className="a-pipe-stat-value">{openLeads}</div><div className="a-pipe-stat-label">Open leads</div></div>
+                <div className="a-pipe-stat"><div className="a-pipe-stat-value">{wonLeads}</div><div className="a-pipe-stat-label">Won</div></div>
+                <div className="a-pipe-stat"><div className="a-pipe-stat-value">{stageOf("lost")}</div><div className="a-pipe-stat-label">Lost</div></div>
+              </div>
+              <p className="a-pipe-note">
+                <strong>{Math.round((wonLeads / totalEnquiries) * 100)}%</strong> of captured enquiries are booked or completed. Captured enquiries only include submissions mirrored from the website form.
+              </p>
+            </>
           )}
         </AdminCard>
       </div>

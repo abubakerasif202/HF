@@ -193,7 +193,7 @@ export function MetricCard({
   style?: React.CSSProperties;
 }) {
   return (
-    <article className="a-metric a-reveal" data-variant={variant} data-span={span} data-wide={wide} style={style}>
+    <article className="a-metric a-reveal" data-variant={variant} data-span={span} data-wide={wide} data-art={art ? "true" : undefined} style={style}>
       {art && <div className="a-metric-art" aria-hidden="true">{art}</div>}
       <div className="a-metric-top">
         <span className="a-metric-icon"><Icon name={icon} size={20} /></span>
