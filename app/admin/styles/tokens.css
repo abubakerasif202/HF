@@ -1,0 +1,201 @@
+/* ====================================================================
+   HF PRIVATE OPERATIONS — design tokens
+   ====================================================================
+   Scoped to .admin-shell so nothing leaks into the public website.
+   Light = warm porcelain + forest green + champagne accents.
+   Dark  = rich near-black + dark emerald + restrained gold.
+   Theme is chosen by [data-admin-theme] on <html> (set before paint by
+   an inline script in app/admin/layout.tsx, persisted in localStorage).
+
+   Gold rule: #C5A46D on porcelain is only ~2.1:1, so gold is NEVER used
+   for text or focus rings on light surfaces. It appears on dark emerald
+   (sidebar, hero, feature cards) or as decoration. On light surfaces the
+   readable accent is --a-accent-text (#7A5A1C, ~5.6:1 on porcelain).
+
+   Measured contrast (WCAG 2.x), light theme:
+     --a-ink        #101815 on #FFFFFF  18.6:1   on canvas  16.4:1
+     --a-ink-2      #2E3A34 on #FFFFFF  12.1:1
+     --a-muted      #53605A on #FFFFFF   6.6:1   on canvas   5.9:1
+     --a-brand      #104438 on #FFFFFF  10.9:1
+     --a-accent-text#7A5A1C on canvas    5.6:1
+     input border   #7C8780 on #FFFFFF   3.8:1  (>= 3:1 for UI boundaries)
+     champagne #E1C895 on sidebar #092C25 9.8:1; gold #C5A46D on it 7.0:1
+*/
+
+.admin-shell {
+  /* Brand palette (reference values) */
+  --hf-forest: #092c25;
+  --hf-emerald: #104438;
+  --hf-ink: #101815;
+  --hf-gold: #c5a46d;
+  --hf-champagne: #e1c895;
+  --hf-porcelain: #f7f5f0;
+  --hf-eucalyptus: #dce7df;
+  --hf-graphite: #53605a;
+
+  /* Surfaces */
+  --a-canvas: #f3f0e8;
+  --a-canvas-glow: rgba(16, 68, 56, 0.07);
+  --a-surface: #ffffff;
+  --a-surface-2: #fbfaf6;
+  --a-surface-sunken: #eceae1;
+  --a-surface-hover: #f6f4ec;
+  --a-overlay: rgba(9, 44, 37, 0.52);
+
+  /* Ink */
+  --a-ink: #101815;
+  --a-ink-2: #2e3a34;
+  --a-muted: #53605a;
+  --a-faint: #7c8780;
+  --a-on-dark: #f4f1e8;
+  --a-on-dark-muted: rgba(244, 241, 232, 0.66);
+
+  /* Lines */
+  --a-line: rgba(16, 24, 21, 0.09);
+  --a-line-2: rgba(16, 24, 21, 0.15);
+  --a-line-input: #7c8780;
+
+  /* Brand + accent */
+  --a-brand: #104438;
+  --a-brand-deep: #092c25;
+  --a-brand-soft: #dce7df;
+  --a-brand-tint: #eef3ef;
+  --a-accent: #c5a46d;
+  --a-accent-2: #e1c895;
+  --a-accent-text: #7a5a1c;
+  --a-accent-soft: #f6edda;
+  --a-focus: #104438;
+
+  /* Status tones — text on soft surface, both measured >= 6:1 */
+  --a-success: #1b6747;
+  --a-success-soft: #e2f0e7;
+  --a-success-line: #b7d8c4;
+  --a-info: #24527a;
+  --a-info-soft: #e3ecf4;
+  --a-info-line: #bdd0e1;
+  --a-warning: #84560a;
+  --a-warning-soft: #faefd2;
+  --a-warning-line: #e8d199;
+  --a-danger: #9b2335;
+  --a-danger-soft: #fae6e9;
+  --a-danger-line: #efbcc4;
+  --a-neutral: #53605a;
+  --a-neutral-soft: #ebe9e1;
+  --a-neutral-line: #d7d4c8;
+
+  /* Data visualisation (distinguishable in light + dark, not colour-only) */
+  --a-viz-1: #104438;
+  --a-viz-2: #c5a46d;
+  --a-viz-3: #5f8f7b;
+  --a-viz-4: #8c6b2a;
+  --a-viz-5: #9fb8aa;
+  --a-viz-6: #b9543f;
+  --a-viz-grid: rgba(16, 24, 21, 0.08);
+
+  /* Sidebar (always dark emerald, in both themes) */
+  --a-side-bg: linear-gradient(180deg, #0b352c 0%, #092c25 52%, #061f1a 100%);
+  --a-side-line: rgba(225, 200, 149, 0.16);
+  --a-side-hover: rgba(244, 241, 232, 0.07);
+  --a-side-active: linear-gradient(90deg, rgba(225, 200, 149, 0.18), rgba(225, 200, 149, 0.03));
+
+  /* Shape */
+  --a-r-sm: 8px;
+  --a-r-md: 12px;
+  --a-r-lg: 18px;
+  --a-r-xl: 26px;
+  --a-r-pill: 999px;
+
+  /* Elevation */
+  --a-shadow-1: 0 1px 0 rgba(16, 24, 21, 0.04), 0 1px 2px rgba(16, 24, 21, 0.05);
+  --a-shadow-2: 0 1px 0 rgba(255, 255, 255, 0.8) inset, 0 10px 28px -14px rgba(9, 44, 37, 0.22), 0 2px 6px rgba(16, 24, 21, 0.05);
+  --a-shadow-3: 0 28px 70px -24px rgba(9, 44, 37, 0.42), 0 6px 18px rgba(16, 24, 21, 0.1);
+  --a-shadow-dark: 0 24px 50px -22px rgba(4, 22, 18, 0.7), 0 1px 0 rgba(225, 200, 149, 0.14) inset;
+
+  /* Motion */
+  --a-ease: cubic-bezier(0.16, 1, 0.3, 1);
+  --a-ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+  --a-dur-1: 120ms;
+  --a-dur-2: 220ms;
+  --a-dur-3: 420ms;
+
+  /* Layout */
+  --a-side-w: 272px;
+  --a-side-w-collapsed: 80px;
+  --a-content-max: 1360px;
+
+  /* Typography */
+  --a-font-ui: var(--admin-font-ui, "Segoe UI"), -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --a-font-display: var(--admin-font-display, Georgia), "Iowan Old Style", "Times New Roman", serif;
+  --a-font-mono: var(--admin-font-mono, ui-monospace), ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+
+  /* ----- Legacy aliases: markup that predates the redesign keeps working ----- */
+  --admin-text: var(--a-ink);
+  --admin-text-secondary: var(--a-ink-2);
+  --admin-text-muted: var(--a-muted);
+  --admin-ruby-text: var(--a-danger);
+  --admin-ruby: var(--a-danger);
+  --admin-danger: var(--a-danger);
+  --admin-success: var(--a-success);
+  --admin-green: var(--a-brand);
+  --admin-border: var(--a-line);
+}
+
+/* ---------------------------------------------------------------- Dark */
+:root[data-admin-theme="dark"] .admin-shell {
+  color-scheme: dark;
+
+  --a-canvas: #0a110e;
+  --a-canvas-glow: rgba(197, 164, 109, 0.05);
+  --a-surface: #111c17;
+  --a-surface-2: #14221c;
+  --a-surface-sunken: #0c1511;
+  --a-surface-hover: #172721;
+  --a-overlay: rgba(2, 8, 6, 0.72);
+
+  --a-ink: #efece3;
+  --a-ink-2: #cfd6cf;
+  --a-muted: #a3b0a8;
+  --a-faint: #78867e;
+
+  --a-line: rgba(239, 236, 227, 0.09);
+  --a-line-2: rgba(239, 236, 227, 0.16);
+  --a-line-input: #6b7a72;
+
+  --a-brand: #7fc3a8;
+  --a-brand-deep: #092c25;
+  --a-brand-soft: rgba(127, 195, 168, 0.14);
+  --a-brand-tint: rgba(127, 195, 168, 0.07);
+  --a-accent: #c5a46d;
+  --a-accent-2: #e1c895;
+  --a-accent-text: #e1c895;
+  --a-accent-soft: rgba(197, 164, 109, 0.14);
+  --a-focus: #e1c895;
+
+  --a-success: #8fd6ae;
+  --a-success-soft: rgba(143, 214, 174, 0.12);
+  --a-success-line: rgba(143, 214, 174, 0.28);
+  --a-info: #9cc4e8;
+  --a-info-soft: rgba(156, 196, 232, 0.12);
+  --a-info-line: rgba(156, 196, 232, 0.28);
+  --a-warning: #f0cf85;
+  --a-warning-soft: rgba(240, 207, 133, 0.12);
+  --a-warning-line: rgba(240, 207, 133, 0.28);
+  --a-danger: #f19aa6;
+  --a-danger-soft: rgba(241, 154, 166, 0.12);
+  --a-danger-line: rgba(241, 154, 166, 0.28);
+  --a-neutral: #a3b0a8;
+  --a-neutral-soft: rgba(163, 176, 168, 0.1);
+  --a-neutral-line: rgba(163, 176, 168, 0.22);
+
+  --a-viz-1: #7fc3a8;
+  --a-viz-2: #e1c895;
+  --a-viz-3: #4f8f77;
+  --a-viz-4: #b99345;
+  --a-viz-5: #365e50;
+  --a-viz-6: #e08a76;
+  --a-viz-grid: rgba(239, 236, 227, 0.09);
+
+  --a-shadow-1: 0 1px 0 rgba(0, 0, 0, 0.4);
+  --a-shadow-2: 0 1px 0 rgba(239, 236, 227, 0.05) inset, 0 14px 32px -16px rgba(0, 0, 0, 0.7);
+  --a-shadow-3: 0 32px 80px -24px rgba(0, 0, 0, 0.85), 0 0 0 1px rgba(239, 236, 227, 0.06);
+}

@@ -21,7 +21,7 @@ export function CalendarSyncStatus({ bookingId, status, error, canSync, eventLin
 
   return (
     <div className="grid gap-3">
-      <div className="flex flex-wrap items-center gap-3">
+      <div className="a-bk-sync">
         <AdminStatusBadge kind="sync" status={status} />
         {showRetry && (
           <button
@@ -36,7 +36,7 @@ export function CalendarSyncStatus({ bookingId, status, error, canSync, eventLin
         )}
         {eventLink && (
           <a href={eventLink} target="_blank" rel="noopener noreferrer" className="admin-link text-sm font-semibold">
-            Open in Google Calendar
+            <Icon name="externalLink" size={14} />Open in Google Calendar
           </a>
         )}
       </div>

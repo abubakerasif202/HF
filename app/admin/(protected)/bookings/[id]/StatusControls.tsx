@@ -21,8 +21,9 @@ export function StatusControls({ bookingId, currentStatus }: { bookingId: string
   if (options.length === 0) return null;
 
   return (
-    <div className="mt-4 flex flex-wrap items-center gap-2">
-      {options.map((next) => (
+    <div className="a-bk-next">
+      <p className="a-bk-next-label">Next step</p>
+      {options.map((next, index) => (
         <button
           key={next}
           type="button"
@@ -35,12 +36,12 @@ export function StatusControls({ bookingId, currentStatus }: { bookingId: string
               if (result?.error) setError(result.error);
             });
           }}
-          className={`admin-btn admin-btn--sm ${next === "cancelled" ? "admin-btn--danger" : "admin-btn--secondary"}`}
+          className={`admin-btn ${next === "cancelled" ? "admin-btn--danger admin-btn--sm a-bk-next-cancel" : index === 0 ? "admin-btn--primary" : "admin-btn--secondary"}`}
         >
           {next === "cancelled" ? "Cancel booking" : `Mark as ${next.replace(/_/g, " ")}`}
         </button>
       ))}
-      {error && <div className="w-full"><AdminAlert tone="error">{error}</AdminAlert></div>}
+      {error && <AdminAlert tone="error">{error}</AdminAlert>}
     </div>
   );
 }

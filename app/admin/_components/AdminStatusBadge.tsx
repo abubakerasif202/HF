@@ -5,7 +5,7 @@ import { Icon, type IconName } from "./Icon";
  * conveyed by the text label (plus an icon) — colour is reinforcement,
  * never the only signal.
  */
-export type BadgeTone = "success" | "solid-green" | "info" | "warning" | "ruby" | "danger" | "neutral";
+export type BadgeTone = "success" | "solid-green" | "sage" | "gold" | "info" | "warning" | "ruby" | "danger" | "neutral";
 
 interface StatusStyle {
   label: string;
@@ -43,7 +43,25 @@ export const SYNC_STATUS: Record<string, StatusStyle> = {
   not_applicable: { label: "Disabled", tone: "neutral", icon: "ban" },
 };
 
-const MAPS = { booking: BOOKING_STATUS, payment: PAYMENT_STATUS, sync: SYNC_STATUS } as const;
+/** Quote-enquiry follow-up pipeline (quote_requests.quote_status). */
+export const QUOTE_STATUS: Record<string, StatusStyle> = {
+  new: { label: "New", tone: "solid-green", icon: "inbox" },
+  quote_sent: { label: "Quote sent", tone: "info", icon: "mail" },
+  follow_up: { label: "Follow up", tone: "warning", icon: "bell" },
+  booked: { label: "Booked", tone: "success", icon: "calendarCheck" },
+  completed: { label: "Completed", tone: "sage", icon: "check" },
+  lost: { label: "Lost", tone: "neutral", icon: "x" },
+};
+
+/** Fleet availability for the day shown on the dashboard. */
+export const FLEET_STATUS: Record<string, StatusStyle> = {
+  free: { label: "Free today", tone: "success", icon: "check" },
+  busy: { label: "On a job", tone: "info", icon: "truck" },
+  blocked: { label: "Blocked", tone: "warning", icon: "ban" },
+  inactive: { label: "Inactive", tone: "neutral", icon: "ban" },
+};
+
+const MAPS = { booking: BOOKING_STATUS, payment: PAYMENT_STATUS, sync: SYNC_STATUS, quote: QUOTE_STATUS, fleet: FLEET_STATUS } as const;
 
 function humanise(value: string): string {
   const text = value.replace(/_/g, " ");
