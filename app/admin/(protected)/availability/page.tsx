@@ -1,23 +1,14 @@
 import { requireAdmin } from "../../../../lib/server/admin-dal.ts";
 import { getSupabaseAdmin } from "../../../../lib/server/supabase.ts";
-import { DeleteBlockedTimeButton } from "./DeleteBlockedTimeButton";
 import { BlockTimeForm } from "./BlockTimeForm";
-import { AdminCard, AdminEmptyState, AdminPageHeader, formatAdelaide } from "../../_components/ui";
-import type { IconName } from "../../_components/Icon";
+import { BlockTimeline, ResourceGroup } from "./AvailabilityParts";
+import { blockState, resourceStatus, type BlockedRow } from "./availability-model";
+import { AdminCard, AdminPageHeader, MetricCard, formatAdelaide } from "../../_components/ui";
+import { Icon } from "../../_components/Icon";
+import "../../styles/availability.css";
 
 export const dynamic = "force-dynamic";
 export const metadata = { robots: { index: false, follow: false } };
-
-interface BlockedRow {
-  id: string;
-  starts_at: string;
-  ends_at: string;
-  reason: string;
-  vehicleId: string | null;
-  crewId: string | null;
-  vehicleName?: string;
-  crewName?: string;
-}
 
 export default async function AdminAvailabilityPage() {
   await requireAdmin();
@@ -41,59 +32,59 @@ export default async function AdminAvailabilityPage() {
     vehicleName: Array.isArray(b.vehicles) ? b.vehicles[0]?.name : (b.vehicles as { name: string } | null)?.name,
     crewName: Array.isArray(b.crews) ? b.crews[0]?.name : (b.crews as { name: string } | null)?.name,
   }));
-  const groups: { title: string; icon: IconName; empty: string; items: BlockedRow[] }[] = [
-    { title: "Entire business", icon: "ban", empty: "The business isn't closed for any period.", items: rows.filter((r) => !r.vehicleId && !r.crewId) },
-    { title: "Vehicles", icon: "truck", empty: "No vehicles are blocked.", items: rows.filter((r) => r.vehicleId) },
-    { title: "Crews", icon: "crew", empty: "No crews are blocked.", items: rows.filter((r) => !r.vehicleId && r.crewId) },
+
+  const nowMs = new Date().getTime();
+  const truckList = vehicles ?? [];
+  const crewList = crews ?? [];
+  const statuses = [
+    ...truckList.map((v) => resourceStatus(rows, "vehicle", v.id, nowMs).state),
+    ...crewList.map((c) => resourceStatus(rows, "crew", c.id, nowMs).state),
   ];
+  const blockedNow = statuses.filter((state) => state === "blocked-now").length;
+  const availableNow = statuses.length - blockedNow;
+  const upcoming = rows.filter((row) => blockState(row, nowMs) === "upcoming").length;
+  const closure = rows.find((row) => !row.vehicleId && !row.crewId && blockState(row, nowMs) === "active");
 
   return (
-    <div className="mx-auto max-w-6xl">
+    <div className="a-av">
       <AdminPageHeader
-        title="Availability"
+        eyebrow="Fleet & crews"
+        title={<>Who is <em>available</em></>}
         description="Blocked times immediately remove slots customers can book online. Closing the entire business blocks every truck and crew."
-        actions={<a href="#block-time" className="admin-btn admin-btn--primary">Block time</a>}
+        actions={<a href="#block-time" className="admin-btn admin-btn--primary"><Icon name="plus" size={16} />Block time</a>}
       />
 
-      <div className="grid gap-5 lg:grid-cols-[minmax(0,1.3fr)_minmax(0,1fr)]">
-        <div className="grid content-start gap-5">
-          {rows.length === 0 ? (
-            <AdminCard>
-              <AdminEmptyState
-                icon="availability"
-                title="No blocked times"
-                description="Every active truck and crew is bookable during business hours."
-              />
-            </AdminCard>
-          ) : (
-            groups.map((group) => (
-              <AdminCard key={group.title} icon={group.icon} title={group.title} description={`${group.items.length} blocked period${group.items.length === 1 ? "" : "s"}`} flush>
-                {group.items.length === 0 ? (
-                  <p className="admin-help px-5 py-4">{group.empty}</p>
-                ) : (
-                  <ul className="admin-list">
-                    {group.items.map((b) => (
-                      <li key={b.id} className="admin-list-item admin-blocked-item">
-                        <div className="min-w-0">
-                          <div className="admin-list-title">{b.vehicleId ? `Truck: ${b.vehicleName ?? "Unknown"}` : b.crewId ? `Crew: ${b.crewName ?? "Unknown"}` : "Entire business"}</div>
-                          <div className="admin-list-meta">
-                            <span className="font-semibold text-[var(--admin-text-secondary)]">{formatAdelaide(b.starts_at, { dateStyle: "medium" })}</span>
-                            {" · "}
-                            {formatAdelaide(b.starts_at, { timeStyle: "short" })} → {formatAdelaide(b.ends_at, { dateStyle: "medium", timeStyle: "short" })}
-                          </div>
-                          <div className="admin-list-meta">{b.reason}</div>
-                        </div>
-                        <DeleteBlockedTimeButton id={b.id} />
-                      </li>
-                    ))}
-                  </ul>
-                )}
-              </AdminCard>
-            ))
-          )}
+      {closure && (
+        <div className="a-av-closure a-reveal" role="status">
+          <Icon name="ban" size={20} />
+          <div>
+            <strong>The business is closed to online bookings until {formatAdelaide(closure.ends_at, { dateStyle: "medium", timeStyle: "short" })}.</strong>
+            <span>{closure.reason}</span>
+          </div>
+        </div>
+      )}
+
+      <div className="a-metric-grid">
+        <MetricCard icon="check" label="Available now" value={availableNow} hint="Active trucks and crews with no block in effect" variant="feature" span={4} style={{ ["--i" as string]: 0 }} />
+        <MetricCard icon="ban" label="Blocked now" value={blockedNow} hint={blockedNow === 0 ? "Nothing is out of service" : "Trucks or crews currently out of service"} variant={blockedNow > 0 ? "gold" : "porcelain"} span={4} style={{ ["--i" as string]: 1 }} />
+        <MetricCard icon="clock" label="Upcoming blocks" value={upcoming} hint="Scheduled closures still to start" variant="porcelain" span={4} wide style={{ ["--i" as string]: 2 }} />
+      </div>
+
+      <div className="a-av-layout">
+        <div className="a-av-main">
+          <AdminCard icon="availability" title="Resources" description="Where each truck and crew stands right now, from blocked times only.">
+            <div className="a-av-groups">
+              <ResourceGroup kind="vehicle" title="Trucks" resources={truckList} rows={rows} nowMs={nowMs} />
+              <ResourceGroup kind="crew" title="Crews" resources={crewList} rows={rows} nowMs={nowMs} />
+            </div>
+          </AdminCard>
+
+          <AdminCard icon="calendar" title="Blocked times" description="Every closure, soonest first.">
+            <BlockTimeline rows={rows} nowMs={nowMs} />
+          </AdminCard>
         </div>
 
-        <AdminCard id="block-time" icon="plus" title="Block time" description="Close the business, or take one truck or crew out of service." className="scroll-mt-20 self-start">
+        <AdminCard id="block-time" icon="plus" title="Block time" description="Close the business, or take one truck or crew out of service." className="a-av-formcard">
           <BlockTimeForm vehicles={vehicles ?? []} crews={crews ?? []} />
         </AdminCard>
       </div>

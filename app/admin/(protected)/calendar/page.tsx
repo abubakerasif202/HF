@@ -4,6 +4,7 @@ import { getBusinessSettings } from "../../../../lib/server/booking-repo.ts";
 import { findMovingPackage } from "../../../../lib/site-data.ts";
 import { getRangeForView, type CalendarView } from "../../../../lib/booking/calendar-range.ts";
 import { CalendarClient } from "./CalendarClient";
+import "../../styles/calendar.css";
 
 export const dynamic = "force-dynamic";
 export const metadata = { robots: { index: false, follow: false } };
@@ -90,6 +91,7 @@ export default async function AdminCalendarPage({
       month={month}
       day={day}
       timezone={settings.timezone}
+      todayKey={`${today.year}-${String(today.month).padStart(2, "0")}-${String(today.day).padStart(2, "0")}`}
       rangeStartIso={start.toISOString()}
       rangeEndIso={end.toISOString()}
       bookings={normalizedBookings}
