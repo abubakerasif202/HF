@@ -1,101 +1,93 @@
 "use client";
 
-import Link from "next/link";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { classifyBlockedTime } from "../../../../lib/booking/calendar-range.ts";
-import { describePackage } from "../../../../lib/booking/pricing.ts";
 import { movingPackages, legacyPackages } from "../../../../lib/site-data.ts";
-import { AdminPageHeader } from "../../_components/ui";
-import { AdminStatusBadge, statusStyle } from "../../_components/AdminStatusBadge";
+import { AdminEmptyState, AdminPageHeader } from "../../_components/ui";
 import { Icon } from "../../_components/Icon";
-
-interface Booking {
-  id: string;
-  bookingNumber: string;
-  startsAt: string;
-  endsAt: string;
-  status: string;
-  crewSize: number;
-  packageId: string | null;
-  vehicleId: string | null;
-  crewId: string | null;
-  vehicleName?: string;
-  crewName?: string;
-  customerName?: string;
-}
-
-interface BlockedTime {
-  id: string;
-  startsAt: string;
-  endsAt: string;
-  vehicleId: string | null;
-  crewId: string | null;
-  reason: string;
-  vehicleName?: string;
-  crewName?: string;
-}
-
-interface Resource {
-  id: string;
-  name: string;
-}
-
-// Statuses the calendar can show (cancelled/expired/draft are excluded
-// by the page query). Labels + tones come from the shared badge system;
-// every event shows its status as text, never colour alone.
-const FILTERABLE_STATUSES = ["held", "pending_payment", "confirmed", "assigned", "in_progress", "completed"];
+import {
+  addDays,
+  addMonths,
+  buildDayData,
+  listDays,
+  minutesOfDay,
+  rangeTitle,
+  type BlockedTime,
+  type Booking,
+  type CalendarViewName,
+  type Resource,
+} from "./calendar-model";
+import { AgendaView, MonthGrid, TimeGrid } from "./CalendarGrids";
+import { CalendarFilters, CalendarLegend, CalendarToolbar, NO_FILTERS, type Filters } from "./CalendarToolbar";
 
 // Every package a booking can carry, for the filter: bookable ones plus the retired legacy package.
 const FILTER_PACKAGES = [...movingPackages, ...legacyPackages];
+const NOW_TICK_MS = 60_000;
 
-function packageLabel(packageId: string | null, crewSize: number): string {
-  const pkg = describePackage({ packageId, crewSize });
-  return pkg.truckCapacity ? `${pkg.packageName} · ${pkg.truckCapacity} · ${crewSize} men` : pkg.packageName;
-}
-
-function fmtTime(iso: string, timezone: string): string {
-  return new Date(iso).toLocaleTimeString("en-AU", { hour: "numeric", minute: "2-digit", timeZone: timezone });
-}
-
-function dayKey(iso: string, timezone: string): string {
-  return new Date(iso).toLocaleDateString("en-CA", { timeZone: timezone });
-}
-
-export function CalendarClient({
-  view,
-  year,
-  month,
-  day,
-  timezone,
-  rangeStartIso,
-  rangeEndIso,
-  bookings,
-  blockedTimes,
-  vehicles,
-  crews,
-}: {
-  view: "day" | "week" | "month";
+interface CalendarClientProps {
+  view: CalendarViewName;
   year: number;
   month: number;
   day: number;
   timezone: string;
+  todayKey: string;
   rangeStartIso: string;
   rangeEndIso: string;
   bookings: Booking[];
   blockedTimes: BlockedTime[];
   vehicles: Resource[];
   crews: Resource[];
-}) {
+}
+
+function useNowMinutes(timezone: string): number | null {
+  const [minutes, setMinutes] = useState<number | null>(null);
+  useEffect(() => {
+    const tick = () => setMinutes(minutesOfDay(new Date().toISOString(), timezone));
+    tick();
+    const timer = window.setInterval(tick, NOW_TICK_MS);
+    return () => window.clearInterval(timer);
+  }, [timezone]);
+  return minutes;
+}
+
+function applyFilters(bookings: Booking[], filters: Filters): Booking[] {
+  return bookings.filter(
+    (b) =>
+      (!filters.vehicle || b.vehicleId === filters.vehicle) &&
+      (!filters.crew || b.crewId === filters.crew) &&
+      (!filters.status || b.status === filters.status) &&
+      (!filters.packageId || b.packageId === filters.packageId),
+  );
+}
+
+/** With a truck or crew filter, show only the closures that affect it (plus whole-business closures). */
+function applyBlockFilters(blocked: BlockedTime[], filters: Filters): BlockedTime[] {
+  if (!filters.vehicle && !filters.crew) return blocked;
+  return blocked.filter(
+    (b) => (!b.vehicleId && !b.crewId) || (filters.vehicle && b.vehicleId === filters.vehicle) || (filters.crew && b.crewId === filters.crew),
+  );
+}
+
+function countByStatus(bookings: Booking[]): Record<string, number> {
+  const counts: Record<string, number> = {};
+  for (const b of bookings) counts[b.status] = (counts[b.status] ?? 0) + 1;
+  return counts;
+}
+
+export function CalendarClient({ view, year, month, day, timezone, todayKey, rangeStartIso, rangeEndIso, bookings, blockedTimes, vehicles, crews }: CalendarClientProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
-
-  const [vehicleFilter, setVehicleFilter] = useState("");
-  const [crewFilter, setCrewFilter] = useState("");
-  const [statusFilter, setStatusFilter] = useState("");
-  const [packageFilter, setPackageFilter] = useState("");
+  const [filters, setFilters] = useState<Filters>(NO_FILTERS);
+  const nowMinutes = useNowMinutes(timezone);
 
   const anchorDate = `${year}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
+  const dayKeys = useMemo(() => listDays(rangeStartIso, rangeEndIso, timezone), [rangeStartIso, rangeEndIso, timezone]);
+
+  const filteredBookings = useMemo(() => applyFilters(bookings, filters), [bookings, filters]);
+  const visibleBlocks = useMemo(() => applyBlockFilters(blockedTimes, filters), [blockedTimes, filters]);
+  const dayData = useMemo(() => buildDayData(dayKeys, filteredBookings, visibleBlocks, timezone), [dayKeys, filteredBookings, visibleBlocks, timezone]);
+  // The legend counts ignore the status filter so every status stays visible while one is selected.
+  const legendCounts = useMemo(() => countByStatus(applyFilters(bookings, { ...filters, status: "" })), [bookings, filters]);
 
   function navigate(nextView: string, nextDate: string) {
     const params = new URLSearchParams(searchParams.toString());
@@ -104,155 +96,68 @@ export function CalendarClient({
     router.push(`/admin/calendar?${params.toString()}`);
   }
 
-  function shift(days: number) {
-    const base = new Date(Date.UTC(year, month - 1, day));
-    base.setUTCDate(base.getUTCDate() + days);
-    navigate(view, base.toISOString().slice(0, 10));
+  function step(direction: 1 | -1) {
+    if (view === "month") return navigate(view, addMonths(anchorDate, direction));
+    navigate(view, addDays(anchorDate, direction * (view === "week" ? 7 : 1)));
   }
 
-  const filteredBookings = useMemo(
-    () =>
-      bookings.filter(
-        (b) =>
-          (!vehicleFilter || b.vehicleId === vehicleFilter) &&
-          (!crewFilter || b.crewId === crewFilter) &&
-          (!statusFilter || b.status === statusFilter) &&
-          (!packageFilter || b.packageId === packageFilter),
-      ),
-    [bookings, vehicleFilter, crewFilter, statusFilter, packageFilter],
-  );
-
-  const days: string[] = [];
-  {
-    const cursor = new Date(rangeStartIso);
-    const rangeEnd = new Date(rangeEndIso);
-    while (cursor < rangeEnd) {
-      days.push(cursor.toLocaleDateString("en-CA", { timeZone: timezone }));
-      cursor.setUTCDate(cursor.getUTCDate() + 1);
-    }
+  function switchView(next: CalendarViewName) {
+    navigate(next, dayKeys.includes(todayKey) ? todayKey : anchorDate);
   }
 
-  const bookingsByDay = useMemo(() => {
-    const map = new Map<string, Booking[]>();
-    for (const b of filteredBookings) {
-      const key = dayKey(b.startsAt, timezone);
-      if (!map.has(key)) map.set(key, []);
-      map.get(key)!.push(b);
-    }
-    return map;
-  }, [filteredBookings, timezone]);
-
-  const blockedByDay = useMemo(() => {
-    const map = new Map<string, BlockedTime[]>();
-    for (const blocked of blockedTimes) {
-      const key = dayKey(blocked.startsAt, timezone);
-      if (!map.has(key)) map.set(key, []);
-      map.get(key)!.push(blocked);
-    }
-    return map;
-  }, [blockedTimes, timezone]);
-
-  const rangeLabel = `${new Date(rangeStartIso).toLocaleDateString("en-AU", { timeZone: timezone, dateStyle: "medium" })} – ${new Date(new Date(rangeEndIso).getTime() - 1).toLocaleDateString("en-AU", { timeZone: timezone, dateStyle: "medium" })}`;
+  const needsAssignment = filteredBookings.filter((b) => b.status !== "completed" && (!b.vehicleId || !b.crewId)).length;
+  const isEmpty = filteredBookings.length === 0 && visibleBlocks.length === 0;
+  const filtersActive = Object.values(filters).some(Boolean);
 
   return (
-    <div className="mx-auto max-w-7xl">
+    <div className="a-cal">
       <AdminPageHeader
-        title="Calendar"
+        eyebrow="Schedule"
+        title={<>Operations <em>calendar</em></>}
         description="View upcoming jobs, crew allocation and blocked periods."
-        actions={
-          <div className="admin-segmented" role="group" aria-label="Calendar view">
-            {(["day", "week", "month"] as const).map((v) => (
-              <button key={v} type="button" aria-pressed={view === v} onClick={() => navigate(v, anchorDate)}>
-                {v}
-              </button>
-            ))}
-          </div>
-        }
       />
 
-      <div className="admin-card mb-5 grid gap-4 p-4">
-        <div className="admin-cal-toolbar">
-          <div className="flex flex-wrap items-center gap-2">
-            <button type="button" onClick={() => shift(view === "month" ? -30 : view === "week" ? -7 : -1)} className="admin-btn admin-btn--secondary admin-btn--sm" aria-label={`Previous ${view}`}>
-              <Icon name="arrowLeft" size={15} />
-              Prev
-            </button>
-            <button type="button" onClick={() => navigate(view, new Date().toISOString().slice(0, 10))} className="admin-btn admin-btn--secondary admin-btn--sm">Today</button>
-            <button type="button" onClick={() => shift(view === "month" ? 30 : view === "week" ? 7 : 1)} className="admin-btn admin-btn--secondary admin-btn--sm" aria-label={`Next ${view}`}>
-              Next
-              <Icon name="arrowRight" size={15} />
-            </button>
+      <section className="a-cal-panel a-reveal" aria-label="Calendar controls">
+        <CalendarToolbar view={view} title={rangeTitle(view, dayKeys, anchorDate)} onView={switchView} onPrev={() => step(-1)} onNext={() => step(1)} onToday={() => navigate(view, todayKey)} />
+        <dl className="a-cal-stats">
+          <div><dt>Jobs</dt><dd>{filteredBookings.length}</dd></div>
+          <div><dt>Blocked periods</dt><dd>{visibleBlocks.length}</dd></div>
+          <div data-alert={needsAssignment > 0}><dt>Need truck or crew</dt><dd>{needsAssignment}</dd></div>
+        </dl>
+        <CalendarLegend counts={legendCounts} active={filters.status} onPick={(status) => setFilters({ ...filters, status })} />
+        <CalendarFilters filters={filters} onChange={setFilters} vehicles={vehicles} crews={crews} packages={FILTER_PACKAGES} />
+      </section>
+
+      <div className="a-cal-wrap a-reveal" style={{ ["--i" as string]: 1 }} data-view={view}>
+        {isEmpty ? (
+          <div className="admin-card">
+            <AdminEmptyState
+              icon="calendar"
+              title={filtersActive ? "No jobs match these filters" : "Nothing scheduled in this period"}
+              description={filtersActive ? "Try widening the filters to see the rest of the schedule." : "Confirmed and assigned jobs, plus any blocked time, will appear here. Use Next to look further ahead."}
+              action={filtersActive ? (
+                <button type="button" className="admin-btn admin-btn--secondary" onClick={() => setFilters(NO_FILTERS)}>
+                  <Icon name="x" size={15} />
+                  Clear filters
+                </button>
+              ) : undefined}
+            />
           </div>
-          <p className="admin-cal-range" aria-live="polite">{rangeLabel}</p>
-        </div>
-
-        <div className="admin-cal-filters">
-          <select aria-label="Filter by vehicle" value={vehicleFilter} onChange={(e) => setVehicleFilter(e.target.value)} className="admin-input admin-input--compact">
-            <option value="">All vehicles</option>
-            {vehicles.map((v) => <option key={v.id} value={v.id}>{v.name}</option>)}
-          </select>
-          <select aria-label="Filter by crew" value={crewFilter} onChange={(e) => setCrewFilter(e.target.value)} className="admin-input admin-input--compact">
-            <option value="">All crews</option>
-            {crews.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
-          </select>
-          <select aria-label="Filter by status" value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)} className="admin-input admin-input--compact">
-            <option value="">All statuses</option>
-            {FILTERABLE_STATUSES.map((value) => <option key={value} value={value}>{statusStyle("booking", value).label}</option>)}
-          </select>
-          <select aria-label="Filter by package" value={packageFilter} onChange={(e) => setPackageFilter(e.target.value)} className="admin-input admin-input--compact">
-            <option value="">All packages</option>
-            {FILTER_PACKAGES.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}
-          </select>
-        </div>
-      </div>
-
-      <div className="admin-cal-grid" data-view={view}>
-        {days.map((dateKey) => (
-          <DayColumn
-            key={dateKey}
-            dateKey={dateKey}
-            timezone={timezone}
-            bookings={(bookingsByDay.get(dateKey) ?? []).sort((a, b) => a.startsAt.localeCompare(b.startsAt))}
-            blocked={blockedByDay.get(dateKey) ?? []}
-          />
-        ))}
+        ) : (
+          <>
+            <div className="a-cal-desktop" data-view={view}>
+              {view === "month" ? (
+                <MonthGrid days={dayData} timezone={timezone} todayKey={todayKey} onOpenDay={(key) => navigate("day", key)} />
+              ) : (
+                <TimeGrid days={dayData} timezone={timezone} todayKey={todayKey} nowMinutes={nowMinutes} onOpenDay={(key) => navigate("day", key)} />
+              )}
+            </div>
+            <div className="a-cal-mobile" data-view={view}>
+              <AgendaView days={dayData} timezone={timezone} todayKey={todayKey} hideEmpty={view === "month"} />
+            </div>
+          </>
+        )}
       </div>
     </div>
-  );
-}
-
-function DayColumn({ dateKey, timezone, bookings, blocked }: { dateKey: string; timezone: string; bookings: Booking[]; blocked: BlockedTime[] }) {
-  const label = new Date(`${dateKey}T12:00:00Z`).toLocaleDateString("en-AU", { timeZone: timezone, weekday: "short", day: "numeric", month: "short" });
-  const isToday = dateKey === new Date().toLocaleDateString("en-CA", { timeZone: timezone });
-
-  return (
-    <section className="admin-cal-day" data-today={isToday} aria-label={`${label}${isToday ? " (today)" : ""}`}>
-      <p className="admin-cal-day-label">
-        <span>{label}</span>
-        {isToday && <span className="admin-cal-today-pill">Today</span>}
-      </p>
-      <div className="admin-cal-items">
-        {blocked.map((b) => {
-          const scope = classifyBlockedTime({ vehicleId: b.vehicleId, crewId: b.crewId });
-          const scopeLabel = scope === "global" ? "Business closed" : scope === "vehicle" ? `Truck: ${b.vehicleName ?? "?"}` : `Crew: ${b.crewName ?? "?"}`;
-          return (
-            <Link key={b.id} href="/admin/availability" className="admin-cal-blocked" title={b.reason}>
-              <strong>Blocked · {scopeLabel}</strong>
-              <br />{fmtTime(b.startsAt, timezone)}–{fmtTime(b.endsAt, timezone)}
-            </Link>
-          );
-        })}
-        {bookings.map((b) => (
-          <Link key={b.id} href={`/admin/bookings/${b.id}`} className="admin-cal-event" data-tone={statusStyle("booking", b.status).tone}>
-            <span className="admin-cal-event-time">{fmtTime(b.startsAt, timezone)}</span>{" "}
-            <span className="admin-cal-event-name">{b.customerName ?? "—"}</span>
-            <span className="admin-cal-event-meta block">{packageLabel(b.packageId, b.crewSize)}</span>
-            <span className="admin-cal-event-meta block">{b.vehicleName ?? "No truck"} · {b.crewName ?? "No crew"}</span>
-            <AdminStatusBadge status={b.status} />
-          </Link>
-        ))}
-        {bookings.length === 0 && blocked.length === 0 && <p className="admin-cal-empty">No jobs</p>}
-      </div>
-    </section>
   );
 }
