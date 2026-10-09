@@ -50,3 +50,6 @@ tsconfig.tsbuildinfo
 # local credential files (Google OAuth) — never commit
 /g.env
 /599726746096-*.txt
+
+# admin visual QA screenshots (large; regenerate with audit/admin-visual/shoot.mjs)
+/audit/admin-visual/screens/
