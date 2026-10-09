@@ -1,10 +1,11 @@
 import { requireAdmin } from "../../../../lib/server/admin-dal.ts";
 import { getSupabaseAdmin } from "../../../../lib/server/supabase.ts";
 import { createCrewAction, addCrewMemberAction } from "./actions.ts";
-import { CrewToggle, CrewMemberToggle } from "./CrewToggle";
 import { AdminCard, AdminEmptyState, AdminPageHeader } from "../../_components/ui";
-import { AdminActiveBadge } from "../../_components/AdminStatusBadge";
 import { Icon } from "../../_components/Icon";
+import { OpsStats } from "../_ops-config/OpsStats";
+import { CrewCard, Roster } from "./CrewCard";
+import "../../styles/ops-config.css";
 
 export const dynamic = "force-dynamic";
 export const metadata = { robots: { index: false, follow: false } };
@@ -19,11 +20,15 @@ export default async function AdminCrewsPage() {
   const crewRows = crews ?? [];
   const memberRows = members ?? [];
   const unassignedMembers = memberRows.filter((m) => !m.crew_id);
+  const activeCrews = crewRows.filter((c) => c.active);
+  const assignableCrews = activeCrews.filter((c) => memberRows.some((m) => m.crew_id === c.id && m.active));
+  const activeMembers = memberRows.filter((m) => m.active);
 
   return (
-    <div className="mx-auto max-w-6xl">
+    <div className="a-ops-page mx-auto max-w-6xl">
       <AdminPageHeader
-        title="Crews"
+        eyebrow="Crews"
+        title={<>Your <em>crews.</em></>}
         description="Crews are assigned to confirmed jobs. Inactive crews and members can't be assigned."
         actions={
           <a href="#add-crew" className="admin-btn admin-btn--primary">
@@ -31,6 +36,15 @@ export default async function AdminCrewsPage() {
             Add crew
           </a>
         }
+      />
+
+      <OpsStats
+        stats={[
+          { label: "Crews", value: crewRows.length, hint: `${activeCrews.length} active` },
+          { label: "Ready to assign", value: assignableCrews.length, unit: `of ${crewRows.length}`, hint: "Active with an active member", tone: crewRows.length > 0 && assignableCrews.length === 0 ? "warn" : undefined },
+          { label: "Active members", value: activeMembers.length, unit: `of ${memberRows.length}`, hint: "Available for assignment" },
+          { label: "Not in a crew", value: unassignedMembers.length, hint: unassignedMembers.length === 0 ? "Everyone is placed" : "Members without a crew", tone: unassignedMembers.length > 0 ? "gold" : undefined },
+        ]}
       />
 
       {crewRows.length === 0 ? (
@@ -43,35 +57,27 @@ export default async function AdminCrewsPage() {
           />
         </AdminCard>
       ) : (
-        <div className="grid gap-5 md:grid-cols-2">
-          {crewRows.map((crew) => {
-            const crewMembers = memberRows.filter((m) => m.crew_id === crew.id);
-            return (
-              <AdminCard
-                key={crew.id}
-                icon="crew"
-                title={crew.name}
-                description={`${crewMembers.length} member${crewMembers.length === 1 ? "" : "s"}`}
-                actions={<AdminActiveBadge active={crew.active} />}
-                flush
-              >
-                <MemberList members={crewMembers} />
-                <div className="border-t px-5 py-3">
-                  <CrewToggle crewId={crew.id} active={crew.active} />
-                </div>
-              </AdminCard>
-            );
-          })}
+        <ul className="a-crew-grid m-0 list-none p-0">
+          {crewRows.map((crew, index) => (
+            <CrewCard key={crew.id} crew={crew} members={memberRows.filter((m) => m.crew_id === crew.id)} index={index} />
+          ))}
           {unassignedMembers.length > 0 && (
-            <AdminCard icon="user" title="Not in a crew" description="Members without a crew" flush>
-              <MemberList members={unassignedMembers} />
-            </AdminCard>
+            <li className="a-crew-card a-reveal" style={{ ["--i" as string]: crewRows.length }}>
+              <div className="a-crew-head">
+                <div>
+                  <h3 className="a-crew-title">Not in a crew</h3>
+                  <p className="a-crew-sub">Members without a crew</p>
+                </div>
+              </div>
+              <Roster members={unassignedMembers} emptyText="" />
+              <div className="pb-3" />
+            </li>
           )}
-        </div>
+        </ul>
       )}
 
-      <div className="mt-5 grid gap-5 md:grid-cols-2">
-        <AdminCard id="add-crew" icon="plus" title="Add a crew" className="scroll-mt-20 self-start">
+      <div className="a-crew-forms">
+        <AdminCard id="add-crew" icon="plus" title="Add a crew" description="A crew is a named team that can be assigned to jobs." className="scroll-mt-20">
           <form action={createCrewAction} className="grid gap-4">
             <label className="admin-field">
               <span className="admin-label">Crew name</span>
@@ -83,7 +89,7 @@ export default async function AdminCrewsPage() {
           </form>
         </AdminCard>
 
-        <AdminCard icon="user" title="Add a crew member" className="self-start">
+        <AdminCard icon="user" title="Add a crew member" description="Place a member in a crew now, or leave them unassigned.">
           <form action={addCrewMemberAction} className="grid gap-4">
             <label className="admin-field">
               <span className="admin-label">Crew</span>
@@ -111,25 +117,5 @@ export default async function AdminCrewsPage() {
         </AdminCard>
       </div>
     </div>
-  );
-}
-
-function MemberList({ members }: { members: { id: string; name: string; role: string | null; active: boolean }[] }) {
-  if (members.length === 0) return <p className="admin-help px-5 py-4">No members yet.</p>;
-  return (
-    <ul className="admin-list">
-      {members.map((m) => (
-        <li key={m.id} className="admin-list-item py-3">
-          <div className="min-w-0">
-            <div className={`font-semibold ${m.active ? "" : "text-[var(--admin-text-muted)]"}`}>{m.name}</div>
-            <div className="admin-list-meta">{m.role || "No role set"}</div>
-          </div>
-          <div className="admin-list-actions">
-            <AdminActiveBadge active={m.active} />
-            <CrewMemberToggle memberId={m.id} active={m.active} name={m.name} />
-          </div>
-        </li>
-      ))}
-    </ul>
   );
 }
