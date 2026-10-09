@@ -520,6 +520,30 @@ export function QuoteForm({ compact = false }: { compact?: boolean }) {
         throw new Error(data.message || `Web3Forms returned ${response.status}`);
       }
 
+      // After Web3Forms confirms submission, mirror this enquiry to the admin CRM.
+      // This is deliberately best-effort; CRM issues must never turn a
+      // successfully emailed customer enquiry into a false failure.
+      const capturedFields: Record<string, string | string[]> = {};
+      const allowedFields = [
+        "name", "phone", "moving_from", "moving_to", "email",
+        "preferred_moving_date", "move_type", "move_category", "truck_package_id",
+        "property_size", "floor_access", "parking_access", "boxes_needed",
+        "details", "source_page",
+      ];
+      for (const key of allowedFields) {
+        const value = formData.get(key);
+        if (typeof value === "string") capturedFields[key] = value;
+      }
+      capturedFields["services[]"] = formData.getAll("services[]").filter((item): item is string => typeof item === "string");
+      void fetch("/api/quote/capture", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "same-origin",
+        keepalive: true,
+        body: JSON.stringify({ id: quoteAttempt.current, fields: capturedFields }),
+      }).catch(() => {
+        // The Web3Forms email still contains the customer enquiry.
+      });
       quoteAttempt.current = null;
       setSelectedTruck(null);
       setForm(createEmptyForm());
