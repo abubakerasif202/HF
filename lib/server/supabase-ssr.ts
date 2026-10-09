@@ -11,6 +11,14 @@ import { isAuthorizedAdmin, isAdminEmail } from "../admin-access.ts";
  * authorize via Supabase Auth sessions and the `is_staff()` RLS helper,
  * never the service role key.
  */
+/** Admin sessions are server-only: no browser Supabase client reads these cookies. */
+export const SESSION_COOKIE_OPTIONS = {
+  httpOnly: true,
+  secure: process.env.NODE_ENV === "production",
+  sameSite: "lax" as const,
+  path: "/",
+};
+
 export async function getSupabaseForServerComponent() {
   const cookieStore = await cookies();
   return createServerClient(supabaseConfig.url(), supabaseConfig.anonKey(), {
@@ -31,18 +39,30 @@ export async function getSupabaseForServerAction() {
       getAll: () => cookieStore.getAll(),
       setAll: (cookiesToSet) => {
         for (const { name, value, options } of cookiesToSet) {
-          cookieStore.set(name, value, options);
+          cookieStore.set(name, value, { ...options, ...SESSION_COOKIE_OPTIONS });
         }
       },
     },
   });
 }
 
-export async function getStaffSession() {
+export type AdminAuthState =
+  | { status: "authorized"; session: { userId: string; email: string; id: string; full_name: string; role: string; active: boolean } }
+  | { status: "unauthenticated" }
+  | { status: "forbidden" };
+
+/** Distinguishes "no valid session" (401) from "valid session, not the owner" (403). */
+export async function getAdminAuthState(): Promise<AdminAuthState> {
   const supabase = await getSupabaseForServerComponent();
   const { data } = await supabase.auth.getUser();
-  if (!data.user || !isAdminEmail(data.user.email)) return null;
+  if (!data.user) return { status: "unauthenticated" };
+  if (!isAdminEmail(data.user.email)) return { status: "forbidden" };
   const { data: staff } = await supabase.from("staff").select("id, full_name, role, active").eq("id", data.user.id).maybeSingle();
-  if (!isAuthorizedAdmin(data.user.email, staff)) return null;
-  return { userId: data.user.id, email: data.user.email, ...staff };
+  if (!staff || !isAuthorizedAdmin(data.user.email, staff)) return { status: "forbidden" };
+  return { status: "authorized", session: { userId: data.user.id, email: data.user.email as string, ...staff } };
+}
+
+export async function getStaffSession() {
+  const state = await getAdminAuthState();
+  return state.status === "authorized" ? state.session : null;
 }

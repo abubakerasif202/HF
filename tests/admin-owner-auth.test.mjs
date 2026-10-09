@@ -10,8 +10,9 @@ test("HF admin access checks both owner identity and active staff role", async (
   assert.match(identity, /ADMIN_LOGIN_EMAIL = "admin@hfremovalsadelaide\.com\.au"/);
   assert.match(identity, /staff\.role === "owner"/);
   assert.match(identity, /staff\?\.active === true/);
-  assert.match(auth, /if \(!data\.user \|\| !isAdminEmail\(data\.user\.email\)\) return null/);
-  assert.match(auth, /if \(!isAuthorizedAdmin\(data\.user\.email, staff\)\) return null/);
+  assert.match(auth, /if \(!data\.user\) return \{ status: "unauthenticated" \}/);
+  assert.match(auth, /if \(!isAdminEmail\(data\.user\.email\)\) return \{ status: "forbidden" \}/);
+  assert.match(auth, /!isAuthorizedAdmin\(data\.user\.email, staff\)\) return \{ status: "forbidden" \}/);
   assert.match(actions, /if \(!isAdminEmail\(email\)\) return/);
   assert.match(login, /defaultValue=\{ADMIN_LOGIN_EMAIL\} readOnly/);
 });

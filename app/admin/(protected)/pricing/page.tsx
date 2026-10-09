@@ -1,3 +1,4 @@
+import { requireAdmin } from "../../../../lib/server/admin-dal.ts";
 import { getSupabaseAdmin } from "../../../../lib/server/supabase.ts";
 import { getBusinessSettings } from "../../../../lib/server/booking-repo.ts";
 import { truckPackages, crewUpgradePackages, legacyPackages } from "../../../../lib/site-data.ts";
@@ -16,6 +17,7 @@ function packageRank(packageId: string): number {
 }
 
 export default async function AdminPricingPage() {
+  await requireAdmin();
   const [{ data: rules }, settings] = await Promise.all([
     getSupabaseAdmin().from("pricing_rules").select("*").order("package_id", { ascending: true }),
     getBusinessSettings(),

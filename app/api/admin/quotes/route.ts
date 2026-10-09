@@ -1,6 +1,6 @@
 import "server-only";
 import { NextResponse } from "next/server";
-import { getStaffSession } from "../../../../lib/server/supabase-ssr.ts";
+import { getAdminAuthState } from "../../../../lib/server/supabase-ssr.ts";
 import { getSupabaseAdmin } from "../../../../lib/server/supabase.ts";
 import { supabaseConfig } from "../../../../lib/server/config.ts";
 
@@ -15,16 +15,21 @@ function isStatus(value: unknown): value is QuoteStatus {
 
 const privateHeaders = { "Cache-Control": "private, no-store, max-age=0" };
 
-async function authorize() {
-  if (!supabaseConfig.isConfigured()) return false;
-  return Boolean(await getStaffSession());
+/** Returns a 401/403 response when the caller is not the authorized owner, else null. */
+async function denyUnlessAdmin(): Promise<NextResponse | null> {
+  if (!supabaseConfig.isConfigured()) {
+    return NextResponse.json({ error: "Not authorized" }, { status: 401, headers: privateHeaders });
+  }
+  const state = await getAdminAuthState();
+  if (state.status === "authorized") return null;
+  const status = state.status === "forbidden" ? 403 : 401;
+  return NextResponse.json({ error: status === 403 ? "Forbidden" : "Not authorized" }, { status, headers: privateHeaders });
 }
 
 export async function GET(request: Request) {
   try {
-    if (!(await authorize())) {
-      return NextResponse.json({ error: "Not authorized" }, { status: 401, headers: privateHeaders });
-    }
+    const denied = await denyUnlessAdmin();
+    if (denied) return denied;
     const url = new URL(request.url);
     const rawPage = Number(url.searchParams.get("page") ?? "1");
     const rawSize = Number(url.searchParams.get("pageSize") ?? "20");
@@ -53,9 +58,8 @@ export async function GET(request: Request) {
 
 export async function PATCH(request: Request) {
   try {
-    if (!(await authorize())) {
-      return NextResponse.json({ error: "Not authorized" }, { status: 401, headers: privateHeaders });
-    }
+    const denied = await denyUnlessAdmin();
+    if (denied) return denied;
     // Authenticated mutation: prevent cross-site requests even if browser cookie policy changes.
     const origin = request.headers.get("origin");
     if (!origin || origin !== new URL(request.url).origin) {

@@ -1,3 +1,4 @@
+import { requireAdmin } from "../../../../lib/server/admin-dal.ts";
 import { getSupabaseAdmin } from "../../../../lib/server/supabase.ts";
 import { getBusinessSettings } from "../../../../lib/server/booking-repo.ts";
 import { findMovingPackage } from "../../../../lib/site-data.ts";
@@ -19,6 +20,7 @@ export default async function AdminCalendarPage({
 }: {
   searchParams: Promise<{ view?: string; date?: string }>;
 }) {
+  await requireAdmin();
   const { view: rawView, date: rawDate } = await searchParams;
   const settings = await getBusinessSettings();
   const today = todayInTimeZone(settings.timezone);

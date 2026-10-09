@@ -1,3 +1,4 @@
+import { requireAdmin } from "../../../../lib/server/admin-dal.ts";
 import { getSupabaseAdmin } from "../../../../lib/server/supabase.ts";
 import { createVehicleAction, updateVehicleAction } from "./actions.ts";
 import { VehicleToggle } from "./VehicleToggle";
@@ -11,6 +12,7 @@ export const dynamic = "force-dynamic";
 export const metadata = { robots: { index: false, follow: false } };
 
 export default async function AdminVehiclesPage() {
+  await requireAdmin();
   const { data: vehicles } = await getSupabaseAdmin().from("vehicles").select("id, name, vehicle_type, active").order("created_at", { ascending: true });
   const rows = vehicles ?? [];
   const activeCount = rows.filter((v) => v.active).length;

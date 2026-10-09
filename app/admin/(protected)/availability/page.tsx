@@ -1,3 +1,4 @@
+import { requireAdmin } from "../../../../lib/server/admin-dal.ts";
 import { getSupabaseAdmin } from "../../../../lib/server/supabase.ts";
 import { DeleteBlockedTimeButton } from "./DeleteBlockedTimeButton";
 import { BlockTimeForm } from "./BlockTimeForm";
@@ -19,6 +20,7 @@ interface BlockedRow {
 }
 
 export default async function AdminAvailabilityPage() {
+  await requireAdmin();
   const supabase = getSupabaseAdmin();
   const [{ data: blocked }, { data: vehicles }, { data: crews }] = await Promise.all([
     supabase
