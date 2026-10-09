@@ -1,3 +1,4 @@
+import { requireAdmin } from "../../../lib/server/admin-dal.ts";
 import Link from "next/link";
 import { AdminCard, AdminEmptyState, AdminPageHeader, formatMoney, formatAdelaide } from "../_components/ui";
 import { AdminStatusBadge } from "../_components/AdminStatusBadge";
@@ -21,6 +22,7 @@ function startOfDayAdelaide(daysFromNow: number): { start: string; end: string }
 }
 
 export default async function AdminDashboardPage() {
+  await requireAdmin();
   const supabase = getSupabaseAdmin();
   const today = startOfDayAdelaide(0);
   const tomorrow = startOfDayAdelaide(1);

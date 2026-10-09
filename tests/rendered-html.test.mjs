@@ -186,13 +186,16 @@ test("renders one coherent, accessible Web3Forms quote flow", async () => {
   }
 
   const client = await readFile(new URL("../app/components/SiteClient.tsx", import.meta.url), "utf8");
-  assert.doesNotMatch(client, /fetch\(["']\/api\/quote/i);
+  // Web3Forms remains the provider; CRM capture runs only after its successful response.
+  assert.match(client, /fetch\(quoteFormEndpoint, \{ method: "POST"/);
+  assert.match(client, /void fetch\("\/api\/quote\/capture"/);
   assert.match(client, /name="access_key" value=\{web3FormsAccessKey\}/i);
   assert.doesNotMatch(client, /formData\.append\("access_key"/i);
   assert.match(client, /data\.success/i);
   assert.match(client, /formData\.set\("quote_reference"/);
   assert.match(client, /formData\.set\("source_page", window\.location\.href\)/);
-  assert.doesNotMatch(client, /HF_QUOTE_BRIDGE|\/api\/quote/);
+  assert.doesNotMatch(client, /HF_QUOTE_BRIDGE/);
+  assert.match(client, /keepalive: true/);
   assert.doesNotMatch(client, /formspree\.io|formsubmit\.co/i);
 });
 

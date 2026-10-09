@@ -6,20 +6,24 @@ import { getSupabaseForServerAction } from "../../lib/server/supabase-ssr.ts";
 import { getSupabaseAdmin } from "../../lib/server/supabase.ts";
 import { getStaffSession } from "../../lib/server/supabase-ssr.ts";
 import { reconcileBookingCalendar } from "../../lib/server/google-calendar.ts";
+import { isAdminEmail } from "../../lib/admin-access.ts";
+
+const GENERIC_LOGIN_ERROR = "Invalid admin login credentials.";
 
 export async function signInAction(formData: FormData): Promise<{ error?: string }> {
-  const email = String(formData.get("email") ?? "");
+  const email = String(formData.get("email") ?? "").trim().toLowerCase();
   const password = String(formData.get("password") ?? "");
   if (!email || !password) return { error: "Email and password are required." };
+  if (!isAdminEmail(email)) return { error: GENERIC_LOGIN_ERROR };
 
   const supabase = await getSupabaseForServerAction();
   const { error } = await supabase.auth.signInWithPassword({ email, password });
-  if (error) return { error: error.message };
+  if (error) return { error: GENERIC_LOGIN_ERROR };
 
   const session = await getStaffSession();
   if (!session) {
     await supabase.auth.signOut();
-    return { error: "This account is not an active staff member." };
+    return { error: GENERIC_LOGIN_ERROR };
   }
 
   redirect("/admin/bookings");

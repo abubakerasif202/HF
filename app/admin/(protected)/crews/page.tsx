@@ -1,3 +1,4 @@
+import { requireAdmin } from "../../../../lib/server/admin-dal.ts";
 import { getSupabaseAdmin } from "../../../../lib/server/supabase.ts";
 import { createCrewAction, addCrewMemberAction } from "./actions.ts";
 import { CrewToggle, CrewMemberToggle } from "./CrewToggle";
@@ -9,6 +10,7 @@ export const dynamic = "force-dynamic";
 export const metadata = { robots: { index: false, follow: false } };
 
 export default async function AdminCrewsPage() {
+  await requireAdmin();
   const supabase = getSupabaseAdmin();
   const [{ data: crews }, { data: members }] = await Promise.all([
     supabase.from("crews").select("id, name, active").order("created_at", { ascending: true }),

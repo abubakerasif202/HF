@@ -15,6 +15,7 @@
     "lint": "eslint . --ignore-pattern .next --ignore-pattern dist"
   },
   "dependencies": {
+    "@refinedev/core": "5.0.12",
     "@supabase/ssr": "^0.12.7",
     "@supabase/supabase-js": "^2.117.2",
     "googleapis": "^182.0.0",

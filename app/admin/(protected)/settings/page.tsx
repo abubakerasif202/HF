@@ -1,3 +1,4 @@
+import { requireAdmin } from "../../../../lib/server/admin-dal.ts";
 import { getSupabaseAdmin } from "../../../../lib/server/supabase.ts";
 import { SettingsForm } from "./SettingsForm";
 import { AdminAlert, AdminPageHeader } from "../../_components/ui";
@@ -6,6 +7,7 @@ export const dynamic = "force-dynamic";
 export const metadata = { robots: { index: false, follow: false } };
 
 export default async function AdminSettingsPage() {
+  await requireAdmin();
   const { data: settings } = await getSupabaseAdmin().from("business_settings").select("*").eq("id", true).single();
 
   if (!settings) {

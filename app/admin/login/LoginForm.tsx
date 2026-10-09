@@ -3,6 +3,7 @@
 import { useState, useTransition } from "react";
 import { signInAction } from "../actions.ts";
 import { AdminAlert } from "../_components/ui";
+import { ADMIN_LOGIN_EMAIL } from "../../../lib/admin-access.ts";
 
 export function LoginForm() {
   const [error, setError] = useState<string | null>(null);
@@ -21,7 +22,7 @@ export function LoginForm() {
     >
       <label className="admin-field">
         <span className="admin-label">Email</span>
-        <input name="email" type="email" autoComplete="username" required className="admin-input" aria-invalid={error ? true : undefined} />
+        <input name="email" type="email" autoComplete="username" defaultValue={ADMIN_LOGIN_EMAIL} readOnly required className="admin-input" aria-invalid={error ? true : undefined} />
       </label>
       <label className="admin-field">
         <span className="admin-label">Password</span>

@@ -8,6 +8,7 @@ export const dynamic = "force-dynamic";
 const NAV_ITEMS: NavItem[] = [
   { href: "/admin", label: "Dashboard", icon: "dashboard" },
   { href: "/admin/bookings", label: "Bookings", icon: "bookings" },
+  { href: "/admin/quotes", label: "Quote enquiries", icon: "inbox" },
   { href: "/admin/calendar", label: "Calendar", icon: "calendar" },
   { href: "/admin/availability", label: "Availability", icon: "availability" },
   { href: "/admin/vehicles", label: "Vehicles", icon: "truck" },

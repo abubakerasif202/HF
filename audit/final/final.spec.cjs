@@ -175,6 +175,18 @@ test('quote form validation, package selection, success, failure and double-subm
   await form.getByLabel('Moving To (Suburb/City)').fill('Marion SA');
   await form.getByLabel('Preferred Moving Date').fill('2099-01-01');
 
+  let captures = 0;
+  await page.route('**/api/quote/capture', async (route) => {
+    captures += 1;
+    expect(route.request().method()).toBe('POST');
+    const payload = route.request().postDataJSON();
+    expect(payload.fields.name).toBe('QA Test');
+    expect(payload.fields.moving_from).toBe('Elizabeth Vale SA');
+    expect(payload.fields.moving_to).toBe('Marion SA');
+    expect(payload.fields).not.toHaveProperty('access_key');
+    await route.fulfill({ status: 201, contentType: 'application/json', body: '{"success":true}' });
+  });
+
   let requests = 0;
   await page.route('https://api.web3forms.com/submit', async (route) => {
     requests += 1;
@@ -187,6 +199,7 @@ test('quote form validation, package selection, success, failure and double-subm
   });
   await expect(form.locator('.form-status')).toContainText('Your move details have been sent');
   expect(requests).toBe(1);
+  await expect.poll(() => captures).toBe(1);
 
   await form.getByLabel('Your Name').fill('QA Test');
   await form.getByLabel('Phone Number').fill('0400 000 000');
@@ -203,6 +216,7 @@ test('quote form validation, package selection, success, failure and double-subm
   );
   await submit.click();
   await expect(form.locator('.form-status')).toContainText('We could not confirm whether your request was received');
+  expect(captures).toBe(1); // Provider failures must never be mirrored as delivered enquiries.
   await context.close();
 });
 
