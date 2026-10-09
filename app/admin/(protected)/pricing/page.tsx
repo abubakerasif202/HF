@@ -26,9 +26,10 @@ export default async function AdminPricingPage() {
   const orderedRules = [...(rules ?? [])].sort((a, b) => packageRank(a.package_id) - packageRank(b.package_id) || String(a.package_id).localeCompare(String(b.package_id)));
 
   return (
-    <div className="mx-auto max-w-5xl">
+    <div className="a-ops-page mx-auto max-w-5xl">
       <AdminPageHeader
-        title="Pricing"
+        eyebrow="Rates"
+        title={<>Package <em>rates.</em></>}
         description="Package rates used for new quotes. Confirmed bookings keep the price they were confirmed at, so past totals never change."
       />
       <PricingRuleForm
