@@ -2846,6 +2846,41 @@ p {
   color: var(--text-secondary);
   font-size: 0.85rem;
 }
+.adelaide-guide .editorial-sections {
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 340px), 1fr));
+  margin-top: 0;
+}
+.adelaide-guide .editorial-sections p + p,
+.adelaide-guide .editorial-sections ul + p {
+  margin-top: 12px;
+}
+.adelaide-guide ul {
+  list-style: none;
+  margin: 14px 0 0;
+  padding: 0;
+  display: grid;
+  gap: 10px;
+}
+.adelaide-guide li {
+  padding-left: 14px;
+  border-left: 2px solid var(--hf-green-700);
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+  line-height: 1.55;
+}
+.adelaide-guide li strong {
+  color: var(--text-primary);
+}
+.adelaide-guide .editorial-sections a {
+  color: var(--hf-gold-400);
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.adelaide-guide .editorial-sections a:hover,
+.adelaide-guide .editorial-sections a:focus-visible {
+  color: var(--hf-gold-300);
+}
 .listing-section {
   background: var(--background-alt);
 }

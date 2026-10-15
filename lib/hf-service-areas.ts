@@ -238,9 +238,9 @@ const localAccessOverrides: Record<string, string> = {
   "toorak-gardens": "premium homes, careful furniture handling and tighter residential access",
   "hyde-park": "compact streets, villas, townhouses and careful loading positions",
   medindie: "established homes, units, parking and careful furniture carry paths",
-  "unley-park": "villas, townhouses, stairs, parking and furniture access",
+  "unley-park": "villas, townhouses, stairs, gates and the furniture path from truck to room",
   "salisbury-east": "family homes, driveways, garages and longer furniture carries",
-  "malvern": "villa and townhouse moves with parking, stairs and furniture-access planning",
+  "malvern": "villa and townhouse moves with stair turns, landings, parking and destination furniture placement",
   "adelaide-hills": "hills driveways, gradients, turning space, stairs and longer furniture carries",
   "salisbury-north": "family homes, driveways, garages, stairs and practical kerbside loading",
   "munno-para": "driveway width, street parking, garage contents, gates and stairs or narrow entries",
@@ -249,12 +249,12 @@ const localAccessOverrides: Record<string, string> = {
 const localAreaDescriptions: Record<string, string> = {
   "adelaide-cbd": "Adelaide CBD removalists for apartments, offices and city homes. Plan lifts, loading zones, parking and carry paths with HF Removals Adelaide.",
   medindie: "Medindie removalists for homes, units and furniture moves in Adelaide. Plan parking, stairs, entry paths and protective wrapping around your inventory.",
-  "hyde-park": "Hyde Park removalists for homes, villas and townhouses. Plan compact-street loading, parking and furniture access with HF Removals Adelaide.",
+  "hyde-park": "Hyde Park removalists for villa and townhouse moves on compact streets. Identify the truck position, parking and gate-to-door path before moving day.",
   "toorak-gardens": "Toorak Gardens removalists for homes, units and furniture moves. Share access, parking and protection requirements for a practical quote.",
-  "unley-park": "Unley Park removalists for homes, villas and townhouses. Share stairs, parking, furniture and packing requirements before moving day.",
+  "unley-park": "Unley Park removalists for villa and townhouse moves. Plan the furniture path from truck to room, including gates, stairs and dismantling.",
   "salisbury-east": "Salisbury East removalists for homes and furniture moves. Include driveway, garage, access and inventory details in your Adelaide quote request.",
   "adelaide-hills": "Adelaide Hills removalists for homes and connected Adelaide moves. Share gradients, driveway, access and inventory details for a practical quote.",
-  "malvern": "Malvern removalists for villas, townhouses and furniture moves. Plan parking, stairs, entry paths and protection around your inventory.",
+  "malvern": "Malvern removalists for villa and townhouse moves. Plan stair turns, landings, parking and where large furniture will be placed at the destination.",
   "salisbury-north": "Salisbury North removalists for homes and furniture moves. Share driveway, garage, parking and access details before moving day.",
   "munno-para": "Munno Para removalists for residential and furniture moves. Include driveway, garage, bulky-item and access details in your quote request.",
 };
@@ -336,11 +336,11 @@ const localAreaProfiles: Record<string, LocalAreaProfile> = {
     nearby: ["Mount Barker", "Blackwood", "Norwood", "Unley Park"],
   },
   "malvern": {
-    description: "Malvern removalists for villas, townhouses and furniture moves. Plan parking, stairs, entry paths and protection around your inventory.",
-    intro: "A Malvern move is easier to scope when the property type, furniture list and access path are clear. Share parking, stairs, narrow entries and any pieces that may need extra protection.",
-    context: "villas, townhouses, established homes and furniture-focused moves",
-    route: "the southern and inner-southern connection between Malvern, Unley Park, Hyde Park and nearby Adelaide suburbs",
-    access: "villa entries, townhouse stairs, parking, gates and furniture carry paths",
+    description: "Malvern removalists for villa and townhouse moves. Plan stair turns, landings, parking and where large furniture will be placed at the destination.",
+    intro: "A Malvern move is easier to scope when stairs, landings and parking are described alongside where bulky furniture will be placed at the other end. Share narrow entries and any pieces that may need extra protection.",
+    context: "villas, townhouses, stairs, landings and destination furniture placement",
+    route: "the connection between Malvern, Goodwood, Mitcham and the destination suburb",
+    access: "stairs, landings, villa entries, parking and gates",
     nearby: ["Unley Park", "Hyde Park", "Goodwood", "Mitcham"],
   },
   "toorak-gardens": {
@@ -352,10 +352,10 @@ const localAreaProfiles: Record<string, LocalAreaProfile> = {
     nearby: ["Norwood", "St Peters", "Trinity Gardens", "Unley Park"],
   },
   "hyde-park": {
-    description: "Hyde Park removalists for homes, villas and townhouses. Plan compact-street loading, parking and furniture access with HF Removals Adelaide.",
-    intro: "Hyde Park enquiries benefit from a clear inventory and access notes for villas, townhouses or compact residential streets. Include parking, stairs, gates and any bulky furniture in the quote request.",
-    context: "villas, townhouses, compact streets and furniture-focused moves",
-    route: "the inner-southern connection between Hyde Park, Malvern, Unley Park and Adelaide",
+    description: "Hyde Park removalists for villa and townhouse moves on compact streets. Identify the truck position, parking and gate-to-door path before moving day.",
+    intro: "Hyde Park enquiries start with where the truck can stop on a compact street and the route from there through the gate, entry or stairs. Include parking restrictions and any bulky furniture in the quote request.",
+    context: "compact streets, parking, villas, townhouses and gate-to-door carry paths",
+    route: "the connection between Hyde Park, Goodwood, Mitcham and the destination suburb",
     access: "compact streets, parking, villa entries, stairs and careful loading positions",
     nearby: ["Malvern", "Unley Park", "Goodwood", "Mitcham"],
   },
@@ -368,10 +368,10 @@ const localAreaProfiles: Record<string, LocalAreaProfile> = {
     nearby: ["Adelaide CBD", "North Adelaide", "Walkerville", "Prospect"],
   },
   "unley-park": {
-    description: "Unley Park removalists for homes, villas and townhouses. Share stairs, parking, furniture and packing requirements before moving day.",
-    intro: "Unley Park move planning should start with the property access and a room-by-room inventory. Include villas or townhouses, stairs, parking, gates and furniture requiring protection or dismantling.",
-    context: "villas, townhouses, established homes and furniture-access planning",
-    route: "the inner-southern connection between Unley Park, Malvern, Hyde Park and Adelaide",
+    description: "Unley Park removalists for villa and townhouse moves. Plan the furniture path from truck to room, including gates, stairs and dismantling.",
+    intro: "For an Unley Park move, start with a room-by-room inventory and the path large furniture takes through gates, doors and stairs. Note any beds or tables that need dismantling or protection, and where the truck could load.",
+    context: "villas, townhouses, stairs and furniture-path planning",
+    route: "the connection between Unley Park, Unley, Goodwood and the destination suburb",
     access: "villas, townhouses, stairs, parking, gates and furniture carry paths",
     nearby: ["Malvern", "Hyde Park", "Unley", "Goodwood"],
   },
@@ -759,8 +759,41 @@ function buildGeneratedAreaPage(name: string, region: ServiceAreaRegion, slug: s
 
 const featuredBySlug = new Map(featuredAreas.map((area) => [area.slug, area]));
 
+/**
+ * A hand-written featured page keeps its title, sections and FAQs. Where a local profile
+ * exists, its description, intro, sections, highlight and local FAQs supplement the page
+ * instead of being shadowed by it.
+ */
+function mergeFeaturedWithProfile(featured: ContentPage, generated: ContentPage, name: string): ContentPage {
+  const knownQuestions = new Set(featured.faqs.map((faq) => faq.question));
+  const localFaqs = generated.faqs.slice(0, 3).filter((faq) => !knownQuestions.has(faq.question));
+  const localHighlight = generated.highlights[1];
+  const highlights = featured.highlights.includes(localHighlight) ? featured.highlights : [...featured.highlights, localHighlight];
+
+  return {
+    ...featured,
+    description: generated.description,
+    intro: generated.intro,
+    highlights,
+    sections: [
+      { title: `About ${name} enquiries`, body: featured.intro },
+      ...featured.sections,
+      ...generated.sections,
+    ],
+    faqs: [...localFaqs, ...featured.faqs],
+  };
+}
+
+function resolveBasePage(name: string, region: ServiceAreaRegion, slug: string): ContentPage {
+  const generated = buildGeneratedAreaPage(name, region, slug);
+  const featured = featuredBySlug.get(slug);
+  if (!featured) return generated;
+  if (!localAreaProfiles[slug]) return featured;
+  return mergeFeaturedWithProfile(featured, generated, name);
+}
+
 export const hfServiceAreas: ContentPage[] = hfServiceAreaRecords.map(({ name, region, slug }) =>
-  withSupportingLocalities(withPriorityAreaPreparation(featuredBySlug.get(slug) ?? buildGeneratedAreaPage(name, region, slug)), name),
+  withSupportingLocalities(withPriorityAreaPreparation(resolveBasePage(name, region, slug)), name),
 );
 
 export const hfServiceAreaCount = hfServiceAreas.length;
