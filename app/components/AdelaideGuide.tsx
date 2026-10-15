@@ -1,10 +1,10 @@
 const serviceLinks: ReadonlyArray<readonly [string, string, string]> = [
   ["/services/residential-removals", "House removals in Adelaide", "for a full household of furniture, boxes, garage and outdoor items."],
-  ["/services/furniture-removals", "furniture removalists", "when you only need a few large pieces moved safely."],
-  ["/services/office-commercial-removals", "office and commercial removals", "for workstations, storage rooms and timed building access."],
-  ["/services/interstate-removals", "interstate removalists from Adelaide", "when the move crosses a state border and needs a route and volume."],
-  ["/services/backloading", "backloading", "for interstate loads that suit shared truck space."],
-  ["/services/packing-unpacking", "packing and unpacking", "if you want help preparing or settling in."],
+  ["/services/furniture-removals", "Furniture removalists", "when you only need a few large pieces moved safely."],
+  ["/services/office-commercial-removals", "Office and commercial removals", "for workstations, storage rooms and timed building access."],
+  ["/services/interstate-removals", "Interstate removalists from Adelaide", "when the move crosses a state border and needs a route and volume."],
+  ["/services/backloading", "Backloading", "for interstate loads that suit shared truck space."],
+  ["/services/packing-unpacking", "Packing and unpacking", "if you want help preparing or settling in."],
 ];
 
 const regionLinks: ReadonlyArray<readonly [string, ReadonlyArray<readonly [string, string]>]> = [
@@ -19,7 +19,7 @@ const regionLinks: ReadonlyArray<readonly [string, ReadonlyArray<readonly [strin
 
 export function AdelaideGuide() {
   return (
-    <section className="section detail-section">
+    <section className="section detail-section adelaide-guide">
       <div className="container">
         <div className="editorial-sections">
           <article>
@@ -27,7 +27,7 @@ export function AdelaideGuide() {
             <p>Most Adelaide moves fit one of a few service types. Pick the closest match, then tell HF about anything that sits outside it.</p>
             <ul>
               {serviceLinks.map(([href, label, note]) => (
-                <li key={href}><a href={href}>{label}</a> {note}</li>
+                <li key={href}><a href={href}>{label}</a> <span>{note}</span></li>
               ))}
             </ul>
             <p>You can compare all of them on the <a href="/services">Adelaide moving services</a> page.</p>

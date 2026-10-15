@@ -80,7 +80,7 @@ function TrustBar() {
         </svg>
       ),
       title: business.googleBusiness.hoursLabel,
-      desc: "Same-Day & Urgent Moves",
+      desc: "Same-day & urgent moves subject to availability",
     },
     {
       icon: (
@@ -959,7 +959,7 @@ function PageHero({
             <span><b>{business.googleBusiness.rating.toFixed(1)}★</b> Rating</span>
             <span><b>{business.googleBusiness.reviewCount}</b> Reviews</span>
             <span><b>Up to $1M</b> Insurance</span>
-            <span><b>{business.googleBusiness.hoursShort}</b> Every day</span>
+            <span><b>{business.googleBusiness.hoursShort}</b> Listed hours, every day</span>
           </div>
         </div>
         {price ? (

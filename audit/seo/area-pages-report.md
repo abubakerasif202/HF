@@ -278,3 +278,10 @@ Remaining template or override-only pages (Western, North-Eastern, Hills, Region
 ## Near-identical attribute wording that remains
 
 Unley Park, Malvern and Hyde Park were differentiated in this pass using only existing data (planning angle plus nearby suburbs). They still share "villa and townhouse" because the existing data states that for all three; genuinely distinct facts need owner input (see P1/P2 prompts). Template pages within the same region share the region access sentence by design, e.g. all Northern Adelaide template pages.
+
+## Consistency check (final QA)
+
+- Rows in the table: 139, all unique, matching the 139 `/areas/*` sitemap URLs.
+- Tier totals: profile-localised 30 + pure template 93 + override-only 11 + hand-written + profile 5 = 139.
+- Priority totals: P1 6 + P2 61 + P3 38 + not flagged 34 = 139. The P1/P2/P3 lists above contain 6, 61 and 38 entries.
+- Not flagged (34) = 30 profile-localised + 4 hand-written pages that already carry local content; salisbury is the fifth hand-written page and is listed P1 because it lacks a preparation section.
