@@ -483,7 +483,7 @@ test("priority pages keep distinct metadata and useful page-level schema", async
   assert.match(pricingHtml, /<title>Removalist Pricing Adelaide \| HF Removals Adelaide<\/title>/i);
 
   const hubHtml = await (await render("/adelaide-removalists")).text();
-  assert.match(hubHtml, /<title>Adelaide Moving Services, Pricing &amp; Planning Guide \| HF Removals<\/title>/i);
+  assert.match(hubHtml, /<title>Adelaide Removalists: Moving Guide &amp; Planning \| HF Removals<\/title>/i);
 });
 
 test("sitemap contains only canonical indexable routes", async () => {
@@ -595,4 +595,40 @@ test("the 3D fleet viewer is fully removed", async () => {
   const pkg = JSON.parse(await readFile(new URL("../package.json", import.meta.url), "utf8"));
   assert.ok(!pkg.dependencies.three, "three should not be a dependency");
   assert.ok(!pkg.devDependencies["@types/three"], "@types/three should not be a devDependency");
+});
+
+test("target service pages lead title, H1 and description with the exact query phrase", async () => {
+  const cases = [
+    ["/services/residential-removals", "House Removals Adelaide", "House removals in Adelaide"],
+    ["/services/furniture-removals", "Furniture Removalists Adelaide", "Furniture removalists in Adelaide"],
+    ["/services/interstate-removals", "Interstate Removalists Adelaide", "Interstate removalists in Adelaide"],
+    ["/services/office-commercial-removals", "Office Removals Adelaide", "Office removals in Adelaide"],
+  ];
+  const descriptions = new Set();
+  for (const [path, phrase, descriptionLead] of cases) {
+    const html = await (await render(path)).text();
+    const title = html.match(/<title>([^<]*)<\/title>/i)?.[1] ?? "";
+    const description = html.match(/<meta name="description" content="([^"]*)"/i)?.[1] ?? "";
+    assert.ok(title.startsWith(phrase), `${path} title must lead with "${phrase}": ${title}`);
+    assert.ok(title.length <= 60, `${path} title too long (${title.length})`);
+    assert.match(html, new RegExp(`<h1>${phrase}</h1>`), `${path} H1`);
+    assert.ok(description.startsWith(descriptionLead), `${path} description must lead with "${descriptionLead}"`);
+    assert.ok(description.length <= 155, `${path} description too long (${description.length})`);
+    descriptions.add(description);
+  }
+  assert.equal(descriptions.size, cases.length, "service descriptions must be unique");
+});
+
+test("adelaide-removalists is a planning guide, not a copy of the homepage", async () => {
+  const html = await (await render("/adelaide-removalists")).text();
+  assert.match(html, /<h1>Adelaide removalists: how to plan your move<\/h1>/i);
+  assert.match(html, /href="\/services\/residential-removals"/);
+  assert.match(html, /href="\/pricing"/);
+  assert.match(html, /rel="canonical" href="https:\/\/www\.hfremovalsadelaide\.com\.au\/adelaide-removalists"/);
+});
+
+test("featured suburb pages use their local profile content", async () => {
+  const html = await (await render("/areas/salisbury")).text();
+  assert.match(html, /Salisbury has a mix of established homes, units and commercial activity/);
+  assert.match(html, /Coordinate homes, units and workplaces/);
 });

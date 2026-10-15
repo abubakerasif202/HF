@@ -21,6 +21,8 @@ async function fillQuote(page) {
 }
 
 test("mobile drawer provides keyboard dismissal and preserves user focus", async () => {
+  // Whole-suite runs start several Chromium instances at once; give focus assertions headroom.
+  const slowExpect = expect.configure({ timeout: 15000 });
   const page = await browser.newPage({ viewport: { width: 375, height: 812 } });
   try {
     await page.goto(runtime.base);
@@ -31,19 +33,19 @@ test("mobile drawer provides keyboard dismissal and preserves user focus", async
     const home = page.locator('#mobile-menu a[href="/"]');
     // Allow the drawer transition and its deferred focus retries to settle.
     await page.waitForTimeout(350);
-    await expect(home).toBeFocused();
+    await slowExpect(home).toBeFocused();
     await page.keyboard.press("Shift+Tab");
-    await expect(close).toBeFocused();
+    await slowExpect(close).toBeFocused();
     await page.waitForTimeout(350);
-    await expect(close).toBeFocused();
+    await slowExpect(close).toBeFocused();
     await page.keyboard.press("Enter");
-    await expect(trigger).toBeFocused();
-    await expect(page.locator("#mobile-menu")).toBeHidden();
+    await slowExpect(trigger).toBeFocused();
+    await slowExpect(page.locator("#mobile-menu")).toBeHidden();
     await trigger.click();
-    await expect(home).toBeFocused();
+    await slowExpect(home).toBeFocused();
     await page.keyboard.press("Escape");
-    await expect(trigger).toBeFocused();
-    await expect(page.locator("#mobile-menu")).toBeHidden();
+    await slowExpect(trigger).toBeFocused();
+    await slowExpect(page.locator("#mobile-menu")).toBeHidden();
     assert.equal(await page.locator("main").evaluate(element => element.inert), false);
   } finally { await page.close(); }
 });

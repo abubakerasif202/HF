@@ -3,6 +3,7 @@ import { areas, business, ContentPage, hfImages, entryLocalRate, googleReviews, 
 import { hfServiceAreaRecords } from "../../lib/hf-service-areas";
 import { ABDeveloperCredit } from "./ABDeveloperCredit";
 import { contentTrail, homeCrumb, sectionCrumbs, staticCrumbLabels, type Crumb } from "../../lib/breadcrumbs";
+import { AdelaideGuide } from "./AdelaideGuide";
 import { HeroFleetPanel, TruckFitSection, TruckSection } from "./FleetSections";
 import { CrewUpgradeNote, TruckCards } from "./TruckChooser";
 import { BookNowButton, Header, MobileStickyCta, MotionExperience, QuoteForm, SideQuoteTab, UtilityBar } from "./SiteClient";
@@ -151,64 +152,6 @@ function SectionHeading({
       <h2>{title}</h2>
       {copy && <p>{copy}</p>}
     </div>
-  );
-}
-
-function ServicesGrid() {
-  const serviceIcons: Record<string, React.ReactNode> = {
-    "residential-removals": (
-      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="m3 11 9-7 9 7v9h-6v-6H9v6H3Z"/></svg>
-    ),
-    "office-commercial-removals": (
-      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M9 3v18"/><path d="M15 3v18"/><path d="M3 9h18"/><path d="M3 15h18"/></svg>
-    ),
-    "interstate-removals": (
-      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="6" cy="18" r="2"/><circle cx="18" cy="6" r="2"/><path d="M8 18h6a3.5 3.5 0 0 0 0-7h-4a3.5 3.5 0 0 1 0-7h6"/></svg>
-    ),
-    backloading: (
-      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="m7.5 4.27 9 5.15"/><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/></svg>
-    ),
-    "packing-unpacking": (
-      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="m9 12 2 2 4-4"/></svg>
-    ),
-    "furniture-removals": (
-      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M5 11V7a3 3 0 0 1 3-3h8a3 3 0 0 1 3 3v4"/><path d="M4 11h16a2 2 0 0 1 2 2v3H2v-3a2 2 0 0 1 2-2Z"/><path d="M5 16v3M19 16v3M8 8h8"/></svg>
-    ),
-  };
-
-  return (
-    <section className="section services-section" id="services">
-      <div className="container">
-        <SectionHeading
-          eyebrow="Specialized Moving Services"
-          title={<>Tailored Moving Solutions <em>From Door to Door</em></>}
-          copy="Carefully scoped around your property access, furniture protection requirements, and preferred moving timeline."
-        />
-        <div className="service-grid">
-          {services.map((service, index) => (
-            <a className="service-card" href={`/services/${service.slug}`} key={service.slug}>
-              <div className="service-card-top">
-                <span className="service-icon">{serviceIcons[service.slug] ?? <span className="card-number">{String(index + 1).padStart(2, "0")}</span>}</span>
-                <span className="card-badge">Option {String(index + 1).padStart(2, "0")}</span>
-              </div>
-              <h3>{service.eyebrow}</h3>
-              <p>{service.description}</p>
-              <ul className="service-card-highlights">
-                {service.highlights.slice(0, 3).map((h) => (
-                  <li key={h}>
-                    <CheckIcon size={12} style={{ display: "inline-block", verticalAlign: "-1px", marginRight: "6px" }} />
-                    {h}
-                  </li>
-                ))}
-              </ul>
-              <span className="card-link">
-                Explore {service.eyebrow.toLowerCase()} <b>→</b>
-              </span>
-            </a>
-          ))}
-        </div>
-      </div>
-    </section>
   );
 }
 
@@ -1179,6 +1122,11 @@ function relatedLinksFor(page: ContentPage): RelatedLink[] {
       { href: "/interstate/adelaide-queensland", label: "Adelaide to Queensland removals", description: "Add the destination city, suburb and postcode to the enquiry." },
       { href: "/interstate/adelaide-perth", label: "Adelaide to Perth removals", description: "Plan bulky items, protection and longer-distance access." },
       { href: "/guides/preparing-interstate-move", label: "Prepare for an interstate move", description: "Use the inventory, route and packing checklist before requesting a quote." },
+      { href: "/guides/estimate-moving-volume", label: "How to estimate moving volume", description: "Turn your room-by-room inventory into a cubic-metre estimate." },
+      { href: "/services/residential-removals", label: "House removals in Adelaide", description: "Moving a whole home? Plan rooms, access and truck choice for the local leg." },
+      { href: "/services/furniture-removals", label: "Furniture removalists in Adelaide", description: "Sending only selected large pieces? Plan the item list and carry path." },
+      { href: "/services/backloading", label: "Backloading from Adelaide", description: "Ask whether available capacity suits your route and date flexibility." },
+      { href: "/areas", label: "Adelaide service areas", description: "Find the pickup suburb planning page for your Adelaide address." },
       homeLink("Removalists in Adelaide"),
       ...shared,
     ];
@@ -1206,6 +1154,14 @@ function relatedLinksFor(page: ContentPage): RelatedLink[] {
     ];
   }
 
+  // Link-specific anchors and descriptions so related cards do not repeat the target's meta description.
+  const serviceLinkText: Record<string, { label: string; description: string }> = {
+    "residential-removals": { label: "House removals in Adelaide", description: "Moving the whole home? Plan rooms, access and truck choice." },
+    "furniture-removals": { label: "Furniture removalists in Adelaide", description: "Only selected large pieces? Plan the item list, entries and stairs." },
+    "packing-unpacking": { label: "Packing and unpacking help", description: "Full or partial packing, with fragile items and labelling sorted before loading." },
+    "interstate-removals": { label: "Interstate removals from Adelaide", description: "Moving beyond South Australia? See per-m³ reference rates and route planning." },
+    "office-commercial-removals": { label: "Office removals in Adelaide", description: "Moving a workplace? Plan site contacts, loading access and equipment." },
+  };
   // Choose complementary services deliberately: array order is not relevance.
   const relatedServiceSlugs: Record<string, string[]> = {
     "furniture-removals": ["residential-removals", "packing-unpacking", "interstate-removals"],
@@ -1216,11 +1172,14 @@ function relatedLinksFor(page: ContentPage): RelatedLink[] {
   const serviceLinks = (relatedServiceSlugs[page.slug] ?? [])
     .map((slug) => services.find((service) => service.slug === slug))
     .filter((service): service is ContentPage => Boolean(service))
-    .map((service) => ({
-      href: `/services/${service.slug}`,
-      label: service.eyebrow,
-      description: service.description,
-    }));
+    .map((service) => {
+      const text = serviceLinkText[service.slug];
+      return {
+        href: `/services/${service.slug}`,
+        label: text?.label ?? service.eyebrow,
+        description: text?.description ?? "Plan the scope, access and inventory for this service.",
+      };
+    });
   const planningGuide = page.slug === "office-commercial-removals"
     ? guides.find((guide) => guide.slug.includes("office"))
     : page.slug === "packing-unpacking"
@@ -1468,12 +1427,8 @@ export function StaticPage({ type }: { type: "about" | "contact" | "pricing" | "
   if (type === "adelaide")
     return (
       <SiteFrame>
-        <PageHero breadcrumbs={[homeCrumb, { label: staticCrumbLabels.adelaide }]} eyebrow="Adelaide moving guide" title="Adelaide moving services, pricing and planning" description="Compare HF's Adelaide moving services, published rates, packing support and practical move-planning resources before requesting a tailored quote." />
-        <ServicesGrid />
-        <ApartmentAccessSection />
-        <PricingSection />
-        <ProcessSection />
-        <AreasSection />
+        <PageHero breadcrumbs={[homeCrumb, { label: staticCrumbLabels.adelaide }]} eyebrow="Adelaide moving guide" title="Adelaide removalists: how to plan your move" description="Choose the right service, plan access at both addresses, understand how costs work and prepare before you request a quote from HF Removals Adelaide." />
+        <AdelaideGuide />
         <QuoteStrip />
       </SiteFrame>
     );

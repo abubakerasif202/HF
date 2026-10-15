@@ -7,6 +7,8 @@ import { hfServiceAreaRecords, hfServiceAreas } from "../../../lib/hf-service-ar
 
 type Props = { params: Promise<{ slug: string }> };
 
+const MAX_TITLE_LENGTH = 60;
+
 const pageBySlug = new Map(hfServiceAreas.map((page) => [page.slug, page]));
 const recordBySlug = new Map(hfServiceAreaRecords.map((record) => [record.slug, record]));
 
@@ -21,7 +23,9 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   if (!page || !record) return {};
 
   const path = `/areas/${slug}`;
-  const title = `Removalists ${record.name} | HF Removals Adelaide`;
+  const fullTitle = `Removalists ${record.name} | HF Removals Adelaide`;
+  // Keep titles within ~60 chars so they are not truncated in search results.
+  const title = fullTitle.length > MAX_TITLE_LENGTH ? `Removalists ${record.name} | HF Removals` : fullTitle;
   return {
     title: { absolute: title },
     description: page.description,
