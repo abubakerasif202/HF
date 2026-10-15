@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import { HomePage } from "./components/Site";
 import { business, canonical, entryLocalRate, standardMoveFaqs } from "../lib/site-data";
 
-const homeTitle = "Adelaide Removalists & Movers | HF Removals Adelaide";
-const homeDescription = `Adelaide removalists for house, furniture, office and interstate moves. From ${entryLocalRate.halfHour}/30 min; minimum service and call-out apply. Get a quote from HF Removals.`;
+const homeTitle = "Removalists Adelaide & Movers | HF Removals Adelaide";
+const homeDescription = `Removalists and movers in Adelaide for house, furniture, office and interstate moves. Trucks from ${entryLocalRate.halfHour}/30 min, open 24 hours. Request a quote.`;
 
 export const metadata: Metadata = {
   title: { absolute: homeTitle },

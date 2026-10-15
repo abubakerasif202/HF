@@ -405,7 +405,7 @@ export const services: ContentPage[] = [
     kind: "service",
     eyebrow: "House removals",
     title: "A practical plan for moving home",
-    description: "House removals in Adelaide for homes, apartments and townhouses. Plan furniture protection, packing and access with HF Removals. Request your moving quote.",
+    description: `House removals in Adelaide for homes, apartments and townhouses, planned around your inventory and access. From ${entryLocalRate.halfHour}/30 min. Request a quote.`,
     intro:
       "Moving house in Adelaide? HF Removals plans home, apartment and townhouse moves around your room-by-room inventory, access at both properties, furniture protection and destination placement. Our house movers help you choose the truck and moving support that fit the job, with the scope confirmed in your quote.",
     highlights: ["Homes, apartments and townhouses", "Room-by-room inventory", "Packing and protective wraps", "Placement at your destination"],
@@ -432,7 +432,7 @@ export const services: ContentPage[] = [
     kind: "service",
     eyebrow: "Furniture removals",
     title: "Move furniture with a clear access plan",
-    description: "Furniture removalists in Adelaide for household furniture, bulky pieces and furniture-moving support planned around access, protection and placement.",
+    description: `Furniture removalists in Adelaide for lounges, beds, tables and bulky pieces, with blankets and straps standard. From ${entryLocalRate.halfHour}/30 min. Request a quote.`,
     intro:
       "Furniture removals in Adelaide can be a complete household relocation or a smaller job involving selected large pieces. HF scopes the item list, entry paths, stairs or lifts and destination placement before confirming what the move requires.",
     highlights: ["Large furniture inventory", "Entry and access checks", "Protective wrapping", "Destination placement"],
@@ -457,7 +457,7 @@ export const services: ContentPage[] = [
     kind: "service",
     eyebrow: "Office & commercial removals",
     title: "Coordinate the move around your workplace",
-    description: "Office removalists and commercial movers in Adelaide for workplace relocation, office furniture, workstations, equipment, loading access and destination placement.",
+    description: "Office removals in Adelaide for workstations, furniture and equipment, planned around loading access and lifts. Request a commercial moving quote.",
     intro:
       "Office and commercial removals in Adelaide benefit from a clear inventory, named site contacts and an agreed placement plan. HF works from the workplace details you provide, from loading access and lifts to workstation, office furniture and equipment destinations.",
     highlights: ["Office furniture", "Workstations and equipment", "Access coordination", "Destination labelling"],
@@ -482,7 +482,7 @@ export const services: ContentPage[] = [
     kind: "service",
     eyebrow: "Interstate removals",
     title: "Plan your Adelaide interstate relocation",
-    description: "Interstate removalists in Adelaide for Adelaide interstate removals, with per-cubic-metre reference pricing, route planning, inventory and access preparation.",
+    description: "Interstate removalists in Adelaide with per-cubic-metre reference rates for Melbourne, Sydney, Queensland and Perth. Request an interstate quote.",
     intro:
       "HF provides interstate removals between Adelaide and the listed destinations. A useful quote starts with an accurate inventory, cubic-volume estimate, access details at both ends and a clear route.",
     highlights: ["Adelaide interstate routes", "Per-m³ reference pricing", "Inventory and volume planning", "Packing and protection"],

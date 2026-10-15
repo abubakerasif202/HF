@@ -935,10 +935,10 @@ export function HomePage() {
             copy="Whether you are planning house moving, local removals, furniture support or a longer route, start with the service that matches the job and share the access and inventory details that shape the quote."
           />
           <div className="home-intent-links">
-            <a href="/services/residential-removals"><strong>House movers in Adelaide</strong><span>Residential removals for homes, apartments and townhouses.</span></a>
-            <a href="/services/furniture-removals"><strong>Furniture removalists Adelaide</strong><span>Plan large furniture, access, protection and placement.</span></a>
-            <a href="/services/office-commercial-removals"><strong>Office movers Adelaide</strong><span>Workplace relocation around furniture, equipment and loading access.</span></a>
-            <a href="/services/interstate-removals"><strong>Adelaide interstate removals</strong><span>Route, inventory, volume and access planning for longer moves.</span></a>
+            <a href="/services/residential-removals"><strong>House removals in Adelaide</strong><span>Residential removals for homes, apartments and townhouses.</span></a>
+            <a href="/services/furniture-removals"><strong>Furniture removalists in Adelaide</strong><span>Plan large furniture, access, protection and placement.</span></a>
+            <a href="/services/office-commercial-removals"><strong>Office removals in Adelaide</strong><span>Workplace relocation around furniture, equipment and loading access.</span></a>
+            <a href="/services/interstate-removals"><strong>Interstate removalists from Adelaide</strong><span>Route, inventory, volume and access planning for longer moves.</span></a>
             <a href="/services/packing-unpacking"><strong>Packing services Adelaide</strong><span>Prepare, protect and label belongings before moving day.</span></a>
             <a href="/areas"><strong>Local removals Adelaide</strong><span>Browse the service-area directory and nearby planning pages.</span></a>
             <a href="/pricing"><strong>Adelaide removalist prices</strong><span>Compare HR, MR and Small truck rates, minimum service and call-out fees.</span></a>
@@ -1162,6 +1162,7 @@ function relatedLinksFor(page: ContentPage): RelatedLink[] {
       { href: "/adelaide-removalists", label: "Adelaide removalist services", description: "Compare local, apartment, office, interstate and packing support from HF." },
       { href: "/services/furniture-removals", label: "Furniture removalists", description: "Plan large furniture, access, protection and destination placement." },
       { href: "/services/packing-unpacking", label: "Packing support", description: "Prepare cartons, furniture and high-care items before moving day." },
+      { href: "/services/office-commercial-removals", label: "Office removals in Adelaide", description: "Moving a workplace rather than a home? Plan workstations, equipment and loading access." },
       { href: "/guides/adelaide-moving-checklist", label: "Your house-moving checklist", description: "Prepare your inventory, access details and moving-day essentials." },
       { href: "/guides/apartment-moving-preparation", label: "Prepare an apartment move", description: "Check lifts, loading access and building requirements before moving day." },
       { href: "/services/interstate-removals", label: "Moving home interstate", description: "Plan the destination route, volume and access for a longer-distance move." },
@@ -1208,7 +1209,7 @@ function relatedLinksFor(page: ContentPage): RelatedLink[] {
   // Choose complementary services deliberately: array order is not relevance.
   const relatedServiceSlugs: Record<string, string[]> = {
     "furniture-removals": ["residential-removals", "packing-unpacking", "interstate-removals"],
-    "office-commercial-removals": ["furniture-removals", "packing-unpacking", "interstate-removals"],
+    "office-commercial-removals": ["furniture-removals", "packing-unpacking", "residential-removals", "interstate-removals"],
     "packing-unpacking": ["residential-removals", "furniture-removals", "interstate-removals"],
     backloading: ["interstate-removals", "packing-unpacking", "furniture-removals"],
   };
@@ -1268,7 +1269,7 @@ export function DetailPage({ page }: { page: ContentPage }) {
   const serviceHeadings: Record<string, string> = {
     "residential-removals": "House Removals Adelaide",
     "furniture-removals": "Furniture Removalists Adelaide",
-    "office-commercial-removals": "Office & Commercial Removalists Adelaide",
+    "office-commercial-removals": "Office Removals Adelaide",
     "interstate-removals": "Interstate Removalists Adelaide",
     "packing-unpacking": "Packing & Unpacking Services Adelaide",
     backloading: "Backloading Enquiries from Adelaide",

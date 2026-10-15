@@ -98,7 +98,7 @@ test("renders the premium HF homepage without placeholder claims", async () => {
   assert.match(html, /Read all reviews on Google/i);
   assert.match(html, /maps\.google\.com/);
   assert.match(html, /application\/ld\+json/);
-  assert.match(html, /<title>Adelaide Removalists &amp; Movers \| HF Removals Adelaide<\/title>/i);
+  assert.match(html, /<title>Removalists Adelaide &amp; Movers \| HF Removals Adelaide<\/title>/i);
   assert.doesNotMatch(html, /HF Removals Adelaide \| HF Removals Adelaide<\/title>/i);
   assert.doesNotMatch(html, /codex-preview|react-loading-skeleton|5\.0 from|200\+ happy|#1 Adelaide|award.winning/i);
   assert.doesNotMatch(html, /Hamza Khan|Jessica Taylor|David Miller|Sarah Jenkins/i);
@@ -129,8 +129,8 @@ test("renders service, area, route, guide and contact routes", async () => {
 
   const contact = await render("/contact");
   const contactHtml = await contact.text();
-  assert.match(contactHtml, /<title>Contact HF Removals Adelaide<\/title>/i);
-  assert.doesNotMatch(contactHtml, /Contact HF Removals Adelaide \| HF Removals Adelaide<\/title>/i);
+  assert.match(contactHtml, /<title>Contact HF Removals Adelaide – Moving Quote<\/title>/i);
+  assert.doesNotMatch(contactHtml, /Moving Quote \| HF Removals Adelaide<\/title>/i);
   assert.match(contactHtml, /Google Map showing HF Removals Adelaide/i);
   assert.match(contactHtml, /4v1787515237189/i);
   assert.match(contactHtml, /referrerpolicy="strict-origin-when-cross-origin"/i);
@@ -457,7 +457,7 @@ test("canonical routes normalize trailing slashes instead of serving duplicates"
 
 test("priority pages keep distinct metadata and useful page-level schema", async () => {
   const home = await (await render("/")).text();
-  assert.match(home, /name="description" content="Adelaide removalists for house, furniture, office and interstate moves\./i);
+  assert.match(home, /name="description" content="Removalists and movers in Adelaide for house, furniture, office and interstate moves\./i);
   assert.doesNotMatch(home, /"priceRange":"\$\$"/);
 
   const servicesHtml = await (await render("/services")).text();
@@ -468,7 +468,7 @@ test("priority pages keep distinct metadata and useful page-level schema", async
   assert.match(servicesHtml, /alt="HF Removals Adelaide logo"/);
 
   const houseHtml = await (await render("/services/residential-removals")).text();
-  assert.match(houseHtml, /<title>House Removals Adelaide \| Home Movers \| HF Removals<\/title>/i);
+  assert.match(houseHtml, /<title>House Removals Adelaide \| HF Removals Adelaide<\/title>/i);
   assert.match(houseHtml, /<h1>House Removals Adelaide<\/h1>/i);
   assert.match(houseHtml, /Moving house in Adelaide\?/i);
   assert.match(houseHtml, /href="\/guides\/adelaide-moving-checklist"/i);
