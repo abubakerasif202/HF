@@ -405,7 +405,7 @@ export const services: ContentPage[] = [
     kind: "service",
     eyebrow: "House removals",
     title: "A practical plan for moving home",
-    description: `House removals in Adelaide for homes, apartments and townhouses. From ${entryLocalRate.halfHour}/30 min; minimum service and call-out apply. Request a quote.`,
+    description: `House removals in Adelaide for homes, apartments and townhouses. From ${entryLocalRate.halfHour}/30 min; minimum service and call-out apply. Request a free quote.`,
     intro:
       "Moving house in Adelaide? HF Removals plans whole-home moves room by room, with the truck and 2-man crew matched to your inventory and the access at both properties. Houses, apartments and townhouses raise different loading questions, so the scope is confirmed in your quote.",
     highlights: ["Homes, apartments and townhouses", "Room-by-room inventory", "Packing and protective wraps", "Placement at your destination"],
@@ -415,7 +415,7 @@ export const services: ContentPage[] = [
       { title: "Houses, apartments and townhouses differ", body: "A house move is often about the driveway, gates and the distance from truck to door. An apartment or townhouse adds lifts, loading zones, stairs and building rules, which HF can plan around when you share the property type and entry path for each address." },
       { title: "Furniture and destination placement", body: "List lounges, beds, tables and appliances, and label destination rooms so the unload follows your plan. Mention any bed, desk or large furniture that needs disassembly and reassembly so it can be arranged before moving day." },
       { title: "Agree the preparation and moving-day sequence", body: "Decide whether you need full or partial packing and discuss furniture dismantling before moving day. Keep keys and essentials with you, make the agreed entry path accessible and prepare room labels for arrival." },
-      { title: "Choose the truck by the size of the load", body: "HF offers Small, MR and HR trucks, each with a 2-man crew, plus a 3-mover option, with rates per 30 minutes published on the pricing page. Choose from your furniture and carton list rather than bedroom count alone, and allow for access at both homes. The local minimum service and separate call-out fee apply; the pricing question below sets out how they work." },
+      { title: "Choose the truck by the size of the load", body: "HF offers Small, MR and HR trucks, each with a 2-man crew, plus a 3-mover option, with rates per 30 minutes published on the pricing page. As a guide, the Small truck suits units, the MR truck suits a small house and the HR truck suits a big house; check this against your furniture and carton list rather than bedroom count alone, and allow for access at both homes. The local minimum service and separate call-out fee apply; the pricing question below sets out how they work." },
       { title: "Request a house removals quote", body: "Send the pickup and delivery addresses, preferred date, property types and your room list. Say whether you are moving selected rooms or the whole home so HF can review the truck and crew needed." },
     ],
     faqs: [
@@ -432,7 +432,7 @@ export const services: ContentPage[] = [
     kind: "service",
     eyebrow: "Furniture removals",
     title: "Move furniture with a clear access plan",
-    description: `Furniture removalists in Adelaide for lounges, beds, tables and bulky pieces. From ${entryLocalRate.halfHour}/30 min; minimum service and call-out apply. Request a quote.`,
+    description: `Furniture removalists in Adelaide for lounges, beds, tables and bulky pieces. From ${entryLocalRate.halfHour}/30 min; minimum service and call-out apply. Request a free quote.`,
     intro:
       "Furniture removals in Adelaide can cover a few selected bulky pieces or a household's worth of large items. HF works from your item list, the path in and out at both addresses and any disassembly needed, so the job is scoped before moving day.",
     highlights: ["Large furniture inventory", "Entry and access checks", "Protective wrapping", "Destination placement"],
@@ -449,7 +449,7 @@ export const services: ContentPage[] = [
       { question: "What measurements help with a furniture move?", answer: "Provide dimensions for bulky pieces and measure the narrowest doors, corridors, stairs or lift openings on the route in and out. Photos and access notes can help explain a tight fit before moving day." },
       { question: "Should furniture be dismantled before moving?", answer: "Discuss beds, desks and other large furniture with HF before the move. Disassembly and reassembly are available; confirm which items need this work rather than assuming every piece must be taken apart." },
       { question: "What protection can I discuss for individual furniture pieces?", answer: "Moving blankets, straps and trolleys are standard truck equipment. Identify glass, mirrors and delicate finishes so HF can discuss suitable wrapping and the preparation needed for those pieces." },
-      { question: "Will moving one item avoid the local minimum charge?", answer: "A short item list is still subject to the local policy of a 3-hour minimum service plus a separate 1-hour call-out fee. Share the complete list and ask HF to confirm the quote and charging terms for your selected-item enquiry before booking." },
+      { question: "Will moving one item avoid the local minimum charge?", answer: "There is no small-job threshold: even a short item list is charged on the standard local terms of a 3-hour minimum service plus a separate 1-hour call-out fee. Share the complete list and ask HF to confirm the quote and charging terms for your selected-item enquiry before booking." },
     ],
   },
   {
@@ -457,7 +457,7 @@ export const services: ContentPage[] = [
     kind: "service",
     eyebrow: "Office & commercial removals",
     title: "Coordinate the move around your workplace",
-    description: "Office removals in Adelaide for workstations, furniture and equipment, planned around loading access and lifts. Request a commercial moving quote.",
+    description: "Office removals in Adelaide for workstations, furniture and equipment, planned around loading access and lifts. Request a free commercial moving quote.",
     intro:
       "Office and commercial removals in Adelaide are planned around people and sites as much as cartons: a workplace inventory, named site contacts at both ends, building loading access and lifts, and where workstations and equipment end up.",
     highlights: ["Office furniture", "Workstations and equipment", "Access coordination", "Destination labelling"],
@@ -467,7 +467,7 @@ export const services: ContentPage[] = [
       { title: "Confirm loading access", body: "Share loading areas, lift requirements, parking restrictions, building rules and site contacts for both ends of the commercial relocation." },
       { title: "Plan destination placement", body: "A labelled floor plan and clearly marked cartons help direct desks, chairs, equipment and furniture to the intended workplace area." },
       { title: "Prepare equipment and a move sequence", body: "Agree who will prepare and disconnect workplace equipment, identify fragile devices and separate records or items that must remain accessible. Share any required sequence for moving teams or rooms without assuming a particular completion time." },
-      { title: "Out-of-hours and timing", body: "HF's Google Business Profile lists the business as open 24 hours, every day. If your building only allows after-hours or weekend loading, say so in your enquiry; whether a specific time can be accommodated is confirmed directly with HF rather than assumed." },
+      { title: "Out-of-hours and timing", body: "HF's Google Business Profile lists the business as open 24 hours, every day, and after-hours loading is available. If your building only allows after-hours or weekend loading, say so in your enquiry so the time can be agreed when you book." },
       { title: "Request a commercial removals quote", body: "Send the inventory, site addresses, preferred date, building contacts and access restrictions. Include dismantling, packing and placement needs so the proposed scope matches the workplace relocation." },
     ],
     faqs: [
@@ -483,7 +483,7 @@ export const services: ContentPage[] = [
     kind: "service",
     eyebrow: "Interstate removals",
     title: "Plan your Adelaide interstate relocation",
-    description: "Interstate removalists in Adelaide with per-cubic-metre reference rates for Melbourne, Sydney, Queensland and Perth. Request an interstate quote.",
+    description: "Interstate removalists in Adelaide with per-cubic-metre reference rates for Melbourne, Sydney, Queensland and Perth. Request a free interstate quote.",
     intro:
       "HF provides interstate removals between Adelaide and Melbourne, Sydney, Queensland and Perth, quoted from per-cubic-metre reference rates rather than local hourly units. A useful quote starts with an inventory and volume estimate, access at both ends and the destination suburb and postcode.",
     highlights: ["Adelaide interstate routes", "Per-m³ reference pricing", "Inventory and volume planning", "Packing and protection"],

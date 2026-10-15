@@ -9,7 +9,7 @@ type ListingKind = "services" | "areas" | "interstate" | "guides";
 
 const staticPages: Record<string, { type: "about" | "contact" | "pricing" | "adelaide" | "privacy" | "terms"; title: string; description: string; schema: string }> = {
   about: { type: "about", title: "About Our Adelaide Removalists", description: "Meet Muhammad Rasheed and learn how HF Removals Adelaide plans local, house, office and interstate moves around each customer's requirements.", schema: "AboutPage" },
-  contact: { type: "contact", title: "Contact HF Removals Adelaide – Moving Quote", description: `Call HF Removals Adelaide on ${business.phones[0].display} or send your inventory and access details to request a quote for a house, office or interstate move.`, schema: "ContactPage" },
+  contact: { type: "contact", title: "Contact HF Removals Adelaide – Free Moving Quote", description: `Call HF Removals Adelaide on ${business.phones[0].display} or send your inventory and access details for a free quote on a house, office or interstate move.`, schema: "ContactPage" },
   pricing: { type: "pricing", title: "Removalist Pricing Adelaide", description: `Compare Adelaide moving rates from ${entryLocalRate.halfHour}/30 min. Choose your truck and crew; minimum service and a separate call-out fee apply. Request a quote.`, schema: "WebPage" },
   "adelaide-removalists": { type: "adelaide", title: "Adelaide Removalists: Moving Guide & Planning | HF Removals", description: "Planning an Adelaide move? Choose the right service, plan access, understand how pricing works and prepare before you request a quote.", schema: "WebPage" },
   privacy: { type: "privacy", title: "Privacy", description: "How HF Removals Adelaide handles website enquiry information.", schema: "WebPage" },

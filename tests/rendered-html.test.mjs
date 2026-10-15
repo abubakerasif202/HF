@@ -129,8 +129,8 @@ test("renders service, area, route, guide and contact routes", async () => {
 
   const contact = await render("/contact");
   const contactHtml = await contact.text();
-  assert.match(contactHtml, /<title>Contact HF Removals Adelaide – Moving Quote<\/title>/i);
-  assert.doesNotMatch(contactHtml, /Moving Quote \| HF Removals Adelaide<\/title>/i);
+  assert.match(contactHtml, /<title>Contact HF Removals Adelaide – Free Moving Quote<\/title>/i);
+  assert.doesNotMatch(contactHtml, /Free Moving Quote \| HF Removals Adelaide<\/title>/i);
   assert.match(contactHtml, /Google Map showing HF Removals Adelaide/i);
   assert.match(contactHtml, /4v1787515237189/i);
   assert.match(contactHtml, /referrerpolicy="strict-origin-when-cross-origin"/i);
