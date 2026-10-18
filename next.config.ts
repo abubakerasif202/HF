@@ -52,6 +52,11 @@ const nextConfig: NextConfig = {
       { source: "/interstate-removal-services/", destination: "/services/interstate-removals" },
       { source: "/blog", destination: "/guides" },
       { source: "/blog/", destination: "/guides" },
+      // Retired interstate/area URLs Google still reports as 404 (Page indexing, Sep 2026).
+      { source: "/interstate/adelaide-brisbane", destination: "/interstate/adelaide-queensland" },
+      { source: "/interstate/adelaide-canberra", destination: "/services/interstate-removals" },
+      { source: "/interstate/adelaide-western-sydney", destination: "/interstate/adelaide-sydney" },
+      { source: "/interstate/adelaide-smithfield", destination: "/areas/smithfield" },
     ];
 
     return [
@@ -105,6 +110,11 @@ const nextConfig: NextConfig = {
         destination: "https://www.hfremovalsadelaide.com.au/guides",
         permanent: true,
       },
+      ...legacyRoutes.slice(8).map(({ source, destination }) => ({
+        source,
+        destination: `https://www.hfremovalsadelaide.com.au${destination}`,
+        permanent: true,
+      })),
       {
         source: "/:path+/",
         destination: "https://www.hfremovalsadelaide.com.au/:path+",
