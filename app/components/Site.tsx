@@ -1312,8 +1312,8 @@ export function ListingPage({ kind }: { kind: "services" | "areas" | "interstate
   const map = {
     services: {
       eyebrow: "HF services",
-      title: "Moving support shaped around the job",
-      description: "Explore residential, commercial, interstate, backloading and packing support.",
+      title: "Adelaide removal services",
+      description: "House, furniture, office and interstate removals, plus backloading and packing support. Choose the service that fits your move, then book or request a quote.",
       items: services,
     },
     areas: {
@@ -1324,8 +1324,8 @@ export function ListingPage({ kind }: { kind: "services" | "areas" | "interstate
     },
     interstate: {
       eyebrow: "Interstate routes",
-      title: "Volume-based connections from Adelaide",
-      description: "Review route reference rates and prepare the inventory and access detail needed for a quote.",
+      title: "Interstate removalists from Adelaide",
+      description: "Melbourne, Sydney, Queensland and Perth routes in either direction, quoted from per-m³ reference rates. Prepare your inventory and access details for a quote.",
       items: interstateRoutes,
     },
     guides: {
@@ -1381,7 +1381,7 @@ export function StaticPage({ type }: { type: "about" | "contact" | "pricing" | "
   if (type === "about")
     return (
       <SiteFrame>
-        <PageHero breadcrumbs={[homeCrumb, { label: staticCrumbLabels.about }]} eyebrow="About HF Removals Adelaide" title="Clear communication, careful handling, practical support" description="HF plans local and interstate moves around the details supplied by each customer." />
+        <PageHero breadcrumbs={[homeCrumb, { label: staticCrumbLabels.about }]} eyebrow="Clear communication, careful handling" title="About HF Removals Adelaide" description="HF plans local and interstate moves around the details supplied by each customer." />
         <LeadershipSection />
         <ReviewsSection />
         <ProcessSection />
