@@ -659,9 +659,9 @@ export const interstateRoutes: ContentPage[] = routeDetails.map(([slug, destinat
   slug,
   kind: "route",
   eyebrow: `Adelaide ↔ ${destination}`,
-  title: `Plan your Adelaide to ${destination} move`,
-  description: `Adelaide to ${destination} removals with a ${price} per m³ reference rate and inventory-led planning.`,
-  intro: `Plan an interstate furniture or household move between Adelaide and ${destination} with HF Removals Adelaide. ${angle} The published rate is a per-cubic-metre reference, not a total move price.`,
+  title: `Adelaide to ${destination} Removalists`,
+  description: `Adelaide to ${destination} removalists, plus ${destination} to Adelaide moves, from a ${price} per m³ reference rate. Send your inventory for a free interstate quote.`,
+  intro: `Interstate removalists for household and furniture moves from Adelaide to ${destination}, and from ${destination} back to Adelaide. ${angle} The published rate is a per-cubic-metre reference, not a total move price.`,
   highlights: ["Inventory and volume estimate", "Access at both addresses", "Packing requirements", "Destination details"],
   price,
   unit: "per m³",
@@ -675,6 +675,7 @@ export const interstateRoutes: ContentPage[] = routeDetails.map(([slug, destinat
   ],
   faqs: [
     { question: `Is ${price} the total price to ${destination}?`, answer: `No. ${price} is the published reference rate per cubic metre. Final cost depends on volume and scope.` },
+    { question: `Do you also move from ${destination} to Adelaide?`, answer: `Yes. The ${price} per m³ reference rate is published for the Adelaide ↔ ${destination} route in either direction. Send the pickup and delivery suburbs and postcodes with your inventory so the volume and scope can be assessed.` },
     { question: "Is a fixed transit time promised?", answer: "No fixed transit time or departure schedule is published here. Confirm timing for your individual move directly with HF." },
   ],
 }));

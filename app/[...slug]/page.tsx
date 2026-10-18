@@ -19,13 +19,14 @@ const staticPages: Record<string, { type: "about" | "contact" | "pricing" | "ade
 const listingPages: Record<string, { kind: ListingKind; title: string; description: string }> = {
   services: { kind: "services", title: "Adelaide Moving Services", description: "House, furniture, office, interstate, backloading and packing services from HF Removals Adelaide. Compare your options and request a quote." },
   areas: { kind: "areas", title: "Adelaide Service Areas", description: "Move planning information for listed HF Removals Adelaide service areas." },
-  interstate: { kind: "interstate", title: "Interstate Removal Routes", description: "Adelaide interstate route reference rates and practical volume planning." },
+  interstate: { kind: "interstate", title: "Interstate Removalists from Adelaide", description: "Interstate removalists from Adelaide to Melbourne, Sydney, Queensland and Perth, with per-m³ reference rates. Compare routes and request a free quote." },
   guides: { kind: "guides", title: "Moving Guides", description: "Practical moving, packing, pricing, apartment, office and interstate guides." },
 };
 
 function pathFor(parts: string[]) { return `/${parts.join("/")}`; }
 function contentTitle(page: NonNullable<ReturnType<typeof findContentPage>>) {
   if (page.kind === "area") return `${page.eyebrow.replace(/ removals| moving support/i, "")} Removalists`;
+  if (page.kind === "route" && page.price) return `${page.title} from ${page.price}/m³ | HF Removals`;
   if (page.kind === "service") {
     const titles: Record<string, string> = {
       "residential-removals": "House Removals Adelaide | HF Removals Adelaide",
@@ -93,7 +94,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const page = findContentPage(slug);
   if (!page) return {};
   const title = contentTitle(page);
-  return { title: page.kind === "service" ? { absolute: title } : title, description: page.description, alternates: { canonical: canonical(path) }, ...socialMetadata(title, page.description, path) };
+  return { title: page.kind === "service" || page.kind === "route" ? { absolute: title } : title, description: page.description, alternates: { canonical: canonical(path) }, ...socialMetadata(title, page.description, path) };
 }
 
 export function generateStaticParams() {
