@@ -1292,6 +1292,13 @@ export function DetailPage({ page }: { page: ContentPage }) {
             </aside>
           </div>
           <div className="editorial-sections">
+            {page.kind === "service" && (page.slug === "residential-removals" || page.slug === "furniture-removals") && (
+              <article>
+                <h2>{page.slug === "residential-removals" ? "House moving rates and minimum charges" : "Furniture moving rates and minimum charges"}</h2>
+                <p>Local rates start from {entryLocalRate.halfHour} per 30 minutes. A 3-hour minimum service plus a separate 1-hour call-out fee apply, including selected-item moves. Your truck, crew, inventory and access affect the quote.</p>
+                <p><a href="/pricing">Compare truck and crew rates and minimum charges</a>, then <a href="/#quote">request a quote for your move</a>.</p>
+              </article>
+            )}
             {page.sections.map((section) => (
               <article key={section.title}>
                 <h2>{section.title}</h2>

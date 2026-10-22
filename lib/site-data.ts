@@ -405,7 +405,7 @@ export const services: ContentPage[] = [
     kind: "service",
     eyebrow: "House removals",
     title: "A practical plan for moving home",
-    description: `House removals in Adelaide for homes, apartments and townhouses. From ${entryLocalRate.halfHour}/30 min; minimum service and call-out apply. Request a free quote.`,
+    description: `House removals in Adelaide for homes, apartments and townhouses. From ${entryLocalRate.halfHour}/30 min; 3-hour minimum + 1-hour call-out. Get a quote.`,
     intro:
       "Moving house in Adelaide? HF Removals plans whole-home moves room by room, with the truck and 2-man crew matched to your inventory and the access at both properties. Houses, apartments and townhouses raise different loading questions, so the scope is confirmed in your quote.",
     highlights: ["Homes, apartments and townhouses", "Room-by-room inventory", "Packing and protective wraps", "Placement at your destination"],
@@ -432,7 +432,7 @@ export const services: ContentPage[] = [
     kind: "service",
     eyebrow: "Furniture removals",
     title: "Move furniture with a clear access plan",
-    description: `Furniture removalists in Adelaide for lounges, beds, tables and bulky pieces. From ${entryLocalRate.halfHour}/30 min; minimum service and call-out apply. Request a free quote.`,
+    description: `Furniture removalists in Adelaide for lounges, beds and bulky items. From ${entryLocalRate.halfHour}/30 min; 3-hour minimum + 1-hour call-out. Get a quote.`,
     intro:
       "Furniture removals in Adelaide can cover a few selected bulky pieces or a household's worth of large items. HF works from your item list, the path in and out at both addresses and any disassembly needed, so the job is scoped before moving day.",
     highlights: ["Large furniture inventory", "Entry and access checks", "Protective wrapping", "Destination placement"],
