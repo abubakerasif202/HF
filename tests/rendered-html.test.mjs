@@ -79,7 +79,7 @@ test("renders the premium HF homepage without placeholder claims", async () => {
   assert.match(plain, /Local house, furniture and office moves, plus interstate moving support\./);
   assert.match(html, /Choose the Right Truck/);
   for (const price of ["$79", "$74", "$69"]) assert.ok(html.includes(price), `${price} / 30 min rendered on the homepage`);
-  assert.match(html, /455(?:<!-- -->)? reviews/i);
+  assert.match(html, /472(?:<!-- -->)? reviews/i);
   assert.doesNotMatch(html, /\b451\b/);
   assert.match(html, /Open 24 hours/);
   assert.doesNotMatch(html, /7:00 am–8:00 pm|7am–8pm/i);
@@ -210,7 +210,7 @@ test("keeps verified rates, coverage wording and canonical route inventory centr
   assert.match(data, /per m³/);
   assert.match(data, /Up to \$1,000,000 Public Liability & Transit Insurance/);
   assert.match(data, /rating: 5\.0/);
-  assert.match(data, /reviewCount: 455/);
+  assert.match(data, /reviewCount: 472/);
   assert.match(data, /\bverifiedAt: "2026-10-04"/);
   assert.match(data, /hoursVerifiedAt: "2026-10-04"/);
   assert.match(data, /hoursLabel: "Open 24 hours"/);
