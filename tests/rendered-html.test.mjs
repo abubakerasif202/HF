@@ -632,3 +632,18 @@ test("featured suburb pages use their local profile content", async () => {
   assert.match(html, /Salisbury has a mix of established homes, units and commercial activity/);
   assert.match(html, /Coordinate homes, units and workplaces/);
 });
+
+
+test("local service search descriptions and pricing links disclose minimum charges", async () => {
+  for (const path of ["/", "/services/residential-removals", "/services/furniture-removals"]) {
+    const response = await render(path);
+    assert.equal(response.status, 200);
+    const html = await response.text();
+    const description = html.match(/<meta name="description" content="([^"]*)"/i)?.[1] ?? "";
+    assert.match(description, /3-hour minimum \+ 1-hour call-out/);
+    if (path !== "/") {
+      assert.match(html, /href="\/pricing"[^>]*>Compare truck and crew rates and minimum charges<\/a>/);
+      assert.match(html, /including selected-item moves/);
+    }
+  }
+});
