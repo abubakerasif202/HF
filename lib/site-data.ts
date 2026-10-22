@@ -63,7 +63,7 @@ export const business = {
     "Coverage and eligibility depend on the applicable policy terms and the scope of the move. Ask us about the details relevant to your move.",
   googleBusiness: {
     rating: 5.0,
-    reviewCount: 455,
+    reviewCount: 472,
     // Google Business Profile shows "Open 24 hours"; schema expresses that as 00:00–23:59 daily.
     hoursLabel: "Open 24 hours",
     hoursShort: "24 hours",
