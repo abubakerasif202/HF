@@ -17,7 +17,7 @@ export const siteOrigin = "https://www.hfremovalsadelaide.com.au";
 export const quoteFormEndpoint = "https://api.web3forms.com/submit";
 export const canonicalEmail = "admin@hfremovalsadelaide.com.au";
 export const web3FormsAccessKey =
-  process.env.NEXT_PUBLIC_WEB3FORMS_ACCESS_KEY ?? "b3427589-09df-4f1c-abae-5b3fc3266ba5";
+  process.env.NEXT_PUBLIC_WEB3FORMS_ACCESS_KEY ?? "9862ce5c-a126-45b2-8e9d-cd2e30d15fb3";
 
 export const business = {
   name: "HF Removals Adelaide",
