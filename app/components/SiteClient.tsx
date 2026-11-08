@@ -439,8 +439,8 @@ const ADDITIONAL_SERVICES = [
 
 const createEmptyForm = (): FormDataShape => ({
   name: "", phone: "", email: "", date: "", from: "", to: "",
-  moveType: "Residential (House / Unit)", propertySize: "2 Bedrooms", details: "", company: "", tab: "local",
-  floorAccess: "Ground Floor / Driveway Access", parkingAccess: "On-Street Parking (Nearby)", boxesNeeded: "Not Sure Yet", services: []
+  moveType: "", propertySize: "", details: "", company: "", tab: "local",
+  floorAccess: "", parkingAccess: "", boxesNeeded: "", services: []
 });
 
 function getAdelaideDateInputValue(date = new Date()) {
@@ -464,6 +464,7 @@ export function QuoteForm({ compact = false }: { compact?: boolean }) {
   const [statusKind, setStatusKind] = useState<"success" | "error" | "info">("info");
   const submitting = useRef(false);
   const quoteAttempt = useRef<string | null>(null);
+  const lastSuccess = useRef(0);
   const earliestDate = getAdelaideDateInputValue();
   const melbourneRate = interstatePricing.find((route) => route.slug === "adelaide-melbourne")!;
   const sydneyRate = interstatePricing.find((route) => route.slug === "adelaide-sydney")!;
@@ -493,10 +494,13 @@ export function QuoteForm({ compact = false }: { compact?: boolean }) {
       return;
     }
     if (form.company) {
-      setSelectedTruck(null);
-      setForm(createEmptyForm());
-      setStatusKind("success");
-      setStatus("Thank you. Your request has been received.");
+      setStatusKind("error");
+      setStatus("We couldn't send your request. Please contact us directly.");
+      return;
+    }
+    if (Date.now() - lastSuccess.current < 10000) {
+      setStatusKind("error");
+      setStatus("Please wait a few seconds before sending another request.");
       return;
     }
 
@@ -511,7 +515,11 @@ export function QuoteForm({ compact = false }: { compact?: boolean }) {
       const formData = new FormData(event.currentTarget);
       if (!quoteAttempt.current) quoteAttempt.current = crypto.randomUUID();
       formData.set("quote_reference", quoteAttempt.current);
-      formData.set("source_page", window.location.href);
+      formData.set("source_page", `${window.location.origin}${window.location.pathname}`);
+      formData.set("botcheck", "");
+      formData.set("moving_date", form.date);
+      formData.set("truck_size", form.tab === "local" && selectedTruck ? findMovingPackage({ id: selectedTruck })?.name ?? "" : "");
+      formData.set("message", form.details);
 
       const response = await fetch(quoteFormEndpoint, { method: "POST", body: formData, signal: controller.signal });
 
@@ -545,10 +553,16 @@ export function QuoteForm({ compact = false }: { compact?: boolean }) {
         // The Web3Forms email still contains the customer enquiry.
       });
       quoteAttempt.current = null;
+      lastSuccess.current = Date.now();
+      try {
+        window.gtag?.("event", "quote_form_submitted");
+      } catch {
+        // Analytics must not affect confirmed submissions.
+      }
       setSelectedTruck(null);
       setForm(createEmptyForm());
       setStatusKind("success");
-      setStatus("Thank you. Your move details have been sent to HF Removals Adelaide. We’ll be in touch shortly.");
+      setStatus("Thank you! Your moving quote request has been received. Our HF Removals Adelaide team will review your details and contact you to discuss your move. This is an enquiry confirmation, not a confirmed moving booking.");
     } catch {
       setStatusKind("error");
       setStatus(`We could not confirm whether your request was received. Please call ${business.phones[0].display} before trying again.`);
@@ -573,7 +587,8 @@ export function QuoteForm({ compact = false }: { compact?: boolean }) {
       }}
     >
       <input type="hidden" name="access_key" value={web3FormsAccessKey} />
-      <input type="hidden" name="subject" value={`New HF Removals Quote Request — ${form.name || "Website visitor"} — ${form.from || "?"} to ${form.to || "?"}`} />
+      <input type="hidden" name="subject" value="New Moving Quote - HF Removals Adelaide" />
+      <input type="hidden" name="form_source" value="Website Quote Form" />
       <input type="hidden" name="replyto" value={form.email} />
       <input type="hidden" name="from_name" value="HF Removals Adelaide Website" />
       <input type="hidden" name="source_page" value={`${business.domain}${pathname}`} />
@@ -652,7 +667,7 @@ export function QuoteForm({ compact = false }: { compact?: boolean }) {
         </label>
         <label>
           <span className="field-label">Phone Number <b aria-hidden="true">*</b></span>
-          <input name="phone" required maxLength={32} autoComplete="tel" inputMode="tel" pattern={"[0-9+\\(\\) \\-]{8,}"} value={form.phone} onChange={(e) => update("phone", e.target.value)} placeholder="e.g. 0400 000 000" aria-invalid={statusKind === "error" && !form.phone} aria-describedby={statusKind === "error" ? "quote-form-status" : undefined} />
+          <input name="phone" required maxLength={32} autoComplete="tel" inputMode="tel" pattern={"(?:0|\\(0|\\+?61 *)(?:[2478])(?:[ \\(\\)\\-]*[0-9]){8}"} value={form.phone} onChange={(e) => update("phone", e.target.value)} placeholder="e.g. 0400 000 000" aria-invalid={statusKind === "error" && !form.phone} aria-describedby={statusKind === "error" ? "quote-form-status" : undefined} />
         </label>
         <label>
           <span className="field-label">Moving From (Suburb) <b aria-hidden="true">*</b></span>
@@ -673,6 +688,7 @@ export function QuoteForm({ compact = false }: { compact?: boolean }) {
         <label className="form-wide">
           <span className="field-label">Move Type <b aria-hidden="true">*</b></span>
           <select name="move_type" required value={form.moveType} onChange={(e) => update("moveType", e.target.value)} aria-describedby={statusKind === "error" ? "quote-form-status" : undefined}>
+            <option value="">Please select</option>
             <option>Residential (House / Unit)</option>
             <option>Apartment / High-Rise (Lift Access)</option>
             <option>Office / Commercial Relocation</option>
@@ -694,6 +710,7 @@ export function QuoteForm({ compact = false }: { compact?: boolean }) {
           <label className="form-wide">
             <span className="field-label">Property Size / Volume</span>
             <select name="property_size" value={form.propertySize} onChange={(e) => update("propertySize", e.target.value)}>
+              <option value="">Please select</option>
               <option>Studio / 1 Bedroom Unit</option>
               <option>2 Bedrooms</option>
               <option>3 Bedrooms (Standard Family Home)</option>
@@ -708,6 +725,7 @@ export function QuoteForm({ compact = false }: { compact?: boolean }) {
           <label>
             <span className="field-label">Floor / Building Access</span>
             <select name="floor_access" value={form.floorAccess} onChange={(e) => update("floorAccess", e.target.value)}>
+              <option value="">Please select</option>
               <option>Ground Floor / Driveway Access</option>
               <option>1st Floor (Stairs Only)</option>
               <option>2nd Floor (Stairs Only)</option>
@@ -719,6 +737,7 @@ export function QuoteForm({ compact = false }: { compact?: boolean }) {
           <label>
             <span className="field-label">Parking / Truck Access</span>
             <select name="parking_access" value={form.parkingAccess} onChange={(e) => update("parkingAccess", e.target.value)}>
+              <option value="">Please select</option>
               <option>Driveway (Truck Fits Directly)</option>
               <option>On-Street Parking (Nearby)</option>
               <option>Restricted / Permit Parking</option>
@@ -730,6 +749,7 @@ export function QuoteForm({ compact = false }: { compact?: boolean }) {
           <label>
             <span className="field-label">Packing Boxes Needed</span>
             <select name="boxes_needed" value={form.boxesNeeded} onChange={(e) => update("boxesNeeded", e.target.value)}>
+              <option value="">Please select</option>
               <option>Not Sure Yet</option>
               <option>None — Already Packed</option>
               <option>1–10 Boxes</option>

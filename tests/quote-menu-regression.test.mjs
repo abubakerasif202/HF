@@ -16,6 +16,7 @@ async function fillQuote(page) {
   await page.locator('[name="moving_from"]').fill("Unley SA");
   await page.locator('[name="moving_to"]').fill("Marion SA");
   await page.locator('[name="preferred_moving_date"]').fill("2099-01-01");
+  await page.locator('[name="move_type"]').selectOption({ label: "Residential (House / Unit)" });
   // The truck is a required choice: pick one the way a visitor would.
   await page.locator('input[type="radio"][name="truck_package_id"][value="mr-12t-2men"]').check();
 }
@@ -84,14 +85,14 @@ test("quote success submits once and resets only after provider confirmation", a
     assert.match(payload, /name="rate_per_30_min"\r?\n\r?\n\$74 \/ 30 min/);
     assert.match(payload, /name="rate_per_30_min_cents"\r?\n\r?\n7400/);
     release();
-    await expect(page.locator("#quote-form-status")).toContainText("have been sent");
+    await expect(page.locator("#quote-form-status")).toContainText("Your moving quote request has been received");
     await expect(page.locator('[name="name"]')).toHaveValue("");
     await expect(page.locator(".form-submit")).toBeEnabled();
     assert.equal(requests, 1);
   } finally { release(); await page.close(); }
 });
 
-for (const failure of ["provider error", "timeout"]) {
+for (const failure of ["provider error", "API rejection", "network failure", "timeout"]) {
   test(`quote ${failure} preserves input and directs uncertain delivery to a call`, async () => {
     const page = await browser.newPage();
     let requests = 0;
@@ -106,6 +107,10 @@ for (const failure of ["provider error", "timeout"]) {
       if (failure === "provider error") {
         await route.fulfill({ status: 503, contentType: "application/json", body: JSON.stringify({ success: false }) });
       }
+      if (failure === "API rejection") {
+        await route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ success: false }) });
+      }
+      if (failure === "network failure") await route.abort("failed");
       // A stalled route is deliberately never continued to the real provider.
     });
     try {
@@ -141,8 +146,9 @@ test("truck card selection flows into the quote form radio and the submitted lea
     await page.locator('[name="moving_from"]').fill("Unley SA");
     await page.locator('[name="moving_to"]').fill("Marion SA");
     await page.locator('[name="preferred_moving_date"]').fill("2099-01-01");
+    await page.locator('[name="move_type"]').selectOption({ label: "Residential (House / Unit)" });
     await page.locator(".form-submit").click();
-    await expect(page.locator("#quote-form-status")).toContainText("have been sent");
+    await expect(page.locator("#quote-form-status")).toContainText("Your moving quote request has been received");
     assert.match(payload, /name="truck_package_id"\r?\n\r?\nhr-16t-2men/);
     assert.match(payload, /name="truck_capacity"\r?\n\r?\n16 Ton/);
     assert.match(payload, /name="rate_per_30_min_cents"\r?\n\r?\n7900/);
