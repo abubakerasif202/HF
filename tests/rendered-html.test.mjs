@@ -168,7 +168,7 @@ test("renders one coherent, accessible Web3Forms quote flow", async () => {
     const html = await response.text();
 
     assert.match(html, /<form[^>]+action="https:\/\/api\.web3forms\.com\/submit"[^>]+method="POST"/i, path);
-    assert.match(html, /name="subject"[^>]+value="New HF Removals Quote Request — Website visitor/i, path);
+    assert.match(html, /name="subject"[^>]+value="New Moving Quote - HF Removals Adelaide/i, path);
     assert.match(html, /<input(?=[^>]*type="hidden")(?=[^>]*name="replyto")/i, path);
     assert.match(html, /<input(?=[^>]*name="email")(?=[^>]*type="email")(?=[^>]*required)[^>]*>/i, path);
     assert.match(html, /<input(?=[^>]*name="preferred_moving_date")(?=[^>]*type="date")(?=[^>]*required)[^>]*>/i, path);
@@ -193,7 +193,7 @@ test("renders one coherent, accessible Web3Forms quote flow", async () => {
   assert.doesNotMatch(client, /formData\.append\("access_key"/i);
   assert.match(client, /data\.success/i);
   assert.match(client, /formData\.set\("quote_reference"/);
-  assert.match(client, /formData\.set\("source_page", window\.location\.href\)/);
+  assert.match(client, /formData\.set\("source_page", `\$\{window\.location\.origin\}\$\{window\.location\.pathname\}`\)/);
   assert.doesNotMatch(client, /HF_QUOTE_BRIDGE/);
   assert.match(client, /keepalive: true/);
   assert.doesNotMatch(client, /formspree\.io|formsubmit\.co/i);

@@ -174,6 +174,7 @@ test('quote form validation, package selection, success, failure and double-subm
   await form.getByLabel('Moving From (Suburb)').fill('Elizabeth Vale SA');
   await form.getByLabel('Moving To (Suburb/City)').fill('Marion SA');
   await form.getByLabel('Preferred Moving Date').fill('2099-01-01');
+  await form.locator('[name="move_type"]').selectOption({ label: 'Residential (House / Unit)' });
 
   let captures = 0;
   await page.route('**/api/quote/capture', async (route) => {
@@ -190,6 +191,8 @@ test('quote form validation, package selection, success, failure and double-subm
   let requests = 0;
   await page.route('https://api.web3forms.com/submit', async (route) => {
     requests += 1;
+    const payload = route.request().postData() || '';
+    for (const value of ['b3427589-09df-4f1c-abae-5b3fc3266ba5', 'New Moving Quote - HF Removals Adelaide', 'Website Quote Form', 'moving_date', 'truck_size', 'message', 'botcheck']) expect(payload).toContain(value);
     await new Promise((resolve) => setTimeout(resolve, 150));
     await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ success: true }) });
   });
@@ -197,7 +200,9 @@ test('quote form validation, package selection, success, failure and double-subm
     element.requestSubmit();
     element.requestSubmit();
   });
-  await expect(form.locator('.form-status')).toContainText('Your move details have been sent');
+  await expect(form.locator('.form-status')).toContainText('Your moving quote request has been received');
+  await expect(form.getByLabel('Your Name')).toHaveValue('');
+  await page.evaluate(() => { const now = Date.now(); Date.now = () => now + 11000; });
   expect(requests).toBe(1);
   await expect.poll(() => captures).toBe(1);
 
@@ -207,6 +212,7 @@ test('quote form validation, package selection, success, failure and double-subm
   await form.getByLabel('Moving To (Suburb/City)').fill('Marion SA');
   await form.getByLabel('Email Address').fill('qa.test@example.invalid');
   await form.getByLabel('Preferred Moving Date').fill('2099-01-01');
+  await form.locator('[name="move_type"]').selectOption({ label: 'Residential (House / Unit)' });
   // A successful submission clears the truck choice, so choose one again for the retry.
   await expect(form.getByRole('radio', { name: /HR Truck/ })).not.toBeChecked();
   await form.getByRole('radio', { name: /HR Truck/ }).check();
