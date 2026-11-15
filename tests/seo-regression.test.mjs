@@ -44,13 +44,14 @@ test("quote phone pattern compiles in native Unicode mode and validates realisti
     const results = await page.locator('input[name="phone"]').evaluate(input => {
       const pattern = input.getAttribute("pattern");
       const regex = new RegExp(`^(?:${pattern})$`, "v");
-      return ["0491704136", "+61 491 704 136", "(0491) 704-136", "abcdefgh", "123", ""].map(value => {
+      return ["0491704136", "+61 491 704 136", "(0491) 704-136", "(08) 8123 4567", "+61 8 8123 4567", "03 9123 4567", "0612345678", "04917041", "abcdefgh", "123", ""].map(value => {
         input.value = value;
         return { value, regexMatches: regex.test(value), nativeValid: input.checkValidity() };
       });
     });
-    assert.deepEqual(results.map(({ nativeValid }) => nativeValid), [true, true, true, false, false, false]);
-    assert.deepEqual(results.map(({ regexMatches }) => regexMatches), [true, true, true, false, false, false]);
+    const expected = [true, true, true, true, true, true, false, false, false, false, false];
+    assert.deepEqual(results.map(({ nativeValid }) => nativeValid), expected);
+    assert.deepEqual(results.map(({ regexMatches }) => regexMatches), expected);
     assert.deepEqual(errors.filter(message => /pattern|regular expression|invalid.*flag/i.test(message)), []);
   } finally { await page.close(); }
 });
