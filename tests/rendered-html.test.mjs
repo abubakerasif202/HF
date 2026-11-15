@@ -457,7 +457,7 @@ test("canonical routes normalize trailing slashes instead of serving duplicates"
 
 test("priority pages keep distinct metadata and useful page-level schema", async () => {
   const home = await (await render("/")).text();
-  assert.match(home, /name="description" content="Removalists and movers in Adelaide for house, furniture, office and interstate moves\./i);
+  assert.match(home, /name="description" content="Local Adelaide removalists and movers for house, furniture, office and interstate moves\./i);
   assert.doesNotMatch(home, /"priceRange":"\$\$"/);
 
   const servicesHtml = await (await render("/services")).text();
@@ -480,7 +480,7 @@ test("priority pages keep distinct metadata and useful page-level schema", async
   assert.match(houseHtml, /href="\/pricing"/i);
 
   const pricingHtml = await (await render("/pricing")).text();
-  assert.match(pricingHtml, /<title>Removalist Pricing Adelaide \| HF Removals Adelaide<\/title>/i);
+  assert.match(pricingHtml, /<title>Removalist Prices Adelaide &amp; Hourly Rates \| HF Removals Adelaide<\/title>/i);
 
   const hubHtml = await (await render("/adelaide-removalists")).text();
   assert.match(hubHtml, /<title>Adelaide Removalists: Moving Guide &amp; Planning \| HF Removals<\/title>/i);

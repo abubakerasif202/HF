@@ -3,7 +3,7 @@ import { HomePage } from "./components/Site";
 import { business, canonical, entryLocalRate, standardMoveFaqs } from "../lib/site-data";
 
 const homeTitle = "Removalists Adelaide & Movers | HF Removals Adelaide";
-const homeDescription = `Removalists and movers in Adelaide for house, furniture, office and interstate moves. From ${entryLocalRate.halfHour}/30 min; minimum service and call-out apply. Request a quote.`;
+const homeDescription = `Local Adelaide removalists and movers for house, furniture, office and interstate moves. Clear truck-and-crew rates from ${entryLocalRate.halfHour}/30 min; minimum service and call-out apply. Free quotes.`;
 
 export const metadata: Metadata = {
   title: { absolute: homeTitle },
