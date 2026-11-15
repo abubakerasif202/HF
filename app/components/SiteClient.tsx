@@ -493,11 +493,6 @@ export function QuoteForm({ compact = false }: { compact?: boolean }) {
     if (submitting.current) {
       return;
     }
-    if (form.company) {
-      setStatusKind("error");
-      setStatus("We couldn't send your request. Please contact us directly.");
-      return;
-    }
     if (Date.now() - lastSuccess.current < 10000) {
       setStatusKind("error");
       setStatus("Please wait a few seconds before sending another request.");
@@ -512,6 +507,13 @@ export function QuoteForm({ compact = false }: { compact?: boolean }) {
     const controller = new AbortController();
     const timeout = window.setTimeout(() => controller.abort(), 20000);
     try {
+      if (form.company) {
+        // Honeypot tripped: send nothing, but follow the same "submitting" lifecycle and end in the
+        // generic uncertain-delivery message (what any failed send shows), so a bot gets no tell and a
+        // genuine user is never told the enquiry succeeded and is pointed to the phone number.
+        await new Promise<void>((resolve) => window.setTimeout(resolve, 700 + Math.random() * 900));
+        throw new Error("suppressed");
+      }
       const formData = new FormData(event.currentTarget);
       if (!quoteAttempt.current) quoteAttempt.current = crypto.randomUUID();
       formData.set("quote_reference", quoteAttempt.current);
@@ -667,7 +669,7 @@ export function QuoteForm({ compact = false }: { compact?: boolean }) {
         </label>
         <label>
           <span className="field-label">Phone Number <b aria-hidden="true">*</b></span>
-          <input name="phone" required maxLength={32} autoComplete="tel" inputMode="tel" pattern={"(?:0|\\(0|\\+?61 *)(?:[2478])(?:[ \\(\\)\\-]*[0-9]){8}"} value={form.phone} onChange={(e) => update("phone", e.target.value)} placeholder="e.g. 0400 000 000" aria-invalid={statusKind === "error" && !form.phone} aria-describedby={statusKind === "error" ? "quote-form-status" : undefined} />
+          <input name="phone" required maxLength={32} autoComplete="tel" inputMode="tel" pattern={"[ \\(\\)\\-]*(?:0|\\+?61)[ \\(\\)\\-]*[23478](?:[ \\(\\)\\-]*[0-9]){8}"} value={form.phone} onChange={(e) => update("phone", e.target.value)} placeholder="e.g. 0400 000 000" aria-invalid={statusKind === "error" && !form.phone} aria-describedby={statusKind === "error" ? "quote-form-status" : undefined} />
         </label>
         <label>
           <span className="field-label">Moving From (Suburb) <b aria-hidden="true">*</b></span>

@@ -84,6 +84,12 @@ test("quote success submits once and resets only after provider confirmation", a
     assert.match(payload, /name="crew_size"\r?\n\r?\n2/);
     assert.match(payload, /name="rate_per_30_min"\r?\n\r?\n\$74 \/ 30 min/);
     assert.match(payload, /name="rate_per_30_min_cents"\r?\n\r?\n7400/);
+    // Customer details and the enquiry source travel with the lead.
+    assert.match(payload, /name="name"\r?\n\r?\nRegression Test/);
+    assert.match(payload, /name="phone"\r?\n\r?\n0400000000/);
+    assert.match(payload, /name="form_source"\r?\n\r?\nWebsite Quote Form/);
+    assert.match(payload, new RegExp(`name="source_page"\\r?\\n\\r?\\n${runtime.base.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}/?\\r?\\n`));
+    assert.match(payload, /name="botcheck"\r?\n\r?\n\r?\n/);
     release();
     await expect(page.locator("#quote-form-status")).toContainText("Your moving quote request has been received");
     await expect(page.locator('[name="name"]')).toHaveValue("");
@@ -126,6 +132,26 @@ for (const failure of ["provider error", "API rejection", "network failure", "ti
     } finally { await page.close(); }
   });
 }
+
+test("tripped honeypot sends nothing, never claims success and shows the generic failure message", async () => {
+  const page = await browser.newPage();
+  let requests = 0;
+  await page.route(endpoint, async route => { requests++; await route.abort(); });
+  await page.route("**/api/quote/capture", async route => { requests++; await route.abort(); });
+  try {
+    await page.goto(runtime.base);
+    await fillQuote(page);
+    await page.locator('[name="botcheck"]').evaluate(input => input.click());
+    await page.locator(".form-submit").click();
+    // Same lifecycle as a real send: busy first, then the ordinary uncertain-delivery message.
+    await expect(page.locator("#quote-form-status")).toContainText("could not confirm whether");
+    await expect(page.locator("#quote-form-status")).not.toContainText("quote request has been received");
+    await expect(page.locator("#quote-form-status")).not.toContainText(/bot|spam|honeypot|couldn't send/i);
+    await expect(page.locator('[name="name"]')).toHaveValue("Regression Test");
+    await expect(page.locator(".form-submit")).toBeEnabled();
+    assert.equal(requests, 0);
+  } finally { await page.close(); }
+});
 
 test("truck card selection flows into the quote form radio and the submitted lead", async () => {
   const page = await browser.newPage({ viewport: { width: 1280, height: 900 } });
