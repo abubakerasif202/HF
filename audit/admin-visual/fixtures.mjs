@@ -291,9 +291,21 @@ export const quote_requests = QUOTE_STATUSES.map((quote_status, i) => {
   };
 });
 
+// Match the dispatch migration defaults for every synthetic booking.
+for (const booking of bookings) {
+  Object.assign(booking, {
+    dispatch_additional_vehicle_ids: [], dispatch_truck_count: null,
+    dispatch_travel_minutes: null, dispatch_overnight: null,
+    dispatch_truck_left_onsite: null, dispatch_pricing_type: null,
+    dispatch_fixed_price_cents: null, dispatch_customer_requirements: [],
+    dispatch_checklist: [],
+  });
+}
+
 export const tables = {
   staff, business_settings, services, pricing_rules, vehicles, crews, crew_members, customers,
   bookings, booking_events, notifications, booking_assignments, payments, stripe_events, blocked_times, quote_requests,
+  google_calendar_imports: [],
 };
 
 /** many-to-one embeds: tables[name] -> { relationName: [targetTable, foreignKeyColumn] } */

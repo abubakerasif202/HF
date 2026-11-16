@@ -191,7 +191,6 @@ export function DispatchClient({ initialDate }: Props) {
           { value: data?.bookings.length ?? "—", label: "HF jobs" },
           { value: unassignedCount, label: "Need allocation" },
           { value: conflictCount, label: "Conflicts" },
-          { value: trucksNeeded, label: "Trucks required" },
         ]}
       />
 
