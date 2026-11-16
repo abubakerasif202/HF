@@ -4,7 +4,6 @@ import type { BusinessSettings, BusyInterval, PricingRule, PricingSnapshot } fro
 import type { FleetVehicle } from "../booking/vehicles.ts";
 import { findMovingPackage } from "../site-data.ts";
 import type { ConfirmRpcResult } from "../booking/confirmation.ts";
-import { LIVE_STATUSES } from "../booking/state-machine.ts";
 
 type Address = { formattedAddress?: string; addressLine?: string; suburb?: string } | null;
 
@@ -85,9 +84,9 @@ export async function getActiveVehicleIds(): Promise<string[]> {
 
 export async function getBusyIntervals(rangeStart: Date, rangeEnd: Date): Promise<BusyInterval[]> {
   const { data, error } = await getSupabaseAdmin()
-    .from("bookings")
+    .from("booking_vehicle_reservations")
     .select("vehicle_id, starts_at, ends_at")
-    .in("booking_status", LIVE_STATUSES)
+    .eq("active", true)
     .lt("starts_at", rangeEnd.toISOString())
     .gt("ends_at", rangeStart.toISOString());
   if (error) throw error;
