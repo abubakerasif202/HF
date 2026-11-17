@@ -2,8 +2,9 @@ import type { Metadata } from "next";
 import { HomePage } from "./components/Site";
 import { business, canonical, entryLocalRate, standardMoveFaqs } from "../lib/site-data";
 
-const homeTitle = "Removalists Adelaide & Movers | HF Removals Adelaide";
-const homeDescription = `Local Adelaide removalists and movers for house, furniture, office and interstate moves. Rates from ${entryLocalRate.halfHour}/30 min; 3-hour minimum + 1-hour call-out. Free quotes.`;
+const { rating, reviewCount } = business.googleBusiness;
+const homeTitle = `Adelaide Removalists | Free Quotes | ${rating.toFixed(1)}★ HF Removals`;
+const homeDescription = `Rated ${rating.toFixed(1)} on Google (${reviewCount} reviews). Adelaide house, furniture, office and interstate moves. Free quotes. From ${entryLocalRate.halfHour}/30 min; 3-hour minimum + 1-hour call-out.`;
 
 export const metadata: Metadata = {
   title: { absolute: homeTitle },
