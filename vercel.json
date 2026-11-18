@@ -3,6 +3,10 @@
     {
       "path": "/api/cron/expire-holds",
       "schedule": "*/5 * * * *"
+    },
+    {
+      "path": "/api/cron/google-sync",
+      "schedule": "*/15 * * * *"
     }
   ]
 }
