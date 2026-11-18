@@ -188,6 +188,10 @@ async function handleRest(req, res, url) {
   const wantRepresentation = prefer.includes("return=representation");
 
   if (req.method === "GET" || req.method === "HEAD") {
+    // Production has both a direct FK and a many-to-many relationship via reservations.
+    if (resource === "bookings" && splitTop(params.get("select") ?? "").some((field) => /^(?:\w+:)?vehicles\(/.test(field))) {
+      return send(res, 300, { code: "PGRST201", message: "More than one relationship was found for bookings and vehicles" });
+    }
     const filtered = applyOrder(applyFilters(rows, params), params.get("order"));
     const total = filtered.length;
     const offset = Number(params.get("offset") ?? 0);

@@ -33,14 +33,16 @@ function firstOf<T>(value: T | T[] | null | undefined): T | null {
 export default async function AdminBookingDetailPage({ params }: { params: Promise<{ id: string }> }) {
   await requireAdmin();
   const { id } = await params;
+  if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id)) notFound();
   const supabase = getSupabaseAdmin();
 
-  const [{ data: booking }, { data: events }, { data: notifications }] = await Promise.all([
-    supabase.from("bookings").select("*, customers(name, email, phone), services(name), vehicles(name), crews(name)").eq("id", id).maybeSingle(),
+  const [{ data: booking, error: bookingError }, { data: events }, { data: notifications }] = await Promise.all([
+    supabase.from("bookings").select("*, customers(name, email, phone), services(name), vehicles!bookings_vehicle_id_fkey(name), crews(name)").eq("id", id).maybeSingle(),
     supabase.from("booking_events").select("*").eq("booking_id", id).order("created_at", { ascending: true }),
     supabase.from("notifications").select("*").eq("booking_id", id).order("created_at", { ascending: true }),
   ]);
 
+  if (bookingError) throw bookingError;
   if (!booking) notFound();
 
   const customer = firstOf(booking.customers);

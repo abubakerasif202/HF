@@ -148,7 +148,7 @@ test("invoice PDF returns the issued snapshot as a private attachment, and 404s 
   assert.equal((await malformed.get("../../etc/passwd")).status, 404);
   assert.equal(malformed.calls.length, 0);
   const draft = await pdfHarness({ invoice: { id: ID, status: "draft", invoiceNumber: null, bookingReference: "HF-2026-00042", snapshot: null } }).get(ID);
-  assert.equal(draft.headers["Content-Disposition"], 'attachment; filename="HF-draft-HF-2026-00042.pdf"');
+  assert.equal(draft.headers["Content-Disposition"], 'inline; filename="HF-draft-HF-2026-00042.pdf"');
   assert.ok(Buffer.from(draft.body).toString("latin1").includes("(DRAFT) Tj"));
   const voided = await pdfHarness({ invoice: { ...issued, status: "void" } }).get(ID);
   assert.match(voided.headers["Content-Disposition"], /HF-VOID-INV-000007/);

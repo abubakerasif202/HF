@@ -41,10 +41,10 @@ export default async function AdminCalendarPage({
   const { start, end } = getRangeForView(view, year, month, day, settings.timezone);
   const supabase = getSupabaseAdmin();
 
-  const [{ data: bookings }, { data: blockedTimes }, { data: vehicles }, { data: crews }] = await Promise.all([
+  const [{ data: bookings, error: bookingError }, { data: blockedTimes }, { data: vehicles }, { data: crews }] = await Promise.all([
     supabase
       .from("bookings")
-      .select("id, booking_number, starts_at, ends_at, booking_status, crew_size, package_id, vehicle_id, crew_id, vehicles(name), crews(name), customers(name)")
+      .select("id, booking_number, starts_at, ends_at, booking_status, crew_size, package_id, vehicle_id, crew_id, vehicles!bookings_vehicle_id_fkey(name), crews(name), customers(name)")
       .not("booking_status", "in", "(cancelled,expired,draft)")
       .lt("starts_at", end.toISOString())
       .gt("ends_at", start.toISOString())
@@ -57,6 +57,8 @@ export default async function AdminCalendarPage({
     supabase.from("vehicles").select("id, name").eq("active", true),
     supabase.from("crews").select("id, name").eq("active", true),
   ]);
+
+  if (bookingError) throw bookingError;
 
   const normalizedBookings = (bookings ?? []).map((b) => ({
     id: b.id,

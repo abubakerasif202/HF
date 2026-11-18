@@ -3,6 +3,8 @@ import test from "node:test";
 import { getDayRange, getWeekRange, getMonthRange, getRangeForView, classifyBlockedTime } from "../lib/booking/calendar-range.ts";
 import { instantToZonedParts } from "../lib/booking/timezone.ts";
 
+import { adelaideZoneLabel } from "../lib/admin/dates.ts";
+
 const TZ = "Australia/Adelaide";
 
 test("calendar: day range spans exactly midnight to midnight in Adelaide time", () => {
@@ -80,4 +82,11 @@ test("calendar: classifies a vehicle-specific block", () => {
 
 test("calendar: a crew-only block is classified as 'crew', never 'global' (regression guard)", () => {
   assert.equal(classifyBlockedTime({ vehicleId: null, crewId: "c1" }), "crew");
+});
+
+test("admin timezone label follows the displayed Adelaide instant", () => {
+  assert.equal(adelaideZoneLabel(new Date("2026-07-19T01:00:00Z")), "ACST");
+  assert.equal(adelaideZoneLabel(new Date("2026-11-19T01:00:00Z")), "ACDT");
+  assert.equal(adelaideZoneLabel(new Date("2026-10-03T16:29:59Z")), "ACST");
+  assert.equal(adelaideZoneLabel(new Date("2026-10-03T16:30:00Z")), "ACDT");
 });

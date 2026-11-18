@@ -30,6 +30,11 @@ function adelaideToday() {
   return { y: Number(p.year), m: Number(p.month), d: Number(p.day) };
 }
 
+export function adelaideDate(dayOffset) {
+  return new Intl.DateTimeFormat("en-CA", { timeZone: TZ, year: "numeric", month: "2-digit", day: "2-digit" })
+    .format(new Date(adelaideIso(dayOffset, 12)));
+}
+
 /** ISO instant for Adelaide wall-clock (today + dayOffset) at hour:minute. */
 export function adelaideIso(dayOffset, hour, minute = 0) {
   const t = adelaideToday();
@@ -332,8 +337,8 @@ for (const booking of bookings) {
   Object.assign(booking, {
     dispatch_additional_vehicle_ids: [], dispatch_truck_count: null,
     dispatch_travel_minutes: null, dispatch_overnight: null,
-    dispatch_truck_left_onsite: null, dispatch_pricing_type: null,
-    dispatch_fixed_price_cents: null, dispatch_customer_requirements: [],
+    dispatch_truck_left_onsite: null, dispatch_pricing_type: booking.booking_number === "HF-1012" ? "fixed" : null,
+    dispatch_fixed_price_cents: booking.booking_number === "HF-1012" ? 55000 : null, dispatch_customer_requirements: [],
     dispatch_checklist: [],
   });
 }
@@ -344,6 +349,7 @@ export const tables = {
   // One definite overlap (today, with the in-progress job) and one "possible" overlap (no finish time, tomorrow).
   google_calendar_imports: [
     { id: uuid(0x80, 1), calendar_id: "sample-calendar", event_id: "sample-external-1", summary: "Sample external event", starts_at: adelaideIso(0, 8, 30), ends_at: adelaideIso(0, 9, 30), all_day_start: null, all_day_end: null, location: null, event_status: "confirmed", synced_at: minutesAgo(10), created_at: minutesAgo(10) },
+    { id: uuid(0x80, 3), calendar_id: "sample-calendar", event_id: "sample-all-day", summary: "Sample all-day event", starts_at: null, ends_at: null, all_day_start: adelaideDate(0), all_day_end: adelaideDate(1), location: null, event_status: "confirmed", synced_at: minutesAgo(10), created_at: minutesAgo(10) },
     { id: uuid(0x80, 2), calendar_id: "sample-calendar", event_id: "sample-external-2", summary: "Sample external event (no finish time)", starts_at: adelaideIso(1, 12, 30), ends_at: null, all_day_start: null, all_day_end: null, location: null, event_status: "confirmed", synced_at: minutesAgo(10), created_at: minutesAgo(10) },
   ],
   // Migration 0019 (invoicing). Settings start unconfigured, exactly as in a fresh database.

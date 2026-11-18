@@ -10,7 +10,8 @@ export function packageLabel(packageId: string | null, crewSize: number): string
   return pkg.truckCapacity ? `${pkg.packageName} · ${pkg.truckCapacity} · ${crewSize} men` : pkg.packageName;
 }
 
-export function blockScope(block: BlockedTime): { label: string; icon: IconName; kind: "global" | "vehicle" | "crew" } {
+export function blockScope(block: BlockedTime): { label: string; icon: IconName; kind: "global" | "vehicle" | "crew" | "google" } {
+  if (block.source === "google") return { label: "Google Calendar event", icon: "calendar", kind: "google" };
   const kind = classifyBlockedTime({ vehicleId: block.vehicleId, crewId: block.crewId });
   if (kind === "global") return { label: "Business closed", icon: "ban", kind };
   if (kind === "vehicle") return { label: `Truck: ${block.vehicleName ?? "?"}`, icon: "truck", kind };
@@ -56,21 +57,27 @@ export function BookingCard({ booking, timezone }: { booking: Booking; timezone:
 
 export function BlockedCard({ block, timezone }: { block: BlockedTime; timezone: string }) {
   const scope = blockScope(block);
-  return (
-    <Link href="/admin/availability" className="a-cal-card a-cal-card--blocked" data-scope={scope.kind}>
+  const content = (
+    <>
       <span className="a-cal-card-time">
-        <strong>{fmtTime(block.startsAt, timezone)}</strong>
-        <span>{fmtTime(block.endsAt, timezone)}</span>
+        {block.allDay ? <strong>All day</strong> : <>
+          <strong>{fmtTime(block.startsAt, timezone)}</strong>
+          <span>{fmtTime(block.endsAt, timezone)}</span>
+        </>}
       </span>
       <span className="a-cal-card-main">
         <span className="a-cal-card-name">
           <Icon name={scope.icon} size={15} />
-          Blocked · {scope.label}
+          {scope.label}
         </span>
         <span className="a-cal-card-pkg">{block.reason}</span>
       </span>
-    </Link>
+    </>
   );
+  const className = "a-cal-card a-cal-card--blocked";
+  return block.source === "google"
+    ? <div className={className} data-scope={scope.kind}>{content}</div>
+    : <Link href="/admin/availability" className={className} data-scope={scope.kind}>{content}</Link>;
 }
 
 /** Compact event placed inside the time grid. Height decides how much detail fits. */
@@ -100,14 +107,19 @@ export function GridEvent({ booking, timezone, heightPx }: { booking: Booking; t
 
 export function GridBlock({ block, timezone }: { block: BlockedTime; timezone: string }) {
   const scope = blockScope(block);
-  return (
-    <Link href="/admin/availability" className="a-cal-block" data-scope={scope.kind} title={`${scope.label}: ${block.reason}`}>
+  const content = (
+    <>
       <span className="a-cal-block-label">
         <Icon name={scope.icon} size={12} />
         {scope.label}
       </span>
       <span className="a-cal-block-reason">{block.reason}</span>
-      <span className="sr-only">{fmtTime(block.startsAt, timezone)} to {fmtTime(block.endsAt, timezone)}</span>
-    </Link>
+      {block.allDay ? <span className="a-cal-block-label">All day</span>
+        : <span className={block.source === "google" ? undefined : "sr-only"}>{fmtTime(block.startsAt, timezone)} to {fmtTime(block.endsAt, timezone)}</span>}
+    </>
   );
+  const title = `${scope.label}: ${block.reason}`;
+  return block.source === "google"
+    ? <div className="a-cal-block" data-scope={scope.kind} title={title}>{content}</div>
+    : <Link href="/admin/availability" className="a-cal-block" data-scope={scope.kind} title={title}>{content}</Link>;
 }
