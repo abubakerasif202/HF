@@ -347,7 +347,7 @@ export const tables = {
     { id: uuid(0x80, 2), calendar_id: "sample-calendar", event_id: "sample-external-2", summary: "Sample external event (no finish time)", starts_at: adelaideIso(1, 12, 30), ends_at: null, all_day_start: null, all_day_end: null, location: null, event_status: "confirmed", synced_at: minutesAgo(10), created_at: minutesAgo(10) },
   ],
   // Migration 0019 (invoicing). Settings start unconfigured, exactly as in a fresh database.
-  invoice_settings: [{ id: true, abn: null, gst_registered: null, rates_include_gst: null, payment_instructions: null, payment_terms_days: null, invoice_prefix: null, next_invoice_number: 1, footer_note: null, logo_confirmed: false, updated_at: minutesAgo(60 * 24) }],
+  invoice_settings: [{ id: true, abn: null, gst_registered: null, rates_include_gst: null, bank_account_name: null, bank_bsb: null, bank_account_number: null, payment_instructions: null, payment_terms_days: null, invoice_prefix: null, next_invoice_number: 1, footer_note: null, logo_confirmed: false, updated_at: minutesAgo(60 * 24) }],
   invoices: [], invoice_lines: [], invoice_payments: [], invoice_events: [], booking_vehicle_reservations: [],
 };
 

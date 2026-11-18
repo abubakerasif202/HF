@@ -60,12 +60,14 @@ function settingsFromRow(row: Row | null | undefined): InvoiceSettings | null {
     abn: (row.abn as string | null) ?? null,
     gstRegistered: (row.gst_registered as boolean | null) ?? null,
     ratesIncludeGst: (row.rates_include_gst as boolean | null) ?? null,
+    bankAccountName: (row.bank_account_name as string | null) ?? null,
+    bankBsb: (row.bank_bsb as string | null) ?? null,
+    bankAccountNumber: (row.bank_account_number as string | null) ?? null,
     paymentInstructions: (row.payment_instructions as string | null) ?? null,
     paymentTermsDays: (row.payment_terms_days as number | null) ?? null,
     invoicePrefix: (row.invoice_prefix as string | null) ?? null,
     nextInvoiceNumber: Number(row.next_invoice_number ?? 1),
     footerNote: (row.footer_note as string | null) ?? null,
-    logoConfirmed: Boolean(row.logo_confirmed),
   };
 }
 
@@ -79,19 +81,22 @@ export interface InvoiceSettingsPatch {
   abn: string | null;
   gstRegistered: boolean | null;
   ratesIncludeGst: boolean | null;
+  bankAccountName: string | null;
+  bankBsb: string | null;
+  bankAccountNumber: string | null;
   paymentInstructions: string | null;
   paymentTermsDays: number | null;
   invoicePrefix: string | null;
   nextInvoiceNumber?: number;
   footerNote: string | null;
-  logoConfirmed: boolean;
 }
 
 export async function saveInvoiceSettings(patch: InvoiceSettingsPatch): Promise<void> {
   const update: Row = {
     abn: patch.abn, gst_registered: patch.gstRegistered, rates_include_gst: patch.ratesIncludeGst,
+    bank_account_name: patch.bankAccountName, bank_bsb: patch.bankBsb, bank_account_number: patch.bankAccountNumber,
     payment_instructions: patch.paymentInstructions, payment_terms_days: patch.paymentTermsDays,
-    invoice_prefix: patch.invoicePrefix, footer_note: patch.footerNote, logo_confirmed: patch.logoConfirmed,
+    invoice_prefix: patch.invoicePrefix, footer_note: patch.footerNote,
   };
   if (patch.nextInvoiceNumber !== undefined) update.next_invoice_number = patch.nextInvoiceNumber;
   const { error } = await getSupabaseAdmin().from("invoice_settings").update(update).eq("id", true);
@@ -249,10 +254,15 @@ function fullAddress(address: unknown): string {
   return a.formattedAddress ?? `${a.addressLine ?? ""} ${a.suburb ?? ""}`.trim();
 }
 
-async function loadBookingFacts(bookingId: string): Promise<{ pickup: string | null; destination: string | null; packageName: string | null; status: string | null }> {
-  const { data } = await getSupabaseAdmin().from("bookings").select("pickup_address, destination_address, pricing_snapshot, booking_status").eq("id", bookingId).maybeSingle();
+async function loadBookingFacts(bookingId: string): Promise<{ pickup: string | null; destination: string | null; packageName: string | null; status: string | null; serviceSummary: string }> {
+  const { data } = await getSupabaseAdmin().from("bookings").select("pickup_address, destination_address, pricing_snapshot, booking_status, vehicle_id, dispatch_additional_vehicle_ids, dispatch_truck_count, services(name)").eq("id", bookingId).maybeSingle();
   const row = (data ?? {}) as Row;
+  const service = Array.isArray(row.services) ? row.services[0] : row.services;
+  const assigned = (row.vehicle_id ? 1 : 0) + ((row.dispatch_additional_vehicle_ids as string[] | null) ?? []).length;
+  const trucks = Math.max(1, Number(row.dispatch_truck_count ?? assigned) || 1);
+  const serviceName = ((service as { name?: string } | null)?.name ?? "removal service").toLowerCase();
   return {
+    serviceSummary: `${trucks} truck${trucks === 1 ? "" : "s"} - ${serviceName}`,
     pickup: fullAddress(row.pickup_address) || null,
     destination: fullAddress(row.destination_address) || null,
     packageName: ((row.pricing_snapshot as { package?: string } | null)?.package) ?? null,
@@ -271,7 +281,10 @@ const sellerIdentity = () => ({
 /** Live (draft) or frozen (issued/void) document model for preview and PDF. */
 export async function buildInvoiceDocument(invoice: InvoiceRecord, settings: InvoiceSettings | null): Promise<InvoiceSnapshot> {
   if (invoice.snapshot && invoice.status !== "draft") {
-    return { ...invoice.snapshot, voided: invoice.status === "void", draft: false };
+    // Charges are frozen; money received since issue is shown so the status (e.g. PAID IN FULL) is current.
+    const payments = invoice.payments.map((p) => ({ kind: p.kind, amountCents: p.amountCents, receivedOn: p.receivedOn, method: p.method, reference: p.reference }));
+    const paid = paidCents(invoice.payments);
+    return { ...invoice.snapshot, payments, totals: { ...invoice.snapshot.totals, paidCents: paid, balanceDueCents: invoice.snapshot.totals.totalCents - paid }, voided: invoice.status === "void", draft: false };
   }
   const facts = await loadBookingFacts(invoice.bookingId);
   const totals = computeInvoiceTotals({ lines: invoice.lines, gstRegistered: settings?.gstRegistered ?? null, amountsIncludeGst: invoice.amountsIncludeGst });
@@ -283,13 +296,14 @@ export async function buildInvoiceDocument(invoice: InvoiceRecord, settings: Inv
     amountsIncludeGst: invoice.amountsIncludeGst,
     seller: {
       ...sellerIdentity(), abn: settings?.abn ?? null, gstRegistered: settings?.gstRegistered ?? null,
+      bankAccountName: settings?.bankAccountName ?? null, bankBsb: settings?.bankBsb ?? null, bankAccountNumber: settings?.bankAccountNumber ?? null,
       paymentInstructions: settings?.paymentInstructions ?? null, paymentTermsDays: settings?.paymentTermsDays ?? null,
-      footerNote: settings?.footerNote ?? null, logoConfirmed: settings?.logoConfirmed ?? false,
+      footerNote: settings?.footerNote ?? null,
     },
     lines: invoice.lines.map((l) => ({ ...l, amountCents: lineAmountCents(l) })),
     payments: invoice.payments.map((p) => ({ kind: p.kind, amountCents: p.amountCents, receivedOn: p.receivedOn, method: p.method, reference: p.reference })),
     totals: { subtotalCents: totals.subtotalCents, gstCents: totals.gstCents, totalCents: totals.totalCents, paidCents: paid, balanceDueCents: totals.totalCents - paid },
-    booking: { pickup: facts.pickup, destination: facts.destination, packageName: facts.packageName },
+    booking: { pickup: facts.pickup, destination: facts.destination, packageName: facts.packageName, serviceSummary: facts.serviceSummary },
     draft: true,
   };
 }
@@ -304,7 +318,7 @@ export async function issueInvoice(id: string, idempotencyKey: string, actor: st
   const totals = computeInvoiceTotals({ lines: invoice.lines, gstRegistered: settings?.gstRegistered ?? null, amountsIncludeGst: invoice.amountsIncludeGst });
   const snapshot = {
     seller: sellerIdentity(),
-    booking: { pickup: facts.pickup, destination: facts.destination, packageName: facts.packageName },
+    booking: { pickup: facts.pickup, destination: facts.destination, packageName: facts.packageName, serviceSummary: facts.serviceSummary },
     totals,
   };
   const { data, error } = await getSupabaseAdmin().rpc("issue_invoice", {

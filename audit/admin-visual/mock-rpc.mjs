@@ -95,7 +95,7 @@ export function mockRpc(fn, args, db) {
       if (inv.status !== "draft") return fail("invoice_not_draft");
       if (inv.version !== args.p_expected_version) return fail("invoice_changed", "40001");
       const s = db.invoice_settings[0];
-      const missing = [["abn", s.abn == null], ["gst_registered", s.gst_registered == null], ["invoice_prefix", s.invoice_prefix == null], ["payment_instructions", !s.payment_instructions], ["payment_terms_days", s.payment_terms_days == null]].filter(([, m]) => m).map(([k]) => k);
+      const missing = [["abn", s.abn == null], ["gst_registered", s.gst_registered == null], ["invoice_prefix", s.invoice_prefix == null], ["bank_account_name", !s.bank_account_name], ["bank_bsb", s.bank_bsb == null], ["bank_account_number", s.bank_account_number == null], ["payment_terms_days", s.payment_terms_days == null]].filter(([, m]) => m).map(([k]) => k);
       if (missing.length) return fail("invoice_settings_incomplete", "55000", missing.join(","));
       if (s.gst_registered && inv.amounts_include_gst == null) return fail("gst_mode_required");
       const lines = db.invoice_lines.filter((l) => l.invoice_id === inv.id).sort((a, b) => a.position - b.position);
@@ -107,7 +107,7 @@ export function mockRpc(fn, args, db) {
       const paid = paidOf(db, inv.id);
       if (paid > totals.totalCents) return fail("payments_exceed_total");
       const seq = s.next_invoice_number; s.next_invoice_number += 1;
-      const number = `${s.invoice_prefix}${String(seq).padStart(5, "0")}`;
+      const number = `${s.invoice_prefix}${String(seq).padStart(6, "0")}`;
       const issueDate = todayAdelaide(); const dueDate = addDays(issueDate, s.payment_terms_days);
       const payments = db.invoice_payments.filter((p) => p.invoice_id === inv.id).map((p) => ({ kind: p.kind, amountCents: p.amount_cents, receivedOn: p.received_on, method: p.method, reference: p.reference, source: p.source }));
       Object.assign(inv, {
@@ -116,7 +116,7 @@ export function mockRpc(fn, args, db) {
         snapshot: {
           ...args.p_snapshot, title: s.gst_registered ? "Tax invoice" : "Invoice", invoiceNumber: number, issueDate, dueDate, bookingReference: inv.booking_reference, serviceDate: inv.service_date,
           customer: inv.customer, notes: inv.notes, amountsIncludeGst: inv.amounts_include_gst,
-          seller: { ...(args.p_snapshot?.seller ?? {}), abn: s.abn, gstRegistered: s.gst_registered, paymentInstructions: s.payment_instructions, paymentTermsDays: s.payment_terms_days, footerNote: s.footer_note, logoConfirmed: s.logo_confirmed },
+          seller: { ...(args.p_snapshot?.seller ?? {}), abn: s.abn, gstRegistered: s.gst_registered, paymentInstructions: s.payment_instructions, bankAccountName: s.bank_account_name, bankBsb: s.bank_bsb, bankAccountNumber: s.bank_account_number, paymentTermsDays: s.payment_terms_days, footerNote: s.footer_note },
           lines: lines.map((l) => ({ kind: l.kind, description: l.description, quantityMilli: l.quantity_milli, unitPriceCents: l.unit_price_cents, amountCents: lineAmountCents({ kind: l.kind, quantityMilli: l.quantity_milli, unitPriceCents: l.unit_price_cents }) })),
           payments, totals: { ...totals, paidCents: paid, balanceDueCents: totals.totalCents - paid },
         },

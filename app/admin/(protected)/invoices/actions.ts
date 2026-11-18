@@ -164,6 +164,12 @@ export async function saveInvoiceSettingsAction(formData: FormData): Promise<Res
     if (terms !== null && terms > 365) throw new InvoiceError(400, "terms", "Payment terms must be a whole number of days (0-365).");
     const nextRaw = String(formData.get("next_invoice_number") ?? "").trim();
     if (nextRaw && !/^\d{1,9}$/.test(nextRaw)) throw new InvoiceError(400, "next", "The next invoice number must be a whole number of 1 or more.");
+    const bankName = String(formData.get("bank_account_name") ?? "").trim();
+    const bsb = String(formData.get("bank_bsb") ?? "").replace(/[\s-]/g, "");
+    const account = String(formData.get("bank_account_number") ?? "").replace(/\s/g, "");
+    if (bankName.length > 80) throw new InvoiceError(400, "bank", "The account name is too long (80 characters).");
+    if (bsb && !/^\d{6}$/.test(bsb)) throw new InvoiceError(400, "bsb", "The BSB must be 6 digits.");
+    if (account && !/^\d{5,12}$/.test(account)) throw new InvoiceError(400, "account", "The account number must be 5 to 12 digits.");
     const instructions = String(formData.get("payment_instructions") ?? "").trim();
     const footer = String(formData.get("footer_note") ?? "").trim();
     if (instructions.length > 1000 || footer.length > 500) throw new InvoiceError(400, "length", "Payment instructions (1000) or footer (500) is too long.");
@@ -171,12 +177,14 @@ export async function saveInvoiceSettingsAction(formData: FormData): Promise<Res
       abn: abnRaw || null,
       gstRegistered: triState(formData.get("gst_registered"), "yes", "no"),
       ratesIncludeGst: triState(formData.get("rates_include_gst"), "inclusive", "exclusive"),
+      bankAccountName: bankName || null,
+      bankBsb: bsb || null,
+      bankAccountNumber: account || null,
       paymentInstructions: instructions || null,
       paymentTermsDays: terms,
       invoicePrefix: prefix || null,
       ...(nextRaw ? { nextInvoiceNumber: Number(nextRaw) } : {}),
       footerNote: footer || null,
-      logoConfirmed: formData.get("logo_confirmed") === "on",
     });
     revalidatePath("/admin/invoices");
     revalidatePath("/admin/invoices/settings");

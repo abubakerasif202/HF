@@ -117,8 +117,8 @@ function pdfHarness({ auth = owner, invoice, settings = null } = {}) {
 }
 
 const issued = {
-  id: ID, status: "issued", invoiceNumber: "INV-00007", bookingReference: "HF-2026-00042",
-  snapshot: { title: "Tax invoice", invoiceNumber: "INV-00007", issueDate: "2026-11-18", dueDate: "2026-12-02", bookingReference: "HF-2026-00042", serviceDate: "2026-11-20", customer: { name: "Sample Customer 01" }, amountsIncludeGst: true,
+  id: ID, status: "issued", invoiceNumber: "INV-000007", bookingReference: "HF-2026-00042",
+  snapshot: { title: "Tax invoice", invoiceNumber: "INV-000007", issueDate: "2026-11-18", dueDate: "2026-12-02", bookingReference: "HF-2026-00042", serviceDate: "2026-11-20", customer: { name: "Sample Customer 01" }, amountsIncludeGst: true,
     seller: { legalName: "HF REMOVALS PTY LTD", abn: "51824753556", gstRegistered: true }, lines: [{ kind: "service", description: "Move", quantityMilli: 1000, unitPriceCents: 11000, amountCents: 11000 }], payments: [], totals: { subtotalCents: 10000, gstCents: 1000, totalCents: 11000, paidCents: 0, balanceDueCents: 11000 } },
 };
 
@@ -128,7 +128,7 @@ test("invoice PDF download obeys the same owner-only permission as the invoice p
     const response = await h.get(ID);
     assert.equal(response.status, status);
     assert.equal(h.calls.length, 0, "an unauthorised caller must not even load the invoice");
-    assert.doesNotMatch(JSON.stringify(response.body), /INV-00007|Sample/);
+    assert.doesNotMatch(JSON.stringify(response.body), /INV-000007|Sample/);
   }
 });
 
@@ -137,12 +137,12 @@ test("invoice PDF returns the issued snapshot as a private attachment, and 404s 
   const response = await h.get(ID);
   assert.equal(response.status, 200);
   assert.equal(response.headers["Content-Type"], "application/pdf");
-  assert.equal(response.headers["Content-Disposition"], 'attachment; filename="HF-INV-00007.pdf"');
+  assert.equal(response.headers["Content-Disposition"], 'attachment; filename="HF-INV-000007.pdf"');
   assert.match(response.headers["Cache-Control"], /private, no-store/);
   assert.equal(response.headers["X-Content-Type-Options"], "nosniff");
   const text = Buffer.from(response.body).toString("latin1");
   assert.match(text, /^%PDF-1\.4/);
-  assert.ok(text.includes("(INV-00007) Tj") && text.includes("TAX INVOICE"));
+  assert.ok(text.includes("(INV-000007) Tj") && text.includes("TAX INVOICE"));
   assert.equal((await pdfHarness({}).get(ID)).status, 404);
   const malformed = pdfHarness({ invoice: issued });
   assert.equal((await malformed.get("../../etc/passwd")).status, 404);
@@ -151,7 +151,7 @@ test("invoice PDF returns the issued snapshot as a private attachment, and 404s 
   assert.equal(draft.headers["Content-Disposition"], 'attachment; filename="HF-draft-HF-2026-00042.pdf"');
   assert.ok(Buffer.from(draft.body).toString("latin1").includes("(DRAFT) Tj"));
   const voided = await pdfHarness({ invoice: { ...issued, status: "void" } }).get(ID);
-  assert.match(voided.headers["Content-Disposition"], /HF-VOID-INV-00007/);
+  assert.match(voided.headers["Content-Disposition"], /HF-VOID-INV-000007/);
 });
 
 test("dispatch queues are owner-only", async () => {
@@ -176,7 +176,7 @@ function actionsHarness({ session = { userId: "owner-1" } } = {}) {
     mapInvoiceError: (e) => ({ message: e?.message ?? "Invoicing is temporarily unavailable." }),
     createInvoiceDraftForBooking: spy("create", { id: ID, created: true }),
     discardInvoiceDraft: spy("discard", undefined),
-    issueInvoice: spy("issue", { invoiceNumber: "INV-00001", replayed: false }),
+    issueInvoice: spy("issue", { invoiceNumber: "INV-000001", replayed: false }),
     recordInvoicePayment: spy("payment", { balanceDueCents: 100, replayed: false }),
     saveInvoiceDraft: spy("save", { version: 2 }),
     saveInvoiceSettings: spy("settings", undefined),
@@ -215,7 +215,7 @@ test("invoice actions validate input and pass the owner id and retry key through
   assert.deepEqual({ ...await h.mod.issueInvoiceAction("not-a-uuid", "key-0000001") }, { error: "Some details are invalid. Check the highlighted fields." });
   assert.deepEqual({ ...await h.mod.issueInvoiceAction(ID, "short") }, { error: "Some details are invalid. Check the highlighted fields." });
   assert.equal(h.calls.length, 0);
-  assert.deepEqual({ ...await h.mod.issueInvoiceAction(ID, "key-0000001") }, { invoiceNumber: "INV-00001", replayed: false });
+  assert.deepEqual({ ...await h.mod.issueInvoiceAction(ID, "key-0000001") }, { invoiceNumber: "INV-000001", replayed: false });
   assert.deepEqual(h.calls.at(-1), ["issue", ID, "key-0000001", "owner-1"]);
 
   const line = { kind: "service", description: "Move", quantityMilli: 3500, unitPriceCents: 15800 };
@@ -240,10 +240,10 @@ test("settings reject an invalid ABN, prefix and terms; blank means not configur
   assert.match((await h.mod.saveInvoiceSettingsAction(form({ payment_terms_days: "9999" }))).error, /Payment terms/);
   assert.equal(h.calls.length, 0);
   assert.equal((await h.mod.saveInvoiceSettingsAction(form({ abn: "51 824 753 556", gst_registered: "yes", rates_include_gst: "inclusive", invoice_prefix: "INV-", payment_terms_days: "14" }))).error, undefined);
-  assert.deepEqual({ ...h.calls[0][1] }, { abn: "51824753556", gstRegistered: true, ratesIncludeGst: true, paymentInstructions: null, paymentTermsDays: 14, invoicePrefix: "INV-", footerNote: null, logoConfirmed: false });
+  assert.deepEqual({ ...h.calls[0][1] }, { abn: "51824753556", gstRegistered: true, ratesIncludeGst: true, bankAccountName: null, bankBsb: null, bankAccountNumber: null, paymentInstructions: null, paymentTermsDays: 14, invoicePrefix: "INV-", footerNote: null });
   // Blank form: everything stays null (nothing is invented).
   await h.mod.saveInvoiceSettingsAction(form({}));
-  assert.deepEqual({ ...h.calls[1][1] }, { abn: null, gstRegistered: null, ratesIncludeGst: null, paymentInstructions: null, paymentTermsDays: null, invoicePrefix: null, footerNote: null, logoConfirmed: false });
+  assert.deepEqual({ ...h.calls[1][1] }, { abn: null, gstRegistered: null, ratesIncludeGst: null, bankAccountName: null, bankBsb: null, bankAccountNumber: null, paymentInstructions: null, paymentTermsDays: null, invoicePrefix: null, footerNote: null });
 });
 
 test("voiding needs a reason and discarding/creating redirect only on success", async () => {

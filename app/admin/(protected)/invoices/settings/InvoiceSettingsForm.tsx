@@ -52,13 +52,20 @@ export function InvoiceSettingsForm({ settings }: { settings: InvoiceSettings | 
         </div>
       </AdminCard>
 
-      <AdminCard title="Payment details" icon="dollar" description="Printed on every invoice. Enter only details you have confirmed.">
-        <label className="admin-field"><span className="admin-label">Payment instructions</span>
-          <textarea className="admin-input" name="payment_instructions" rows={4} maxLength={1000} defaultValue={settings?.paymentInstructions ?? ""} placeholder="How customers should pay, including bank account details" /></label>
+      <AdminCard title="Bank transfer details" icon="dollar" description="Printed in the Bank Transfer Details block on every invoice. Enter only details you have confirmed.">
+        <div className="admin-form-grid admin-form-grid--2">
+          <label className="admin-field"><span className="admin-label">Account name</span>
+            <input className="admin-input" name="bank_account_name" maxLength={80} defaultValue={settings?.bankAccountName ?? ""} autoComplete="off" /></label>
+          <label className="admin-field"><span className="admin-label">BSB</span>
+            <input className="admin-input" name="bank_bsb" inputMode="numeric" maxLength={7} defaultValue={settings?.bankBsb ?? ""} placeholder="6 digits" autoComplete="off" /></label>
+          <label className="admin-field"><span className="admin-label">Account number</span>
+            <input className="admin-input" name="bank_account_number" inputMode="numeric" maxLength={12} defaultValue={settings?.bankAccountNumber ?? ""} autoComplete="off" /></label>
+        </div>
+        <label className="admin-field"><span className="admin-label">Extra payment note (optional)</span>
+          <textarea className="admin-input" name="payment_instructions" rows={2} maxLength={1000} defaultValue={settings?.paymentInstructions ?? ""} /></label>
         <label className="admin-field"><span className="admin-label">Footer note (optional)</span>
           <input className="admin-input" name="footer_note" maxLength={500} defaultValue={settings?.footerNote ?? ""} /></label>
-        <label className="a-inv-check"><input type="checkbox" name="logo_confirmed" defaultChecked={settings?.logoConfirmed ?? false} />
-          <span>The current HF logo file has been confirmed for invoices <small>(no logo image is embedded yet; invoices use the HF wordmark until a confirmed file is supplied)</small></span></label>
+        <p className="admin-help">The invoice uses the HF logo from the approved HF invoice template.</p>
       </AdminCard>
 
       <div className="a-inv-actions a-inv-actions--row">

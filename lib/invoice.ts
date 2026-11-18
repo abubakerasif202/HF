@@ -144,29 +144,33 @@ export interface InvoiceSettings {
   abn: string | null;
   gstRegistered: boolean | null;
   ratesIncludeGst: boolean | null;
+  bankAccountName: string | null;
+  bankBsb: string | null;
+  bankAccountNumber: string | null;
   paymentInstructions: string | null;
   paymentTermsDays: number | null;
   invoicePrefix: string | null;
   nextInvoiceNumber: number;
   footerNote: string | null;
-  logoConfirmed: boolean;
 }
 
 /** Human-readable names of every required invoice setting that is not configured. */
 export function missingInvoiceSettings(settings: InvoiceSettings | null): string[] {
-  if (!settings) return ["ABN", "GST registration status", "Invoice number prefix", "Payment instructions", "Payment terms"];
+  if (!settings) return ["ABN", "GST registration status", "Invoice number prefix", "Bank account name", "BSB", "Account number", "Payment terms"];
   const missing: string[] = [];
   if (!settings.abn) missing.push("ABN");
   else if (!isValidAbn(settings.abn)) missing.push("A valid ABN (the saved number fails the ABR checksum)");
   if (settings.gstRegistered === null) missing.push("GST registration status");
   if (!settings.invoicePrefix) missing.push("Invoice number prefix");
-  if (!settings.paymentInstructions || !settings.paymentInstructions.trim()) missing.push("Payment instructions");
+  if (!settings.bankAccountName || !settings.bankAccountName.trim()) missing.push("Bank account name");
+  if (!settings.bankBsb) missing.push("BSB");
+  if (!settings.bankAccountNumber) missing.push("Account number");
   if (settings.paymentTermsDays === null) missing.push("Payment terms");
   return missing;
 }
 
 export function formatInvoiceNumber(prefix: string, sequence: number): string {
-  return `${prefix}${String(sequence).padStart(5, "0")}`;
+  return `${prefix}${String(sequence).padStart(6, "0")}`;
 }
 
 // ---- readiness --------------------------------------------------------------

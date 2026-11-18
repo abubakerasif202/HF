@@ -6,7 +6,7 @@ import {
 } from "../lib/invoice.ts";
 
 const settings = (overrides = {}) => ({
-  abn: "51824753556", gstRegistered: true, ratesIncludeGst: null, paymentInstructions: "Pay to the account shown.",
+  abn: "51824753556", gstRegistered: true, ratesIncludeGst: null, bankAccountName: "HF REMOVALS ADELAIDE", bankBsb: "123456", bankAccountNumber: "12345678", paymentInstructions: null,
   paymentTermsDays: 14, invoicePrefix: "INV-", nextInvoiceNumber: 1, footerNote: null, logoConfirmed: false, ...overrides,
 });
 const hourly = (hours, dollars, kind = "service") => ({ kind, description: "x", quantityMilli: Math.round(hours * 1000), unitPriceCents: dollars * 100 });
@@ -90,9 +90,9 @@ test("ABN checksum follows the ABR rule", () => {
 });
 
 test("missing HF settings are named and block issuance", () => {
-  assert.deepEqual(missingInvoiceSettings(null).length, 5);
-  assert.deepEqual(missingInvoiceSettings(settings({ abn: null, gstRegistered: null, invoicePrefix: null, paymentInstructions: " ", paymentTermsDays: null })),
-    ["ABN", "GST registration status", "Invoice number prefix", "Payment instructions", "Payment terms"]);
+  assert.deepEqual(missingInvoiceSettings(null).length, 7);
+  assert.deepEqual(missingInvoiceSettings(settings({ abn: null, gstRegistered: null, invoicePrefix: null, bankAccountName: " ", bankBsb: null, bankAccountNumber: null, paymentTermsDays: null })),
+    ["ABN", "GST registration status", "Invoice number prefix", "Bank account name", "BSB", "Account number", "Payment terms"]);
   assert.deepEqual(missingInvoiceSettings(settings()), []);
   assert.match(missingInvoiceSettings(settings({ abn: "12345678901" }))[0], /valid ABN/);
   const ready = invoiceReadiness({ amountsIncludeGst: true, lines: [hourly(3, 158)], payments: [], pricingSource: "final_billing", customerName: "Sample" }, settings({ abn: null }));

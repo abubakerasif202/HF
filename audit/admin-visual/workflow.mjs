@@ -153,7 +153,7 @@ async function runViewport(browser, viewport) {
   check("Hourly rate and billed hours come from the booking, not live package rates", lineValues.length === 2 && /3\.5\|158\.00/.test(lineValues[0]) && /1\|158\.00/.test(lineValues[1]), lineValues.join(" ; "));
   check("Historical $100 confirmation is a separate payment, not a charge", (await page.locator(".a-inv-payment input[inputmode=decimal]").first().inputValue()) === "100.00");
   const blockers = await text(".a-inv-blockers");
-  check("Missing HF settings are identified and block issuing", /Configure invoice settings first: ABN, GST registration status, Invoice number prefix, Payment instructions, Payment terms/.test(blockers) && await page.getByRole("button", { name: "Issue invoice" }).isDisabled(), blockers);
+  check("Missing HF settings are identified and block issuing", /Configure invoice settings first: ABN, GST registration status, Invoice number prefix, Bank account name, BSB, Account number, Payment terms/.test(blockers) && await page.getByRole("button", { name: "Issue invoice" }).isDisabled(), blockers);
   await shot("04-draft-blocked");
 
   // 5. Configure synthetic settings, return to the draft ---------------------------------------------------------------
@@ -163,12 +163,15 @@ async function runViewport(browser, viewport) {
   await page.getByRole("button", { name: "Save invoice settings" }).click();
   await page.getByText(/ABN is not valid/).waitFor();
   check("Invalid ABN is rejected by the checksum", true);
+  await page.reload(); // React resets the form after a failed action; start the next entry from a clean page
   await page.getByLabel("ABN").fill("51 824 753 556");
   await page.getByLabel("GST registered?").selectOption("yes");
   await page.getByLabel(/booked rates GST-inclusive/).selectOption("inclusive");
   await page.getByLabel("Invoice number prefix").fill("INV-");
   await page.getByLabel("Payment terms (days)").fill("14");
-  await page.getByLabel("Payment instructions").fill("QA ONLY - synthetic payment instructions. Pay by bank transfer to the account on file.");
+  await page.getByLabel("Account name").fill("QA SYNTHETIC ACCOUNT");
+  await page.getByLabel("BSB").fill("000-000");
+  await page.getByLabel("Account number").fill("00000000");
   await page.getByRole("button", { name: "Save invoice settings" }).click();
   await page.getByText("Invoice settings saved.").waitFor();
   await shot("05-settings");
@@ -196,16 +199,16 @@ async function runViewport(browser, viewport) {
   check("Draft saves and issuing unlocks", await page.getByRole("button", { name: "Issue invoice" }).isEnabled());
   await page.getByRole("button", { name: "Preview", exact: true }).click();
   const paper = await text(".a-inv-paper");
-  check("On-screen preview is stamped DRAFT and shows the totals", /DRAFT/.test(paper) && /\$711\.00/.test(paper) && /Balance due \$611\.00/.test(paper), paper.slice(0, 200));
+  check("On-screen preview is stamped DRAFT and shows the totals", /DRAFT/.test(paper) && /\$711\.00/.test(paper) && /Balance outstanding: \$611\.00/.test(paper), paper.slice(0, 200));
   await shot("06-draft-preview");
 
   // 7. Issue --------------------------------------------------------------------------------------------------------------
   await page.getByRole("button", { name: "Issue invoice" }).click();
-  check("Issuing asks for confirmation naming the next number", /INV-00001/.test(await text(".a-inv-confirm")));
+  check("Issuing asks for confirmation naming the next number", /INV-000001/.test(await text(".a-inv-confirm")));
   await page.getByRole("button", { name: "Confirm and issue" }).click();
-  await page.getByRole("heading", { name: "INV-00001" }).waitFor();
+  await page.getByRole("heading", { name: "INV-000001" }).waitFor();
   const issued = await text(".a-inv");
-  check("Invoice is issued as INV-00001 with a frozen snapshot summary", /Issued/.test(issued) && /\$711\.00/.test(issued) && /Balance due now \$611\.00/.test(issued), issued.slice(0, 300));
+  check("Invoice is issued as INV-000001 with a frozen snapshot summary", /Issued/.test(issued) && /\$711\.00/.test(issued) && /Balance due now \$611\.00/.test(issued), issued.slice(0, 300));
   await shot("07-issued");
 
   // 8. PDF: download and inspect; unauthenticated access is refused ----------------------------------------------------------
@@ -214,8 +217,8 @@ async function runViewport(browser, viewport) {
   await download.saveAs(pdfPath);
   const strings = pdfStrings(readFileSync(pdfPath));
   const joined = strings.join("\n");
-  check("PDF downloads as HF-INV-00001.pdf", download.suggestedFilename() === "HF-INV-00001.pdf", download.suggestedFilename());
-  for (const needle of ["TAX INVOICE", "INV-00001", "ABN 51 824 753 556", "HF REMOVALS PTY LTD", "Sample Legacy Customer", "HF-2025-00007", "$711.00", "GST (10%)", "$64.64", "$646.36", "Deposit received", "-$100.00", "Balance due", "$611.00", "QA ONLY - synthetic payment instructions"]) {
+  check("PDF downloads as HF-INV-000001.pdf", download.suggestedFilename() === "HF-INV-000001.pdf", download.suggestedFilename());
+  for (const needle of ["TAX INVOICE", "INV-000001", "ABN 51 824 753 556", "HF Removals Pty Ltd", "Sample Legacy Customer", "HF-2025-00007", "$711.00", "GST (10%)", "$64.64", "$646.36", "Deposit received", "-$100.00", "Balance outstanding: $611.00", "PART PAID", "BANK TRANSFER DETAILS", "QA SYNTHETIC ACCOUNT", "BSB  000000", "Account  00000000", "Reference  INV-000001", "1 truck - residential removals", "This tax invoice includes GST at 10%."]) {
     check(`PDF contains "${needle}"`, joined.includes(needle));
   }
   check("PDF is a real PDF with a page tree", readFileSync(pdfPath).subarray(0, 8).toString() === "%PDF-1.4\n" || readFileSync(pdfPath).subarray(0, 5).toString() === "%PDF-");
@@ -239,7 +242,7 @@ async function runViewport(browser, viewport) {
   await page.getByLabel(/Reason \(required/).fill("QA: corrected call-out hours");
   await page.getByRole("button", { name: "Void and start corrected draft" }).click();
   await page.waitForURL(/\/admin\/invoices\/[0-9a-f-]{36}$/);
-  await page.getByText(/replaces voided invoice INV-00001/).waitFor();
+  await page.getByText(/replaces voided invoice INV-000001/).waitFor();
   check("Void-and-reissue opens a corrected draft linked to the voided number", true);
   const reissueLines = await page.locator(".a-inv-payment").count();
   check("Money already received is carried onto the corrected draft", reissueLines === 2, `${reissueLines} payment rows`);
@@ -249,11 +252,11 @@ async function runViewport(browser, viewport) {
   await page.getByText("Draft saved.").first().waitFor();
   await page.getByRole("button", { name: "Issue invoice" }).click();
   await page.getByRole("button", { name: "Confirm and issue" }).click();
-  await page.getByRole("heading", { name: "INV-00002" }).waitFor();
+  await page.getByRole("heading", { name: "INV-000002" }).waitFor();
   check("Reissued invoice gets a new number; the voided number is not reused", true);
   await page.goto(`${base}/admin/invoices`);
   const listText = await text(".a-inv-list");
-  check("Invoices view lists the void and the reissued invoice", /INV-00001/.test(listText) && /INV-00002/.test(listText) && /Void/.test(listText) && /Issued/.test(listText), listText.slice(0, 300));
+  check("Invoices view lists the void and the reissued invoice", /INV-000001/.test(listText) && /INV-000002/.test(listText) && /Void/.test(listText) && /Issued/.test(listText), listText.slice(0, 300));
   await shot("08-invoices-list");
 
   // 10. Original booking editing flow still works (internal note server action) -------------------------------------------------------

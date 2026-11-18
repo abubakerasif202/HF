@@ -26,7 +26,7 @@ const SEED = `
 `;
 
 const settingsSql = `update invoice_settings set abn='51824753556', gst_registered=true, rates_include_gst=true,
-  invoice_prefix='INV-', payment_instructions='Pay to the account on the invoice.', payment_terms_days=14`;
+  invoice_prefix='INV-', bank_account_name='HF REMOVALS ADELAIDE', bank_bsb='123456', bank_account_number='12345678', payment_terms_days=14`;
 
 const bookingRow = (id) => ({ id });
 
@@ -81,13 +81,13 @@ test("invoice migration: issuance is atomic, retry-safe, immutable and auditable
     // ---- issue, then retry with the same key: same number, counter moved once ----
     const claimed = computeInvoiceTotals({ lines: draft.lines, gstRegistered: true, amountsIncludeGst: true });
     const first = JSON.parse(sql(issue(invoiceId, "key-00000001", 2, claimed)));
-    assert.deepEqual([first.invoiceNumber, first.replayed], ["INV-00001", false]);
+    assert.deepEqual([first.invoiceNumber, first.replayed], ["INV-000001", false]);
     const retry = JSON.parse(sql(issue(invoiceId, "key-00000001", 2, claimed)));
-    assert.deepEqual([retry.invoiceNumber, retry.replayed], ["INV-00001", true]);
+    assert.deepEqual([retry.invoiceNumber, retry.replayed], ["INV-000001", true]);
     assert.equal(sql("select next_invoice_number from invoice_settings"), "2");
     // A different key on an already-issued invoice is refused, not renumbered.
     assert.throws(() => sql(issue(invoiceId, "key-00000002", 3, claimed)), /invoice_not_draft/);
-    assert.equal(sql(`select invoice_number from invoices where id='${invoiceId}'`), "INV-00001");
+    assert.equal(sql(`select invoice_number from invoices where id='${invoiceId}'`), "INV-000001");
 
     // Snapshot content and TS/SQL agreement on the money.
     const snap = JSON.parse(snapshotOf(invoiceId));
@@ -137,7 +137,7 @@ test("invoice migration: issuance is atomic, retry-safe, immutable and auditable
     assert.throws(() => sql(`select public.void_invoice('${invoiceId}', ' ', true, 'owner')`), /void_reason_required/);
     const voided = JSON.parse(sql(`select public.void_invoice('${invoiceId}', 'Wrong call-out hours', true, 'owner')`));
     assert.equal(sql(`select status || ':' || void_reason from invoices where id='${invoiceId}'`), "void:Wrong call-out hours");
-    assert.equal(sql(`select invoice_number from invoices where id='${invoiceId}'`), "INV-00001");
+    assert.equal(sql(`select invoice_number from invoices where id='${invoiceId}'`), "INV-000001");
     assert.equal(sql(`select replaces_invoice_id from invoices where id='${voided.newDraftId}'`), invoiceId);
     assert.equal(sql(`select count(*) from invoice_payments where invoice_id='${voided.newDraftId}' and amount_cents=10000`), "1");
     assert.equal(sql(`select count(*) from invoice_payments where invoice_id='${voided.newDraftId}'`), "1", "reversed payment is not carried over");
@@ -150,7 +150,7 @@ test("invoice migration: issuance is atomic, retry-safe, immutable and auditable
       { kind: "discount", description: "Goodwill discount", quantityMilli: 1000, unitPriceCents: 3300 },
     ] })})`);
     const reissued = JSON.parse(sql(`select public.issue_invoice('${voided.newDraftId}','key-reissue-1',2,'{}'::jsonb,'owner')`));
-    assert.equal(reissued.invoiceNumber, "INV-00002");
+    assert.equal(reissued.invoiceNumber, "INV-000002");
     // 55300 + 15800 - 3300 = 67800 incl GST -> GST 6164 (67800/11 = 6163.6)
     assert.equal(sql(`select total_cents || ',' || gst_cents || ',' || subtotal_cents from invoices where id='${voided.newDraftId}'`), "67800,6164,61636");
     // One live invoice per booking: a duplicate draft for an invoiced booking returns the live one.
@@ -170,7 +170,7 @@ test("invoice migration: issuance is atomic, retry-safe, immutable and auditable
     const numbers = results.map((r) => JSON.parse(r).invoiceNumber);
     assert.equal(numbers[0], numbers[1]);
     assert.equal(numbers[2], numbers[3]);
-    assert.deepEqual([numbers[0], numbers[2]].sort(), ["INV-00003", "INV-00004"]);
+    assert.deepEqual([numbers[0], numbers[2]].sort(), ["INV-000003", "INV-000004"]);
     assert.equal(sql("select next_invoice_number from invoice_settings"), "5");
     assert.equal(sql("select count(distinct invoice_number) || '/' || count(*) from invoices where status <> 'draft'"), "4/4");
 

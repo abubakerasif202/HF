@@ -146,6 +146,9 @@ create table if not exists public.invoice_settings (
   abn text constraint invoice_settings_abn_check check (abn is null or abn ~ '^[0-9]{11}$'),
   gst_registered boolean,
   rates_include_gst boolean,
+  bank_account_name text constraint invoice_settings_bank_name_len check (bank_account_name is null or length(bank_account_name) <= 80),
+  bank_bsb text constraint invoice_settings_bsb_check check (bank_bsb is null or bank_bsb ~ '^[0-9]{6}$'),
+  bank_account_number text constraint invoice_settings_acct_check check (bank_account_number is null or bank_account_number ~ '^[0-9]{5,12}$'),
   payment_instructions text constraint invoice_settings_payment_len check (payment_instructions is null or length(payment_instructions) <= 1000),
   payment_terms_days integer constraint invoice_settings_terms_check check (payment_terms_days is null or payment_terms_days between 0 and 365),
   invoice_prefix text constraint invoice_settings_prefix_check check (invoice_prefix is null or invoice_prefix ~ '^[A-Za-z0-9-]{1,12}$'),
@@ -540,7 +543,9 @@ begin
   if s.abn is null then missing := array_append(missing, 'abn'); end if;
   if s.gst_registered is null then missing := array_append(missing, 'gst_registered'); end if;
   if s.invoice_prefix is null then missing := array_append(missing, 'invoice_prefix'); end if;
-  if s.payment_instructions is null or length(trim(s.payment_instructions)) = 0 then missing := array_append(missing, 'payment_instructions'); end if;
+  if s.bank_account_name is null or length(trim(s.bank_account_name)) = 0 then missing := array_append(missing, 'bank_account_name'); end if;
+  if s.bank_bsb is null then missing := array_append(missing, 'bank_bsb'); end if;
+  if s.bank_account_number is null then missing := array_append(missing, 'bank_account_number'); end if;
   if s.payment_terms_days is null then missing := array_append(missing, 'payment_terms_days'); end if;
   if cardinality(missing) > 0 then
     raise exception 'invoice_settings_incomplete' using errcode = '55000', detail = array_to_string(missing, ',');
@@ -567,7 +572,7 @@ begin
 
   v_seq := s.next_invoice_number;
   update public.invoice_settings set next_invoice_number = v_seq + 1 where id = true;
-  v_number := s.invoice_prefix || lpad(v_seq::text, 5, '0');
+  v_number := s.invoice_prefix || lpad(v_seq::text, 6, '0');
   v_issue := (now() at time zone 'Australia/Adelaide')::date;
   v_due := v_issue + s.payment_terms_days;
 
@@ -585,6 +590,7 @@ begin
     'amountsIncludeGst', inv.amounts_include_gst,
     'seller', coalesce(p_snapshot -> 'seller', '{}'::jsonb) || jsonb_build_object(
       'abn', s.abn, 'gstRegistered', s.gst_registered, 'paymentInstructions', s.payment_instructions,
+      'bankAccountName', s.bank_account_name, 'bankBsb', s.bank_bsb, 'bankAccountNumber', s.bank_account_number,
       'paymentTermsDays', s.payment_terms_days, 'footerNote', s.footer_note, 'logoConfirmed', s.logo_confirmed),
     'lines', v_lines, 'payments', v_payments,
     'totals', v_totals || jsonb_build_object('paidCents', v_paid, 'balanceDueCents', (v_totals ->> 'totalCents')::bigint - v_paid));
