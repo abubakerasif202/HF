@@ -40,7 +40,13 @@ interface HeroProps {
   destination: AddressJson;
   packageSummary: string;
   vehicleName: string | null;
+  /** Trucks beyond the primary one (multi-truck jobs). */
+  additionalTruckNames?: string[];
   crewName: string | null;
+  /** Adelaide calendar date (YYYY-MM-DD) of the move, for the Dispatch day link. */
+  dispatchDate: string;
+  /** The booking's agreed price from its own frozen figures; null when none is recorded. */
+  agreedPrice?: { amount: string; label: string } | null;
 }
 
 function Stop({ kind, address }: { kind: "Pickup" | "Destination"; address: AddressJson }) {
@@ -104,10 +110,22 @@ export function BookingHero(props: HeroProps) {
           <p className="a-bk-hero-label">Truck &amp; crew</p>
           <p className="a-bk-hero-sub a-bk-hero-sub--lead">{props.packageSummary}</p>
           <p className="a-bk-hero-assign">
-            <span data-missing={!props.vehicleName || undefined}><Icon name="truck" size={15} />{props.vehicleName ?? "No truck yet"}</span>
+            <span data-missing={!props.vehicleName || undefined}><Icon name="truck" size={15} />{[props.vehicleName, ...(props.additionalTruckNames ?? [])].filter(Boolean).join(" + ") || "No truck yet"}</span>
             <span data-missing={!props.crewName || undefined}><Icon name="crew" size={15} />{props.crewName ?? "No crew yet"}</span>
           </p>
-          <Link href="/admin/bookings" className="a-bk-hero-link">Reassign from the list</Link>
+          <Link href={`/admin/dispatch?date=${props.dispatchDate}`} className="a-bk-hero-link">Reassign in Dispatch</Link>
+        </div>
+
+        <div className="a-bk-hero-block" data-block="price">
+          <p className="a-bk-hero-label">Agreed price</p>
+          {props.agreedPrice ? (
+            <>
+              <p className="a-bk-hero-when">{props.agreedPrice.amount}</p>
+              <p className="a-bk-hero-sub">{props.agreedPrice.label}</p>
+            </>
+          ) : (
+            <p className="a-bk-hero-sub a-bk-hero-sub--lead" data-missing="true">Not recorded</p>
+          )}
         </div>
       </div>
 

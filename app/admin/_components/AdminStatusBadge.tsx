@@ -61,7 +61,14 @@ export const FLEET_STATUS: Record<string, StatusStyle> = {
   inactive: { label: "Inactive", tone: "neutral", icon: "ban" },
 };
 
-const MAPS = { booking: BOOKING_STATUS, payment: PAYMENT_STATUS, sync: SYNC_STATUS, quote: QUOTE_STATUS, fleet: FLEET_STATUS } as const;
+/** Invoice lifecycle (invoices.status). */
+export const INVOICE_STATUS: Record<string, StatusStyle> = {
+  draft: { label: "Draft", tone: "warning", icon: "note" },
+  issued: { label: "Issued", tone: "solid-green", icon: "check" },
+  void: { label: "Void", tone: "neutral", icon: "ban" },
+};
+
+const MAPS = { booking: BOOKING_STATUS, payment: PAYMENT_STATUS, sync: SYNC_STATUS, quote: QUOTE_STATUS, fleet: FLEET_STATUS, invoice: INVOICE_STATUS } as const;
 
 function humanise(value: string): string {
   const text = value.replace(/_/g, " ");

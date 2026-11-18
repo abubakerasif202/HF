@@ -1,3 +1,4 @@
+import { adelaideYmd } from "../../../../../lib/admin/dates.ts";
 import { requireAdmin } from "../../../../../lib/server/admin-dal.ts";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -8,6 +9,11 @@ import { CalendarSyncStatus } from "./CalendarSyncStatus";
 import { NoteForm } from "./NoteForm";
 import { BookingHero } from "./BookingHero";
 import { BillingCard } from "./BillingCard";
+import { InvoiceCard } from "./InvoiceCard";
+import { ConflictWarnings } from "./ConflictWarnings";
+import { loadBookingConflicts, type BookingConflictView } from "../../../../../lib/server/booking-conflicts.ts";
+import { getInvoiceForBooking } from "../../../../../lib/server/invoice-repo.ts";
+import { agreedPriceSummary, type PrefillBooking } from "../../../../../lib/invoice.ts";
 import { AdminCard, AdminDataList, AdminDataRow, ActivityTimeline, formatAdelaide, formatMoney } from "../../../_components/ui";
 import { AdminStatusBadge } from "../../../_components/AdminStatusBadge";
 import { Icon } from "../../../_components/Icon";
@@ -57,6 +63,22 @@ export default async function AdminBookingDetailPage({ params }: { params: Promi
     time: formatAdelaide(e.created_at),
   }));
   const notificationList = notifications ?? [];
+  const additionalVehicleIds = (booking.dispatch_additional_vehicle_ids ?? []) as string[];
+  const { data: additionalVehicles, error: additionalVehicleError } = additionalVehicleIds.length
+    ? await supabase.from("vehicles").select("id, name").in("id", additionalVehicleIds)
+    : { data: [], error: null };
+  if (additionalVehicleError) throw additionalVehicleError;
+  const requirements = (booking.dispatch_customer_requirements ?? []) as string[];
+  const checklist = (booking.dispatch_checklist ?? []) as Array<{ id: string; label: string; done: boolean }>;
+
+  // Conflicts and invoice state are supplementary: a failure here (or invoicing
+  // not yet migrated) must never break the booking screen itself.
+  const [conflicts, invoice] = await Promise.all([
+    loadBookingConflicts(booking).catch((): BookingConflictView[] => []),
+    getInvoiceForBooking(booking.id).catch(() => null),
+  ]);
+  const agreedPrice = agreedPriceSummary({ ...booking, customers: customer } as PrefillBooking);
+  const dispatchDate = adelaideYmd(new Date(booking.starts_at));
 
   return (
     <div className="a-bk a-bk--detail">
@@ -74,8 +96,13 @@ export default async function AdminBookingDetailPage({ params }: { params: Promi
         destination={destination}
         packageSummary={packageSummary}
         vehicleName={vehicle?.name ?? null}
+        additionalTruckNames={(additionalVehicles ?? []).map((item) => item.name)}
         crewName={crew?.name ?? null}
+        dispatchDate={dispatchDate}
+        agreedPrice={agreedPrice ? { amount: formatMoney(agreedPrice.cents), label: agreedPrice.label } : null}
       />
+
+      <ConflictWarnings conflicts={conflicts} />
 
       <div className="a-bk-body">
         <div className="a-bk-col">
@@ -99,7 +126,24 @@ export default async function AdminBookingDetailPage({ params }: { params: Promi
             <RescheduleForm bookingId={booking.id} currentStartsAt={booking.starts_at} />
           </AdminCard>
 
+          <AdminCard icon="truck" title="Dispatch" description="Operational details; the confirmed quote and payment record remain unchanged.">
+            <AdminDataList>
+              <AdminDataRow label="Trucks required" value={booking.dispatch_truck_count == null ? null : String(booking.dispatch_truck_count)} />
+              <AdminDataRow label="Additional trucks" value={additionalVehicles?.map((item) => item.name).join(", ") || null} />
+              <AdminDataRow label="Travel" value={booking.dispatch_travel_minutes == null ? null : `${booking.dispatch_travel_minutes} minutes`} />
+              <AdminDataRow label="Overnight work" value={booking.dispatch_overnight == null ? null : booking.dispatch_overnight ? "Yes" : "No"} />
+              <AdminDataRow label="Truck remains onsite" value={booking.dispatch_truck_left_onsite == null ? null : booking.dispatch_truck_left_onsite ? "Yes" : "No"} />
+              <AdminDataRow label="Pricing label" value={booking.dispatch_pricing_type} />
+              <AdminDataRow label="Recorded fixed price" value={booking.dispatch_fixed_price_cents == null ? null : formatMoney(booking.dispatch_fixed_price_cents)} />
+            </AdminDataList>
+            {requirements.length > 0 && <><h3 className="admin-label">Customer requirements</h3><ul className="admin-list">{requirements.map((item, index) => <li key={index}>{item}</li>)}</ul></>}
+            {checklist.length > 0 && <><h3 className="admin-label">Checklist</h3><ul className="admin-list">{checklist.map((item) => <li key={item.id}>{item.done ? "Complete" : "Pending"} — {item.label}</li>)}</ul></>}
+            <Link href={`/admin/dispatch?date=${dispatchDate}`} className="admin-btn admin-btn--secondary admin-btn--sm">Edit dispatch</Link>
+          </AdminCard>
+
           <BillingCard booking={booking} hadAdvancePayment={hadAdvancePayment} paidBeforeJobCents={paidBeforeJobCents} />
+
+          <InvoiceCard bookingId={booking.id} invoice={invoice} />
 
           <div className="a-bk-pair">
             <AdminCard icon="dollar" title="Payment">

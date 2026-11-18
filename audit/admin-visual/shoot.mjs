@@ -30,6 +30,8 @@ const AUTHED_ROUTES = [
   ["mobile-menu", "/admin", async (page) => { const b = page.locator(".a-menu-btn"); if (await b.isVisible()) { await b.click(); await page.waitForTimeout(600); } }],
   ["calendar", "/admin/calendar"],
   ["calendar-month", "/admin/calendar?view=month"],
+  ["dispatch", "/admin/dispatch"],
+  ["dispatch-editor", "/admin/dispatch", async (page) => { const editor = page.locator(".a-dispatch-editor summary").first(); await editor.click(); await page.evaluate(() => window.scrollTo(0, 0)); await page.waitForTimeout(350); }],
   ["availability", "/admin/availability"],
   ["vehicles", "/admin/vehicles"],
   ["crews", "/admin/crews"],
@@ -85,7 +87,11 @@ async function shootRoute(context, [slug, route, interact], { expectLogin }) {
       if (interact) await interact(page);
       entry.overflow = await page.evaluate(probeOverflow);
       if (entry.overflow.overflow) { entry.ok = false; entry.problem = `horizontal overflow ${entry.overflow.scrollWidth}>${entry.overflow.clientWidth}: ${entry.overflow.offenders.join(" | ")}`; }
-      await page.screenshot({ path: path.join(outDir, `${slug}-${width}.png`), fullPage: !interact });
+      if (entry.pageErrors.length || entry.badResponses.some((response) => response.includes("/api/admin/dispatch"))) {
+        entry.ok = false;
+        entry.problem = "Application error or dispatch API failure";
+      }
+      await page.screenshot({ path: path.join(outDir, `${slug}-${width}.png`), fullPage: !interact || slug === "dispatch-editor" });
     } catch (error) {
       entry.ok = false;
       entry.problem = String(error).slice(0, 300);

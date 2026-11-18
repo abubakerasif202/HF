@@ -4,6 +4,7 @@ import http from "node:http";
 import { pathToFileURL } from "node:url";
 import { tables, relations } from "./fixtures.mjs";
 import { buildSession, ownerUser } from "./session.mjs";
+import { mockRpc } from "./mock-rpc.mjs";
 
 const PORT = Number(process.env.MOCK_PORT ?? 54399);
 const ANON_KEY = "mock-anon-key";
@@ -11,6 +12,7 @@ const RESERVED = new Set(["select", "order", "limit", "offset", "on_conflict", "
 const DATE_RE = /^\d{4}-\d{2}-\d{2}T/;
 
 // Mutable copy so PATCH/POST/DELETE work for the lifetime of the process.
+const pristine = structuredClone(tables);
 const db = Object.fromEntries(Object.entries(tables).map(([name, rows]) => [name, structuredClone(rows)]));
 const requestLog = [];
 
@@ -172,7 +174,9 @@ async function handleRest(req, res, url) {
   const [, , , resource, ...rest] = url.pathname.split("/"); // /rest/v1/<resource>
   if (resource === "rpc") {
     const fn = rest[0];
-    await readJson(req);
+    const args = (await readJson(req)) ?? {};
+    const handled = mockRpc(fn, args, db);
+    if (handled) return send(res, handled.status, handled.body);
     return send(res, 200, fn in RPC_RESULTS ? RPC_RESULTS[fn] : null);
   }
   const rows = db[resource];
@@ -249,6 +253,7 @@ export function startMockSupabase(port = PORT) {
       if (req.method === "OPTIONS") return send(res, 204, undefined);
       if (url.pathname === "/__health") return send(res, 200, { ok: true, synthetic: true });
       if (url.pathname === "/__log") return send(res, 200, requestLog);
+      if (url.pathname === "/__reset" && req.method === "POST") { for (const name of Object.keys(db)) db[name] = structuredClone(pristine[name]); return send(res, 200, { reset: true }); }
       if (url.pathname.startsWith("/auth/v1/")) return await handleAuth(req, res, url);
       if (url.pathname.startsWith("/rest/v1/")) return await handleRest(req, res, url);
       return send(res, 404, { message: "mock supabase: not found", path: url.pathname });

@@ -4,6 +4,7 @@ import "./styles/base.css";
 import "./styles/shell.css";
 import "./styles/components.css";
 import "./styles/pages.css";
+import "./styles/dispatch.css";
 
 // Self-hosted at build time by next/font (no runtime request to Google), and
 // only loaded for /admin so the public site's bundle is unchanged.

@@ -291,9 +291,64 @@ export const quote_requests = QUOTE_STATUSES.map((quote_status, i) => {
   };
 });
 
+
+// ---------- legacy-shaped bookings (older records the finder and invoicing must handle) ----------
+export const LEGACY_PRICED_ID = uuid(0x70, 1);
+export const LEGACY_UNPRICED_ID = uuid(0x70, 2);
+customers.push(
+  { id: uuid(0x71, 1), name: "Sample Legacy Customer", email: "sample.legacy@example.invalid", phone: "0400 000 099", created_at: minutesAgo(60 * 24 * 500) },
+  { id: uuid(0x71, 2), name: "Sample Phoneless Customer", email: "sample.phoneless@example.invalid", phone: null, created_at: minutesAgo(60 * 24 * 700) },
+);
+const legacyBase = {
+  service_id: services[0].id, additional_stops: [], move_details: {}, deposit_required_cents: 0, currency: "aud", hold_expires_at: null,
+  customer_notes: null, internal_notes: null, google_calendar_event_id: null, calendar_sync_status: "not_applicable", calendar_sync_error: null,
+  cancelled_at: null, current_checkout_session_id: null, package_id: null, truck_class: null,
+};
+bookings.push(
+  {
+    ...legacyBase, id: LEGACY_PRICED_ID, booking_number: "HF-2025-00007", customer_id: uuid(0x71, 1),
+    starts_at: adelaideIso(-400, 9), ends_at: plusMinutes(adelaideIso(-400, 9), 240), estimated_duration_minutes: 240, crew_size: 2,
+    vehicle_id: vehicles[0].id, crew_id: crews[0].id,
+    pickup_address: "12 Sample St, Elizabeth Vale SA 5112", destination_address: { suburb: "Gawler", formattedAddress: "5 Sample Rd, Gawler SA" },
+    subtotal_cents: 53800, deposit_paid_cents: 10000, balance_due_cents: 61100, pricing_snapshot: { package: "HR Truck", ratePer30MinCents: 7900 },
+    booking_status: "completed", payment_status: "deposit_paid", access_token: uuid(0x72, 1),
+    created_at: minutesAgo(60 * 24 * 420), updated_at: minutesAgo(60 * 24 * 400), confirmed_at: minutesAgo(60 * 24 * 419),
+    actual_duration_minutes: 200, billable_duration_minutes: 210, service_charge_cents: 55300, callout_fee_cents: 15800, final_total_cents: 71100,
+    finalised_at: minutesAgo(60 * 24 * 399), finalised_by: OWNER_ID,
+  },
+  {
+    ...legacyBase, id: LEGACY_UNPRICED_ID, booking_number: "HF-2024-00003", customer_id: uuid(0x71, 2),
+    starts_at: adelaideIso(-700, 10), ends_at: plusMinutes(adelaideIso(-700, 10), 180), estimated_duration_minutes: 180, crew_size: 2,
+    vehicle_id: null, crew_id: null, pickup_address: { suburb: "Marion" }, destination_address: null,
+    subtotal_cents: 0, deposit_paid_cents: 0, balance_due_cents: 0, pricing_snapshot: null,
+    booking_status: "completed", payment_status: "not_required", access_token: uuid(0x72, 2),
+    created_at: minutesAgo(60 * 24 * 720), updated_at: minutesAgo(60 * 24 * 700), confirmed_at: null,
+    actual_duration_minutes: null, billable_duration_minutes: null, service_charge_cents: null, callout_fee_cents: null, final_total_cents: null,
+    finalised_at: null, finalised_by: null,
+  },
+);
+// Match the dispatch migration defaults for every synthetic booking.
+for (const booking of bookings) {
+  Object.assign(booking, {
+    dispatch_additional_vehicle_ids: [], dispatch_truck_count: null,
+    dispatch_travel_minutes: null, dispatch_overnight: null,
+    dispatch_truck_left_onsite: null, dispatch_pricing_type: null,
+    dispatch_fixed_price_cents: null, dispatch_customer_requirements: [],
+    dispatch_checklist: [],
+  });
+}
+
 export const tables = {
   staff, business_settings, services, pricing_rules, vehicles, crews, crew_members, customers,
   bookings, booking_events, notifications, booking_assignments, payments, stripe_events, blocked_times, quote_requests,
+  // One definite overlap (today, with the in-progress job) and one "possible" overlap (no finish time, tomorrow).
+  google_calendar_imports: [
+    { id: uuid(0x80, 1), calendar_id: "sample-calendar", event_id: "sample-external-1", summary: "Sample external event", starts_at: adelaideIso(0, 8, 30), ends_at: adelaideIso(0, 9, 30), all_day_start: null, all_day_end: null, location: null, event_status: "confirmed", synced_at: minutesAgo(10), created_at: minutesAgo(10) },
+    { id: uuid(0x80, 2), calendar_id: "sample-calendar", event_id: "sample-external-2", summary: "Sample external event (no finish time)", starts_at: adelaideIso(1, 12, 30), ends_at: null, all_day_start: null, all_day_end: null, location: null, event_status: "confirmed", synced_at: minutesAgo(10), created_at: minutesAgo(10) },
+  ],
+  // Migration 0019 (invoicing). Settings start unconfigured, exactly as in a fresh database.
+  invoice_settings: [{ id: true, abn: null, gst_registered: null, rates_include_gst: null, bank_account_name: null, bank_bsb: null, bank_account_number: null, payment_instructions: null, payment_terms_days: null, invoice_prefix: null, next_invoice_number: 1, footer_note: null, logo_confirmed: false, updated_at: minutesAgo(60 * 24) }],
+  invoices: [], invoice_lines: [], invoice_payments: [], invoice_events: [], booking_vehicle_reservations: [],
 };
 
 /** many-to-one embeds: tables[name] -> { relationName: [targetTable, foreignKeyColumn] } */
