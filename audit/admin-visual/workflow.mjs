@@ -4,11 +4,11 @@
 //   MOCK_PORT=54411 APP_PORT=3211 node audit/admin-visual/workflow.mjs [--base http://127.0.0.1:3211]
 // Output: audit/admin-visual/screens/workflow/<viewport>/*.png, invoice.pdf and report.json (git-ignored).
 // The invoice settings typed here (ABN, prefix, payment text) are SYNTHETIC QA values that exist only in the mock.
-import { chromium } from "@playwright/test";
+import { chromium, expect } from "@playwright/test";
 import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { LEGACY_PRICED_ID, LEGACY_UNPRICED_ID, FEATURED_BOOKING_ID } from "./fixtures.mjs";
+import { LEGACY_PRICED_ID, LEGACY_UNPRICED_ID, FEATURED_BOOKING_ID, adelaideDate, bookings } from "./fixtures.mjs";
 import { buildAuthCookies } from "./session.mjs";
 
 const here = path.dirname(fileURLToPath(import.meta.url));
@@ -62,7 +62,61 @@ async function runViewport(browser, viewport) {
   const check = (name, pass, detail = "") => { checks.push({ name, pass: Boolean(pass), detail: String(detail).slice(0, 300) }); if (!pass) failed = true; console.log(`${pass ? "PASS" : "FAIL"} [${viewport.name}] ${name}${pass ? "" : ` — ${detail}`}`); };
   const shot = async (name) => { await page.screenshot({ path: path.join(dir, `${name}.png`), fullPage: true }); overflow.push([name, await page.evaluate(probeOverflow)]); };
   const text = async (selector) => (await page.locator(selector).first().innerText()).replace(/\s+/g, " ").trim();
-  const settle = () => page.waitForLoadState("networkidle").catch(() => {});
+
+  // Verify the admin entry points use the same booking UUID and Adelaide start time.
+  const confirmed = bookings.find((booking) => booking.booking_number === "HF-1012");
+  const confirmedPath = `/admin/bookings/${confirmed.id}`;
+  const adelaideTime = /9:00\s*am/i;
+  for (const booking of [confirmed, bookings.find(({ id }) => id === LEGACY_PRICED_ID)]) {
+    await page.goto(`${base}/admin/bookings`);
+    const open = page.getByRole("link", { name: `Open booking ${booking.booking_number}`, exact: true });
+    if (booking === confirmed) {
+      check("Bookings list shows the Adelaide move time", adelaideTime.test(await open.locator("xpath=ancestor::li").locator(".a-bk-time").innerText()));
+    }
+    await open.click();
+    await page.waitForURL(`**/admin/bookings/${booking.id}`);
+    check(`Bookings list opens ${booking.booking_status} booking`, (await text(".a-bk-hero")).includes(booking.booking_number));
+  }
+  for (const id of ["ffffffff-ffff-ffff-ffff-ffffffffffff", "invalid-id"]) {
+    await page.goto(`${base}/admin/bookings/${id}`);
+    check("Missing or malformed ID shows the admin recovery page", await page.getByRole("heading", { name: "Booking unavailable" }).isVisible()
+      && await page.getByRole("link", { name: "Back to Bookings" }).getAttribute("href") === "/admin/bookings");
+  }
+
+  await page.goto(`${base}/admin/dispatch?date=${adelaideDate(1)}`);
+  const dispatchJob = page.locator(".a-dispatch-job").filter({ has: page.locator(`a[href="${confirmedPath}"]`) });
+  check("Dispatch shows the same Adelaide move time", adelaideTime.test(await dispatchJob.locator(".a-dispatch-job-time").innerText()));
+
+  await page.goto(`${base}/admin/calendar?view=day&date=${adelaideDate(1)}`);
+  const calendarJob = page.locator(`a[href="${confirmedPath}"]:visible`);
+  check("Calendar shows the same Adelaide move time and links to the booking", adelaideTime.test(await calendarJob.innerText()));
+  await calendarJob.click();
+  check("Calendar link opens the booking detail", (await text(".a-bk-hero")).includes(confirmed.booking_number));
+
+  await page.goto(`${base}/admin/calendar?view=day&date=${adelaideDate(0)}`);
+  const calendar = page.locator(viewport.name === "mobile" ? ".a-cal-mobile" : ".a-cal-desktop");
+  const timed = calendar.getByText("Sample external event", { exact: true });
+  const allDay = calendar.getByText("Sample all-day event", { exact: true });
+  check("Timed Google event appears once, with an Adelaide time", await timed.count() === 1 && await timed.isVisible()
+    && /Google Calendar event/.test(await timed.locator("..").innerText())
+    && /8:30\s*am/i.test(await timed.locator(viewport.name === "mobile" ? "../.." : "..").textContent()));
+  check("Google all-day event appears once with an All day label", await allDay.count() === 1 && await allDay.isVisible()
+    && /All day/.test(await allDay.locator(viewport.name === "mobile" ? "../.." : "..").innerText()));
+  check("Google imports do not count as blocked periods", await page.locator(".a-cal-stats div").filter({ hasText: "Blocked periods" }).locator("dd").innerText() === "0");
+  if (viewport.name === "desktop") {
+    await timed.scrollIntoViewIfNeeded();
+    check("A timed Google event stays visible when it overlaps an HF job", await timed.evaluate((label) => {
+      const range = new Range();
+      range.selectNodeContents(label);
+      const { left, top, height } = range.getBoundingClientRect();
+      return label.contains(document.elementFromPoint(left + 2, top + height / 2));
+    }));
+  }
+  await shot("00-calendar-google");
+  await page.goto(`${base}/admin/calendar?view=day&date=${adelaideDate(3)}`);
+  check("An actual closure retains its Business closed label", await calendar.getByText("Business closed", { exact: true }).isVisible()
+    && await calendar.getByText("Sample public holiday closure", { exact: true }).isVisible());
+  await shot("00-calendar-closure");
 
   // 1. Dispatch: queues + visible Find booking action ----------------------------------------------------------
   await page.goto(`${base}/admin/dispatch`);
@@ -129,12 +183,12 @@ async function runViewport(browser, viewport) {
   await page.getByRole("alert").filter({ hasText: "unavailable" }).waitFor();
   check("Error state offers a retry", await page.getByRole("button", { name: "Try again" }).isVisible());
   await page.unroute("**/api/admin/bookings/search**");
-  await submitQuery("+61 400 000 099");
+  await submitQuery("HF-2025-00007");
   const link = page.locator(".a-find-result").first();
   await link.focus();
   await page.keyboard.press("Enter");
   await page.waitForURL(`**/admin/bookings/${LEGACY_PRICED_ID}`);
-  check("Keyboard Enter on a result opens the original booking record", true);
+  check("Keyboard Enter on the exact match opens the original booking record", true);
 
   // 3. Booking detail ----------------------------------------------------------------------------------------------
   const hero = await text(".a-bk-hero");
@@ -154,6 +208,16 @@ async function runViewport(browser, viewport) {
   check("Historical $100 confirmation is a separate payment, not a charge", (await page.locator(".a-inv-payment input[inputmode=decimal]").first().inputValue()) === "100.00");
   const blockers = await text(".a-inv-blockers");
   check("Missing HF settings are identified and block issuing", /Configure invoice settings first: ABN, GST registration status, Invoice number prefix, Bank account name, BSB, Account number, Payment terms/.test(blockers) && await page.getByRole("button", { name: "Issue invoice" }).isDisabled(), blockers);
+  await page.getByLabel("Invoice notes").fill("QA draft with incomplete settings");
+  await page.getByRole("button", { name: "Save draft" }).click();
+  await page.getByText("Draft saved.").first().waitFor();
+  await page.getByRole("button", { name: "Preview", exact: true }).click();
+  check("Draft preview works while issuance is blocked", /DRAFT/.test(await text(".a-inv-paper")));
+  const draftPdfHref = await page.getByRole("link", { name: "Preview PDF" }).getAttribute("href");
+  const draftPdf = await context.request.get(new URL(draftPdfHref, base).href);
+  check("Draft PDF is available for inline preview while issuance is blocked", draftPdf.ok()
+    && /^inline;/.test(draftPdf.headers()["content-disposition"])
+    && pdfStrings(await draftPdf.body()).some((line) => line.includes("DRAFT")));
   await shot("04-draft-blocked");
 
   // 5. Configure synthetic settings, return to the draft ---------------------------------------------------------------
@@ -196,7 +260,8 @@ async function runViewport(browser, viewport) {
   await page.getByLabel("Invoice notes").fill("QA note: thanks for choosing HF Removals Adelaide.");
   await page.getByRole("button", { name: "Save draft" }).click();
   await page.getByText("Draft saved.").first().waitFor();
-  check("Draft saves and issuing unlocks", await page.getByRole("button", { name: "Issue invoice" }).isEnabled());
+  await expect(page.getByRole("button", { name: "Issue invoice" })).toBeEnabled();
+  check("Draft saves and issuing unlocks", true);
   await page.getByRole("button", { name: "Preview", exact: true }).click();
   const paper = await text(".a-inv-paper");
   check("On-screen preview is stamped DRAFT and shows the totals", /DRAFT/.test(paper) && /\$711\.00/.test(paper) && /Balance outstanding: \$611\.00/.test(paper), paper.slice(0, 200));
@@ -264,16 +329,13 @@ async function runViewport(browser, viewport) {
   const conflictBanner = await text(".a-bk-conflicts").catch(() => "");
   check("Booking detail warns of a possible conflict when a finish time is missing, naming the event", /Possible/.test(conflictBanner) && /Sample external event \(no finish time\)/.test(conflictBanner), conflictBanner.slice(0, 250));
   await shot("09-booking-conflict");
-  const noteBox = page.getByRole("textbox").filter({ hasNot: page.locator("[disabled]") }).last();
-  void noteBox;
-  const noteArea = page.locator("form textarea").first();
-  if (await noteArea.count()) {
-    await noteArea.fill("QA internal note from workflow");
-    await page.getByRole("button", { name: /add note|save note/i }).first().click().catch(() => {});
-    await settle();
-    await page.reload(); // the existing action only revalidates /admin/bookings, so the detail page shows it on the next load
-    check("Existing note form still saves on the original booking screen", /QA internal note from workflow/.test(await page.locator("body").innerText()));
-  }
+  const noteArea = page.getByRole("textbox", { name: "Add a note" });
+  await noteArea.fill("QA internal note from workflow");
+  await page.getByRole("button", { name: "Add note", exact: true }).click();
+  await expect(noteArea).toHaveValue("");
+  await page.reload();
+  await expect(page.getByText("QA internal note from workflow", { exact: false })).toBeVisible();
+  check("Existing note form still saves on the original booking screen", true);
 
   // 11. Older booking with no price at all --------------------------------------------------------------------------------------------
   await page.goto(`${base}/admin/bookings/${LEGACY_UNPRICED_ID}`);
@@ -282,6 +344,14 @@ async function runViewport(browser, viewport) {
   await page.waitForURL(/\/admin\/invoices\/[0-9a-f-]{36}$/);
   check("Missing pricing is flagged for review before issuing", /Pricing is missing/.test(await text(".a-inv-blockers")) && await page.getByRole("button", { name: "Issue invoice" }).isDisabled());
   await shot("10-draft-no-price");
+
+  await page.goto(`${base}${confirmedPath}`);
+  await page.getByRole("button", { name: /Create invoice/ }).click();
+  await page.waitForURL(/\/admin\/invoices\/[0-9a-f-]{36}$/);
+  await page.getByRole("button", { name: "Preview", exact: true }).click();
+  const fixedPaper = await text(".a-inv-paper");
+  check("Fixed-price booking prefills one line and the full no-deposit balance", await page.locator(".a-inv-line").count() === 1
+    && /Balance outstanding: \$550\.00/.test(fixedPaper) && !/Deposit received/.test(fixedPaper));
 
   report.viewports[viewport.name] = { checks, overflow, consoleErrors: consoleErrors.filter((e) => !/favicon|Failed to load resource.*404/i.test(e)) };
   if (viewport.name === "mobile") {

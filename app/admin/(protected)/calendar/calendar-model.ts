@@ -18,6 +18,8 @@ export interface Booking {
 }
 
 export interface BlockedTime {
+  source?: "google";
+  allDay?: boolean;
   id: string;
   startsAt: string;
   endsAt: string;

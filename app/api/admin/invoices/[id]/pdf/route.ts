@@ -36,7 +36,7 @@ export async function GET(_request: NextRequest, context: { params: Promise<{ id
       headers: {
         ...privateHeaders,
         "Content-Type": "application/pdf",
-        "Content-Disposition": `attachment; filename="${filename}.pdf"`,
+        "Content-Disposition": `${invoice.status === "draft" ? "inline" : "attachment"}; filename="${filename}.pdf"`,
         "Content-Length": String(bytes.byteLength),
         "X-Content-Type-Options": "nosniff",
       },

@@ -11,7 +11,9 @@ const ev = (o) => ({ id: "e1", summary: "Sample external event", starts_at: null
 
 test("Google events become labelled calendar blocks", () => {
   const timed = googleEventToBlock(ev({ starts_at: "2026-11-20T00:00:00Z", ends_at: "2026-11-20T02:00:00Z" }), tz);
-  assert.deepEqual([timed.startsAt, timed.endsAt, timed.reason, timed.vehicleId, timed.crewId], ["2026-11-20T00:00:00.000Z", "2026-11-20T02:00:00.000Z", "Google Calendar: Sample external event", null, null]);
+  assert.deepEqual([timed.startsAt, timed.endsAt, timed.reason, timed.vehicleId, timed.crewId], ["2026-11-20T00:00:00.000Z", "2026-11-20T02:00:00.000Z", "Sample external event", null, null]);
+  assert.equal(timed.allDay, false);
+  assert.equal(timed.source, "google");
   const open = googleEventToBlock(ev({ starts_at: "2026-11-20T00:00:00Z" }), tz);
   assert.equal(open.endsAt, "2026-11-20T01:00:00.000Z");
   assert.match(open.reason, /no finish time/);
@@ -21,7 +23,9 @@ test("Google events become labelled calendar blocks", () => {
 test("all-day events span Adelaide midnight to midnight, DST included", () => {
   const day = googleEventToBlock(ev({ all_day_start: "2026-11-20", all_day_end: "2026-11-21" }), tz);
   assert.deepEqual([day.startsAt, day.endsAt], ["2026-11-19T13:30:00.000Z", "2026-11-20T13:30:00.000Z"]);
-  assert.match(day.reason, /all day/);
+  assert.equal(day.allDay, true);
+  assert.equal(day.source, "google");
+  assert.equal(day.reason, "Sample external event");
   const dst = googleEventToBlock(ev({ all_day_start: "2026-04-05", all_day_end: "2026-04-06" }), tz); // 25-hour day
   assert.equal((Date.parse(dst.endsAt) - Date.parse(dst.startsAt)) / 3_600_000, 25);
 });

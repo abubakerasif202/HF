@@ -8,6 +8,8 @@ import {
   mondayIndex,
   placeInLanes,
   shortWeekday,
+  type BlockedTime,
+  type Booking,
   type DayData,
 } from "./calendar-model";
 import { statusStyle } from "../../_components/AdminStatusBadge";
@@ -50,7 +52,7 @@ function laneStyle(lane: number, lanes: number, top: string, height: string): Re
 }
 
 export function TimeGrid({ days, timezone, todayKey, onOpenDay, nowMinutes }: GridProps & { nowMinutes: number | null }) {
-  const { startHour, endHour } = hourWindow(days.flatMap((day) => [...day.bookings, ...day.blocks]));
+  const { startHour, endHour } = hourWindow(days.flatMap((day) => [...day.bookings, ...day.blocks.filter(({ item }) => !item.allDay)]));
   const hours = endHour - startHour;
   const windowMinutes = hours * 60;
   const hourMarks = Array.from({ length: hours }, (_, index) => startHour + index);
@@ -63,16 +65,29 @@ export function TimeGrid({ days, timezone, todayKey, onOpenDay, nowMinutes }: Gr
         <span aria-hidden="true" />
         {days.map((day) => <DayHead key={day.key} day={day} todayKey={todayKey} onOpenDay={onOpenDay} />)}
       </div>
+      {days.some((day) => day.blocks.some(({ item }) => item.allDay)) && (
+        <div className="a-cal-time-all-day">
+          <span aria-hidden="true" />
+          {days.map((day) => (
+            <div key={day.key} className="a-cal-all-day-cell" aria-label={longDayLabel(day.key)}>
+              {day.blocks.filter(({ item }) => item.allDay).map(({ item }) => (
+                <GridBlock key={item.id} block={item} timezone={timezone} />
+              ))}
+            </div>
+          ))}
+        </div>
+      )}
       <div className="a-cal-time-body">
         <div className="a-cal-gutter" aria-hidden="true">
           {hourMarks.map((hour) => <span key={hour}>{hourLabel(hour)}</span>)}
         </div>
         {days.map((day) => {
-          const lanes = placeInLanes(day.bookings.map((span) => ({ item: span.item, from: span.from, to: span.to })));
+          const timedGoogleEvents = day.blocks.filter(({ item }) => item.source === "google" && !item.allDay);
+          const lanes = placeInLanes<Booking | BlockedTime>([...day.bookings, ...timedGoogleEvents]);
           const showNow = day.key === todayKey && nowMinutes !== null && nowMinutes >= startHour * 60 && nowMinutes <= endHour * 60;
           return (
             <section key={day.key} className="a-cal-col" data-today={day.key === todayKey} aria-label={longDayLabel(day.key)}>
-              {day.blocks.map((span) => (
+              {day.blocks.filter(({ item }) => item.source !== "google").map((span) => (
                 <div key={span.item.id} className="a-cal-slot a-cal-slot--block" style={{ top: pct(Math.max(span.from, startHour * 60)), height: heightPct(Math.max(span.from, startHour * 60), Math.min(span.to, endHour * 60)) }}>
                   <GridBlock block={span.item} timezone={timezone} />
                 </div>
@@ -86,7 +101,9 @@ export function TimeGrid({ days, timezone, todayKey, onOpenDay, nowMinutes }: Gr
                     className="a-cal-slot"
                     style={laneStyle(placed.lane, placed.lanes, pct(from), heightPct(from, to))}
                   >
-                    <GridEvent booking={placed.item} timezone={timezone} heightPx={((to - from) / 60) * HOUR_PX} />
+                    {"bookingNumber" in placed.item
+                      ? <GridEvent booking={placed.item} timezone={timezone} heightPx={((to - from) / 60) * HOUR_PX} />
+                      : <GridBlock block={placed.item} timezone={timezone} />}
                   </div>
                 );
               })}
@@ -121,6 +138,8 @@ export function MonthGrid({ days, timezone, todayKey, onOpenDay }: GridProps) {
 }
 
 function MonthCell({ day, timezone, isToday, onOpenDay }: { day: DayData; timezone: string; isToday: boolean; onOpenDay: (key: string) => void }) {
+  const googleEvents = day.blocks.filter(({ item }) => item.source === "google");
+  const availabilityBlocks = day.blocks.filter(({ item }) => item.source !== "google");
   const shown = day.bookings.slice(0, MONTH_CHIPS);
   const hidden = day.bookings.length - shown.length;
   return (
@@ -128,12 +147,17 @@ function MonthCell({ day, timezone, isToday, onOpenDay }: { day: DayData; timezo
       <button type="button" className="a-cal-cell-num" onClick={() => onOpenDay(day.key)} aria-label={`Open ${longDayLabel(day.key)}`}>
         {dayNumber(day.key)}
       </button>
-      {day.blocks.length > 0 && (
-        <Link href="/admin/availability" className="a-cal-chip a-cal-chip--block" title={day.blocks.map((span) => `${blockScope(span.item).label}: ${span.item.reason}`).join("\n")}>
+      {availabilityBlocks.length > 0 && (
+        <Link href="/admin/availability" className="a-cal-chip a-cal-chip--block" title={availabilityBlocks.map((span) => `${blockScope(span.item).label}: ${span.item.reason}`).join("\n")}>
           <Icon name="ban" size={11} />
-          {day.blocks.length === 1 ? blockScope(day.blocks[0].item).label : `${day.blocks.length} blocks`}
+          {availabilityBlocks.length === 1 ? blockScope(availabilityBlocks[0].item).label : `${availabilityBlocks.length} blocks`}
         </Link>
       )}
+      {googleEvents.map(({ item }) => (
+        <button key={item.id} type="button" className="a-cal-more" title={item.reason} onClick={() => onOpenDay(day.key)}>
+          Google Calendar{item.allDay ? " · All day" : ""}
+        </button>
+      ))}
       {shown.map((span) => {
         const style = statusStyle("booking", span.item.status);
         return (

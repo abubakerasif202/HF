@@ -14,6 +14,8 @@ export interface GoogleImportRow {
 
 export interface GoogleBlock {
   id: string;
+  source: "google";
+  allDay: boolean;
   startsAt: string;
   endsAt: string;
   vehicleId: null;
@@ -36,6 +38,7 @@ export function googleEventToBlock(event: GoogleImportRow, timeZone: string): Go
   let start: Date | null = null;
   let end: Date | null = null;
   let note = "";
+  let allDay = false;
   if (event.starts_at) {
     start = new Date(event.starts_at);
     if (event.ends_at) end = new Date(event.ends_at);
@@ -43,17 +46,19 @@ export function googleEventToBlock(event: GoogleImportRow, timeZone: string): Go
   } else if (event.all_day_start && event.all_day_end) {
     start = dayStart(event.all_day_start, timeZone);
     end = dayStart(event.all_day_end, timeZone);
-    note = " (all day)";
+    allDay = true;
   }
   if (!start || !end || !(end > start)) return null;
   const title = (event.summary ?? "").trim() || "Busy";
   return {
     id: `google-${event.id}`,
+    source: "google",
+    allDay,
     startsAt: start.toISOString(),
     endsAt: end.toISOString(),
     vehicleId: null,
     crewId: null,
-    reason: `Google Calendar: ${title}${note}${event.event_status === "tentative" ? " (tentative)" : ""}`,
+    reason: `${title}${note}${event.event_status === "tentative" ? " (tentative)" : ""}`,
     vehicleName: undefined,
     crewName: undefined,
   };

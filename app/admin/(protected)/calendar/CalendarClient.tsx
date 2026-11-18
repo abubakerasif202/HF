@@ -106,6 +106,7 @@ export function CalendarClient({ view, year, month, day, timezone, todayKey, ran
   }
 
   const needsAssignment = filteredBookings.filter((b) => b.status !== "completed" && (!b.vehicleId || !b.crewId)).length;
+  const blockedCount = visibleBlocks.filter((block) => block.source !== "google").length;
   const isEmpty = filteredBookings.length === 0 && visibleBlocks.length === 0;
   const filtersActive = Object.values(filters).some(Boolean);
 
@@ -114,14 +115,14 @@ export function CalendarClient({ view, year, month, day, timezone, todayKey, ran
       <AdminPageHeader
         eyebrow="Schedule"
         title={<>Operations <em>calendar</em></>}
-        description="View upcoming jobs, crew allocation and blocked periods."
+        description="View jobs, crew allocation, Google Calendar events and blocked periods."
       />
 
       <section className="a-cal-panel a-reveal" aria-label="Calendar controls">
         <CalendarToolbar view={view} title={rangeTitle(view, dayKeys, anchorDate)} onView={switchView} onPrev={() => step(-1)} onNext={() => step(1)} onToday={() => navigate(view, todayKey)} />
         <dl className="a-cal-stats">
           <div><dt>Jobs</dt><dd>{filteredBookings.length}</dd></div>
-          <div><dt>Blocked periods</dt><dd>{visibleBlocks.length}</dd></div>
+          <div><dt>Blocked periods</dt><dd>{blockedCount}</dd></div>
           <div data-alert={needsAssignment > 0}><dt>Need truck or crew</dt><dd>{needsAssignment}</dd></div>
         </dl>
         <CalendarLegend counts={legendCounts} active={filters.status} onPick={(status) => setFilters({ ...filters, status })} />

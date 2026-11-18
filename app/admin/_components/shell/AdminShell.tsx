@@ -1,5 +1,6 @@
 "use client";
 
+import { ADMIN_TIME_ZONE, adelaideZoneLabel } from "../../../../lib/admin/dates.ts";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useCallback, useEffect, useRef, useState, useSyncExternalStore, type ReactNode } from "react";
@@ -96,9 +97,9 @@ function AdelaideClock() {
   if (tick === 0) return <div className="a-clock" aria-hidden="true" style={{ minHeight: 38 }} />;
 
   const now = new Date(tick * 15_000);
-  const date = now.toLocaleDateString("en-AU", { timeZone: "Australia/Adelaide", weekday: "short", day: "numeric", month: "short" });
-  const time = now.toLocaleTimeString("en-AU", { timeZone: "Australia/Adelaide", hour: "numeric", minute: "2-digit", hour12: true });
-  const zone = now.toLocaleTimeString("en-AU", { timeZone: "Australia/Adelaide", timeZoneName: "short" }).includes("10:30") ? "ACDT" : "ACST";
+  const date = now.toLocaleDateString("en-AU", { timeZone: ADMIN_TIME_ZONE, weekday: "short", day: "numeric", month: "short" });
+  const time = now.toLocaleTimeString("en-AU", { timeZone: ADMIN_TIME_ZONE, hour: "numeric", minute: "2-digit", hour12: true });
+  const zone = adelaideZoneLabel(now);
 
   return (
     <div className="a-clock">

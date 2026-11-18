@@ -2,6 +2,18 @@ import { instantToZonedParts, zonedWallTimeToInstant } from "../booking/timezone
 
 export const ADMIN_TIME_ZONE = "Australia/Adelaide";
 
+const adelaideOffset = new Intl.DateTimeFormat("en-AU", {
+  timeZone: ADMIN_TIME_ZONE,
+  timeZoneName: "longOffset",
+});
+
+export function adelaideZoneLabel(instant: Date): string {
+  const offset = adelaideOffset.formatToParts(instant).find((part) => part.type === "timeZoneName")?.value;
+  if (offset === "GMT+10:30") return "ACDT";
+  if (offset === "GMT+09:30") return "ACST";
+  return offset ?? ADMIN_TIME_ZONE;
+}
+
 export interface DayRange {
   /** Inclusive start of the Adelaide calendar day, as an ISO instant. */
   start: string;
