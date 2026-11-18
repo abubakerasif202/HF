@@ -9,6 +9,11 @@ import { CalendarSyncStatus } from "./CalendarSyncStatus";
 import { NoteForm } from "./NoteForm";
 import { BookingHero } from "./BookingHero";
 import { BillingCard } from "./BillingCard";
+import { InvoiceCard } from "./InvoiceCard";
+import { ConflictWarnings } from "./ConflictWarnings";
+import { loadBookingConflicts, type BookingConflictView } from "../../../../../lib/server/booking-conflicts.ts";
+import { getInvoiceForBooking } from "../../../../../lib/server/invoice-repo.ts";
+import { agreedPriceSummary, type PrefillBooking } from "../../../../../lib/invoice.ts";
 import { AdminCard, AdminDataList, AdminDataRow, ActivityTimeline, formatAdelaide, formatMoney } from "../../../_components/ui";
 import { AdminStatusBadge } from "../../../_components/AdminStatusBadge";
 import { Icon } from "../../../_components/Icon";
@@ -66,6 +71,14 @@ export default async function AdminBookingDetailPage({ params }: { params: Promi
   const requirements = (booking.dispatch_customer_requirements ?? []) as string[];
   const checklist = (booking.dispatch_checklist ?? []) as Array<{ id: string; label: string; done: boolean }>;
 
+  // Conflicts and invoice state are supplementary: a failure here (or invoicing
+  // not yet migrated) must never break the booking screen itself.
+  const [conflicts, invoice] = await Promise.all([
+    loadBookingConflicts(booking).catch((): BookingConflictView[] => []),
+    getInvoiceForBooking(booking.id).catch(() => null),
+  ]);
+  const agreedPrice = agreedPriceSummary({ ...booking, customers: customer } as PrefillBooking);
+  const dispatchDate = adelaideYmd(new Date(booking.starts_at));
 
   return (
     <div className="a-bk a-bk--detail">
@@ -83,8 +96,13 @@ export default async function AdminBookingDetailPage({ params }: { params: Promi
         destination={destination}
         packageSummary={packageSummary}
         vehicleName={vehicle?.name ?? null}
+        additionalTruckNames={(additionalVehicles ?? []).map((item) => item.name)}
         crewName={crew?.name ?? null}
+        dispatchDate={dispatchDate}
+        agreedPrice={agreedPrice ? { amount: formatMoney(agreedPrice.cents), label: agreedPrice.label } : null}
       />
+
+      <ConflictWarnings conflicts={conflicts} />
 
       <div className="a-bk-body">
         <div className="a-bk-col">
@@ -120,10 +138,12 @@ export default async function AdminBookingDetailPage({ params }: { params: Promi
             </AdminDataList>
             {requirements.length > 0 && <><h3 className="admin-label">Customer requirements</h3><ul className="admin-list">{requirements.map((item, index) => <li key={index}>{item}</li>)}</ul></>}
             {checklist.length > 0 && <><h3 className="admin-label">Checklist</h3><ul className="admin-list">{checklist.map((item) => <li key={item.id}>{item.done ? "Complete" : "Pending"} — {item.label}</li>)}</ul></>}
-            <Link href={`/admin/dispatch?date=${adelaideYmd(new Date(booking.starts_at))}`} className="admin-btn admin-btn--secondary admin-btn--sm">Edit dispatch</Link>
+            <Link href={`/admin/dispatch?date=${dispatchDate}`} className="admin-btn admin-btn--secondary admin-btn--sm">Edit dispatch</Link>
           </AdminCard>
 
           <BillingCard booking={booking} hadAdvancePayment={hadAdvancePayment} paidBeforeJobCents={paidBeforeJobCents} />
+
+          <InvoiceCard bookingId={booking.id} invoice={invoice} />
 
           <div className="a-bk-pair">
             <AdminCard icon="dollar" title="Payment">

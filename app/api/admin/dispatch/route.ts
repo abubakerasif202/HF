@@ -5,6 +5,7 @@ import { getAdminAuthState } from "../../../../lib/server/supabase-ssr.ts";
 import { reconcileBookingCalendar } from "../../../../lib/server/google-calendar.ts";
 import { getSupabaseAdmin } from "../../../../lib/server/supabase.ts";
 import { getBusinessSettings } from "../../../../lib/server/booking-repo.ts";
+import { findClashingBookings } from "../../../../lib/server/booking-conflicts.ts";
 import { zonedWallTimeToInstant } from "../../../../lib/booking/timezone.ts";
 import { effectiveDispatchTruckCount, findDispatchConflicts, suggestCrewAllocation, type CalendarReservation, type DispatchBooking } from "../../../../lib/dispatch.ts";
 
@@ -88,6 +89,11 @@ export async function GET(request: NextRequest) {
         : null);
       return { id: event.id, summary: event.summary, startsAt, endsAt, status: event.event_status };
     });
+    // Every job on the day (before the staff filters) so a conflict can always name the other booking.
+    const bookingIndex = Object.fromEntries((bookingsResult.data ?? []).map((booking) => {
+      const customer = Array.isArray(booking.customers) ? booking.customers[0] : booking.customers;
+      return [booking.id, { bookingNumber: booking.booking_number, customerName: customer?.name ?? null, startsAt: booking.starts_at, endsAt: booking.ends_at }];
+    }));
     const allBookings: DispatchBooking[] = (bookingsResult.data ?? []).map((booking) => ({
       id: booking.id,
       startsAt: booking.starts_at,
@@ -106,7 +112,7 @@ export async function GET(request: NextRequest) {
     );
 
     const visibleIds = new Set(bookings.map((booking) => booking.id));
-    return NextResponse.json({ date, timezone: settings.timezone, bookings, calendarReservations, conflicts: conflicts.filter((item) => visibleIds.has(item.bookingId) || visibleIds.has(item.otherId)), suggestions: suggestions.filter((item) => visibleIds.has(item.bookingId)), crews: crewsResult.data ?? [], vehicles: vehiclesResult.data ?? [] }, { headers: privateHeaders });
+    return NextResponse.json({ date, timezone: settings.timezone, bookings, bookingIndex, calendarReservations, conflicts: conflicts.filter((item) => visibleIds.has(item.bookingId) || visibleIds.has(item.otherId)), suggestions: suggestions.filter((item) => visibleIds.has(item.bookingId)), crews: crewsResult.data ?? [], vehicles: vehiclesResult.data ?? [] }, { headers: privateHeaders });
   } catch (error) {
     console.error("HF daily dispatch query failed:", (error as { code?: unknown })?.code ?? "unknown");
     return NextResponse.json({ error: "Daily dispatch is unavailable." }, { status: 503, headers: privateHeaders });
@@ -153,7 +159,29 @@ export async function PATCH(request: NextRequest) {
     }
     const { data: updated, error: updateError } = await admin.rpc("update_dispatch_booking", { p_booking_id: input.bookingId, p_patch: patch, p_actor: staffId });
     if (updateError) {
-      if (updateError.code === "23P01") return NextResponse.json({ error: "This crew or truck is already assigned during that time." }, { status: 409, headers: privateHeaders });
+      if (updateError.code === "23P01") {
+        // Name the booking it clashes with so staff can open it. Best effort only.
+        let conflicts: Array<{ id: string; bookingNumber: string; kind: "crew" | "truck" }> = [];
+        try {
+          const { data: current } = await admin.from("bookings").select("starts_at, ends_at, crew_id, vehicle_id, dispatch_additional_vehicle_ids").eq("id", input.bookingId).maybeSingle();
+          if (current) {
+            conflicts = await findClashingBookings({
+              bookingId: input.bookingId,
+              startsAt: input.startsAt ?? current.starts_at,
+              endsAt: input.endsAt ?? current.ends_at,
+              crewId: input.crewId !== undefined ? input.crewId : current.crew_id,
+              vehicleIds: [
+                ...((input.vehicleId !== undefined ? input.vehicleId : current.vehicle_id) ? [(input.vehicleId !== undefined ? input.vehicleId : current.vehicle_id) as string] : []),
+                ...(input.additionalVehicleIds ?? current.dispatch_additional_vehicle_ids ?? []),
+              ],
+            });
+          }
+        } catch {
+          conflicts = [];
+        }
+        const named = conflicts.length ? ` Clashes with ${conflicts.map((item) => `${item.bookingNumber} (${item.kind})`).join(", ")}.` : "";
+        return NextResponse.json({ error: `This crew or truck is already assigned during that time.${named}`, conflicts }, { status: 409, headers: privateHeaders });
+      }
       if (updateError.code === "23503" || updateError.code === "23514") return NextResponse.json({ error: "One or more assignments are invalid." }, { status: 400, headers: privateHeaders });
       throw updateError;
     }

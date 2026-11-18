@@ -1,7 +1,8 @@
 "use client";
 
-import { effectiveDispatchTruckCount, needsDispatchAllocation } from "../../../../lib/dispatch.ts";
+import { conflictLabel, effectiveDispatchTruckCount, needsDispatchAllocation, type ConflictCertainty } from "../../../../lib/dispatch.ts";
 import { DispatchEditor } from "./DispatchEditor";
+import { DispatchQueues } from "./DispatchQueues";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
@@ -58,8 +59,10 @@ interface DispatchData {
   date: string;
   timezone: string;
   bookings: DispatchBooking[];
+  /** Every job on the day, unfiltered, so a conflict can always name the other booking. */
+  bookingIndex?: Record<string, { bookingNumber: string; customerName: string | null; startsAt: string; endsAt: string | null }>;
   calendarReservations: CalendarReservation[];
-  conflicts: Array<{ bookingId: string; otherId: string; kind: "crew" | "truck" | "calendar" }>;
+  conflicts: Array<{ bookingId: string; otherId: string; kind: "crew" | "truck" | "calendar"; certainty?: ConflictCertainty }>;
   suggestions: Array<{ bookingId: string; crewId: string | null; reason: "balanced" | "conflict" | "no_crew" }>;
   crews: Crew[];
   vehicles: Array<{ id: string; name: string; vehicle_type: string }>;
@@ -74,6 +77,11 @@ const STATUSES = ["draft", "held", "pending_payment", "confirmed", "assigned", "
 function formatTime(value: string | null, timezone: string): string {
   if (!value) return "Time not recorded";
   return new Intl.DateTimeFormat("en-AU", { timeZone: timezone, hour: "numeric", minute: "2-digit" }).format(new Date(value));
+}
+
+function formatWindow(startsAt: string | null, endsAt: string | null, timezone: string): string {
+  if (!startsAt) return "Time not recorded";
+  return endsAt ? `${formatTime(startsAt, timezone)} – ${formatTime(endsAt, timezone)}` : `${formatTime(startsAt, timezone)} (no finish time)`;
 }
 
 function formatAddress(value: Address | null): string {
@@ -182,10 +190,16 @@ export function DispatchClient({ initialDate }: Props) {
         title={<>A smoother <em>move day.</em></>}
         lede="See both crews, spot overlaps and balance the day from one dispatch view."
         actions={(
-          <button type="button" className="admin-btn admin-btn--secondary" onClick={() => void syncCalendar()} disabled={pending === "calendar"}>
-            <Icon name="sync" size={16} />
-            {pending === "calendar" ? "Syncing…" : "Sync Google Calendar"}
-          </button>
+          <>
+            <Link href="/admin/dispatch/find" className="admin-btn admin-btn--primary a-dispatch-find-btn">
+              <Icon name="search" size={16} />
+              Find booking
+            </Link>
+            <button type="button" className="admin-btn admin-btn--secondary" onClick={() => void syncCalendar()} disabled={pending === "calendar"}>
+              <Icon name="sync" size={16} />
+              {pending === "calendar" ? "Syncing…" : "Sync Google Calendar"}
+            </button>
+          </>
         )}
         stats={[
           { value: data?.bookings.length ?? "—", label: "HF jobs" },
@@ -203,6 +217,8 @@ export function DispatchClient({ initialDate }: Props) {
         <MetricCard icon="alert" label="Overlap checks" value={conflictCount} hint="Crew, truck or Calendar overlap" variant={conflictCount ? "gold" : "porcelain"} />
         <MetricCard icon="truck" label="Truck load" value={trucksNeeded} hint="Required trucks across visible jobs" variant="porcelain" />
       </div>
+
+      <DispatchQueues refreshKey={refreshKey} onOpenDay={setDate} />
 
       <AdminCard title="Dispatch filters" description="Choose a day and narrow the work list." icon="filter" className="a-dispatch-filter-card">
         <div className="a-dispatch-filters">
@@ -265,14 +281,27 @@ export function DispatchClient({ initialDate }: Props) {
           {loading ? <p className="admin-help" role="status">Checking overlaps…</p> : conflictCount ? (
             <ul className="a-dispatch-conflicts">
               {data?.conflicts.map((conflict, index) => {
-                const booking = bookingById.get(conflict.bookingId);
-                const otherBooking = bookingById.get(conflict.otherId);
+                const booking = data.bookingIndex?.[conflict.bookingId];
+                const otherBooking = data.bookingIndex?.[conflict.otherId];
                 const event = data?.calendarReservations.find((item) => item.id === conflict.otherId);
-                const label = conflict.kind === "calendar" ? "Calendar overlap" : conflict.kind === "truck" ? "Truck double-booked" : "Crew double-booked";
+                const certainty = conflict.certainty ?? "definite";
                 return (
-                  <li key={`${conflict.bookingId}-${conflict.otherId}-${conflict.kind}-${index}`}>
+                  <li key={`${conflict.bookingId}-${conflict.otherId}-${conflict.kind}-${index}`} data-certainty={certainty}>
                     <span className="a-dispatch-conflict-icon"><Icon name="alert" size={15} /></span>
-                    <span><strong>{label}</strong><small>{booking?.booking_number ?? "HF job"} · {booking?.customers?.name ?? "Customer not recorded"} ↔ {otherBooking?.booking_number ?? event?.summary ?? "Overlapping booking"}</small></span>
+                    <span>
+                      <strong>{conflictLabel({ kind: conflict.kind, certainty })}</strong>
+                      <small>
+                        <Link href={`/admin/bookings/${conflict.bookingId}`} className="admin-link">{booking?.bookingNumber ?? "HF job"}</Link>
+                        {" · "}{booking?.customerName ?? "Customer not recorded"}{booking ? ` · ${formatWindow(booking.startsAt, booking.endsAt, data.timezone)}` : ""}
+                      </small>
+                      <small>
+                        {"↔ "}
+                        {otherBooking
+                          ? <><Link href={`/admin/bookings/${conflict.otherId}`} className="admin-link">{otherBooking.bookingNumber}</Link>{" · "}{otherBooking.customerName ?? "Customer not recorded"}{` · ${formatWindow(otherBooking.startsAt, otherBooking.endsAt, data.timezone)}`}</>
+                          : <>{event?.summary ?? "Google Calendar event"}{event ? ` · ${formatWindow(event.startsAt, event.endsAt, data.timezone)}` : ""}</>}
+                      </small>
+                      {certainty === "possible" && <small className="a-dispatch-possible">Possible: a finish time is missing, so this overlap is inferred. Confirm the finish time.</small>}
+                    </span>
                   </li>
                 );
               })}
@@ -281,7 +310,7 @@ export function DispatchClient({ initialDate }: Props) {
         </AdminCard>
       </div>
 
-      <AdminCard title="Daily run sheet" description={date} icon="calendar" className="a-dispatch-run-sheet">
+      <AdminCard title="Daily run sheet" description={date} icon="calendar" className="a-dispatch-run-sheet" id="dispatch-run-sheet">
         {loading ? <p className="admin-help" role="status">Loading bookings…</p> : data?.bookings.length ? (
           <div className="a-dispatch-list">
             {data.bookings.map((booking) => (
