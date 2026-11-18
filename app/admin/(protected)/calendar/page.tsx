@@ -3,6 +3,7 @@ import { getSupabaseAdmin } from "../../../../lib/server/supabase.ts";
 import { getBusinessSettings } from "../../../../lib/server/booking-repo.ts";
 import { findMovingPackage } from "../../../../lib/site-data.ts";
 import { getRangeForView, type CalendarView } from "../../../../lib/booking/calendar-range.ts";
+import { loadGoogleBlocks } from "../../../../lib/server/calendar-google-blocks.ts";
 import { CalendarClient } from "./CalendarClient";
 import "../../styles/calendar.css";
 
@@ -73,7 +74,8 @@ export default async function AdminCalendarPage({
     customerName: Array.isArray(b.customers) ? b.customers[0]?.name : (b.customers as { name: string } | null)?.name,
   }));
 
-  const normalizedBlocked = (blockedTimes ?? []).map((row) => ({
+  const googleBlocks = await loadGoogleBlocks(start, end, settings.timezone);
+  const normalizedBlocked = [...(blockedTimes ?? []).map((row) => ({
     id: row.id,
     startsAt: row.starts_at,
     endsAt: row.ends_at,
@@ -82,7 +84,7 @@ export default async function AdminCalendarPage({
     reason: row.reason,
     vehicleName: Array.isArray(row.vehicles) ? row.vehicles[0]?.name : (row.vehicles as { name: string } | null)?.name,
     crewName: Array.isArray(row.crews) ? row.crews[0]?.name : (row.crews as { name: string } | null)?.name,
-  }));
+  })), ...googleBlocks];
 
   return (
     <CalendarClient
