@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { cronConfig, googleCalendarConfig, supabaseConfig } from "../../../../lib/server/config.ts";
 import { getSupabaseAdmin } from "../../../../lib/server/supabase.ts";
+import { SYNCABLE_STATUSES } from "../../../../lib/calendar-sync.ts";
 import { reconcileBookingCalendar } from "../../../../lib/server/google-calendar.ts";
 import { importGoogleCalendarRange } from "../../../../lib/server/google-calendar-import.ts";
 
@@ -12,8 +13,7 @@ const DAY_MS = 86_400_000;
 const PAST_DAYS = 1;
 const FUTURE_DAYS = 120;
 const RETRY_BATCH = 25;
-/** Same states the booking screen allows a calendar sync for. */
-const SYNCABLE = ["confirmed", "assigned", "in_progress", "completed", "cancelled"];
+const SYNCABLE = [...SYNCABLE_STATUSES];
 
 /**
  * Scheduled two-way Google Calendar sync (Vercel Cron, every 15 minutes):
@@ -30,7 +30,7 @@ export async function GET(request: NextRequest) {
   if (!googleCalendarConfig.isConfigured()) return NextResponse.json({ error: "Google Calendar is not configured" }, { status: 503 });
 
   const now = Date.now();
-  const result: { imported: number | null; importError: string | null; pushed: number; pushFailed: number } = { imported: null, importError: null, pushed: 0, pushFailed: 0 };
+  const result: { imported: number | null; importError: string | null; pushed: number; pushFailed: number; tidied: number } = { imported: null, importError: null, pushed: 0, pushFailed: 0, tidied: 0 };
 
   try {
     result.imported = await importGoogleCalendarRange(new Date(now - PAST_DAYS * DAY_MS).toISOString(), new Date(now + FUTURE_DAYS * DAY_MS).toISOString());
@@ -55,6 +55,16 @@ export async function GET(request: NextRequest) {
   } catch (error) {
     console.error("HF Google push (cron) failed:", (error as { code?: unknown })?.code ?? "unknown");
     result.pushFailed = -1;
+  }
+
+  // Housekeeping (database only, no Google call): an expired hold never had a Google event, so it must not sit as "pending".
+  try {
+    const { data } = await getSupabaseAdmin().from("bookings")
+      .update({ calendar_sync_status: "not_applicable", calendar_sync_error: null })
+      .eq("booking_status", "expired").eq("calendar_sync_status", "pending").is("google_calendar_event_id", null).select("id");
+    result.tidied = (data ?? []).length;
+  } catch {
+    result.tidied = -1;
   }
 
   const ok = result.importError === null && result.pushFailed <= 0;

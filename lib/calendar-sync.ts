@@ -140,6 +140,46 @@ export function friendlyCalendarError(error: unknown): string {
   return "Google Calendar sync failed. Retry, and check the calendar settings if it keeps failing.";
 }
 
+/** Statuses the scheduled sync pushes (same set the booking screen allows a manual sync for). */
+export const SYNCABLE_STATUSES: readonly string[] = ["confirmed", "assigned", "in_progress", "completed", "cancelled"];
+
+export interface CalendarSyncReason {
+  /** ok = nothing to do; waiting = valid reason there is no event yet; retry = will be retried automatically; failed = needs attention. */
+  tone: "ok" | "waiting" | "retry" | "failed";
+  label: string;
+  detail: string;
+}
+
+/**
+ * Plain-language reason for a booking's calendar state, so staff can tell a valid "nothing to sync"
+ * (awaiting confirmation, expired hold) from a real failure. Pure: derived only from the booking row.
+ */
+export function calendarSyncReason(input: { booking_status: string; calendar_sync_status: string; google_calendar_event_id: string | null; calendar_sync_error?: string | null }): CalendarSyncReason {
+  const { booking_status: status, calendar_sync_status: sync, google_calendar_event_id: eventId } = input;
+  const live = LIVE_STATUSES.has(status);
+  if (sync === "failed") {
+    const retries = SYNCABLE_STATUSES.includes(status);
+    return {
+      tone: retries ? "retry" : "failed",
+      label: retries ? "Sync failed, will retry" : "Sync failed",
+      detail: `${input.calendar_sync_error ?? "Google Calendar sync failed."} ${retries ? "The next scheduled sync (every 15 minutes) retries this automatically." : "This booking is not retried automatically; use Retry sync."}`.trim(),
+    };
+  }
+  if (status === "expired") return { tone: "waiting", label: "No event needed", detail: "This hold expired before it was confirmed, so it never had a Google event." };
+  if (status === "cancelled") {
+    return eventId
+      ? { tone: "ok", label: "Removed from Google", detail: "The booking was cancelled and its Google event was removed." }
+      : { tone: "waiting", label: "No event needed", detail: "Cancelled before it had a Google event." };
+  }
+  if (status === "held" || status === "pending_payment" || status === "draft") {
+    return { tone: "waiting", label: "Awaiting confirmation", detail: "Held bookings are added to Google Calendar once the customer confirms." };
+  }
+  if (live && sync === "synced") return { tone: "ok", label: "In Google Calendar", detail: "The Google event matches this booking." };
+  if (live && sync === "pending") return { tone: "retry", label: "Queued for Google", detail: "It will be added by the next scheduled sync (within 15 minutes)." };
+  if (sync === "not_applicable") return { tone: "waiting", label: "Google not connected", detail: "Google Calendar is not connected, so bookings are not mirrored. Bookings work normally without it." };
+  return { tone: "waiting", label: "Not synced", detail: "No calendar action is needed for this booking state." };
+}
+
 /**
  * Brings the Google event in line with the booking's CURRENT state:
  *  - live booking     -> create the event once, or update it in place
@@ -179,6 +219,9 @@ export async function reconcileCalendarEvent(
       }
       return { status: "synced", eventId };
     }
+
+    // An expired hold was never confirmed, so it never had a Google event: nothing to remove and nothing to retry.
+    if (booking.booking_status === "expired" && !booking.google_calendar_event_id) return { status: "not_applicable" };
 
     if (REMOVED_STATUSES.has(booking.booking_status)) {
       try {

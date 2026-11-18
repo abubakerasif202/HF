@@ -37,17 +37,20 @@ function cron({ secret = "s3cret", google = true, pending = ["b1", "b2"], import
   const calls = [];
   const source = readFileSync(new URL("../app/api/cron/google-sync/route.ts", import.meta.url), "utf8");
   const out = ts.transpileModule(source, { compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 } }).outputText;
-  const chain = { select: () => chain, in: () => chain, order: () => chain, limit: async () => ({ data: pending.map((id) => ({ id })), error: null }) };
+  const tidyCalls = [];
+  const chain = { select: () => chain, in: () => chain, order: () => chain, limit: async () => ({ data: pending.map((id) => ({ id })), error: null }),
+    update: (patch) => { tidyCalls.push(patch); return chain; }, eq: () => chain, is: () => chain, then: (resolve) => resolve({ data: [{ id: "x1" }, { id: "x2" }, { id: "x3" }], error: null }) };
   const exports = {};
   vm.runInNewContext(out, { exports, console: { error() {} }, Date, Number, String, Array, Object, Promise, require: (id) => {
     if (id === "next/server") return { NextResponse: { json: (body, init = {}) => ({ body, status: init.status ?? 200 }) } };
+    if (id.includes("lib/calendar-sync.ts")) return { SYNCABLE_STATUSES: ["confirmed", "assigned", "in_progress", "completed", "cancelled"] };
     if (id.includes("config.ts")) return { cronConfig: { isConfigured: () => Boolean(secret), secret: () => secret }, supabaseConfig: { isConfigured: () => true }, googleCalendarConfig: { isConfigured: () => google } };
     if (id.includes("lib/server/supabase.ts")) return { getSupabaseAdmin: () => ({ from: () => chain }) };
     if (id.includes("google-calendar-import")) return { importGoogleCalendarRange: async (a, b) => { calls.push(["import", a, b]); if (importError) throw importError; return 3; } };
     if (id.includes("google-calendar.ts")) return { reconcileBookingCalendar: async (bid) => { calls.push(["push", bid]); } };
     return require(id);
   } });
-  return { calls, get: (auth) => exports.GET({ headers: new Headers(auth ? { authorization: auth } : {}) }) };
+  return { calls, tidyCalls, get: (auth) => exports.GET({ headers: new Headers(auth ? { authorization: auth } : {}) }) };
 }
 
 test("sync cron requires the cron secret and does nothing otherwise", async () => {
@@ -64,7 +67,8 @@ test("sync cron imports Google events then pushes pending bookings", async () =>
   const h = cron();
   const response = await h.get("Bearer s3cret");
   assert.equal(response.status, 200);
-  assert.deepEqual({ ...response.body }, { imported: 3, importError: null, pushed: 2, pushFailed: 0 });
+  assert.deepEqual({ ...response.body }, { imported: 3, importError: null, pushed: 2, pushFailed: 0, tidied: 3 });
+  assert.deepEqual({ ...h.tidyCalls[0] }, { calendar_sync_status: "not_applicable", calendar_sync_error: null }, "expired holds are tidied in the database only");
   assert.deepEqual(h.calls.map((c) => c[0]), ["import", "push", "push"]);
   const [, from, to] = h.calls[0];
   assert.ok(Date.parse(to) - Date.parse(from) > 100 * 86_400_000, "imports roughly the next 120 days");

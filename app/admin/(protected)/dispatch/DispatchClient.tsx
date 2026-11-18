@@ -1,6 +1,7 @@
 "use client";
 
 import { conflictLabel, effectiveDispatchTruckCount, needsDispatchAllocation, type ConflictCertainty } from "../../../../lib/dispatch.ts";
+import { calendarSyncReason } from "../../../../lib/calendar-sync.ts";
 import { DispatchEditor } from "./DispatchEditor";
 import { DispatchQueues } from "./DispatchQueues";
 
@@ -35,6 +36,9 @@ export interface DispatchBooking {
   dispatch_fixed_price_cents: number | null;
   dispatch_customer_requirements: string[];
   dispatch_checklist: Array<{ id: string; label: string; done: boolean }>;
+  calendar_sync_status?: string;
+  calendar_sync_error?: string | null;
+  google_calendar_event_id?: string | null;
   customer_notes: string | null;
   internal_notes: string | null;
   pickup_address: Address | null;
@@ -327,6 +331,10 @@ export function DispatchClient({ initialDate }: Props) {
                     {booking.dispatch_overnight && <span>Overnight</span>}
                     {booking.dispatch_truck_left_onsite && <span>Truck remains onsite</span>}
                     {booking.dispatch_pricing_type && <span>{booking.dispatch_pricing_type} pricing</span>}
+                    {booking.calendar_sync_status && (() => {
+                      const reason = calendarSyncReason({ booking_status: booking.booking_status, calendar_sync_status: booking.calendar_sync_status, google_calendar_event_id: booking.google_calendar_event_id ?? null, calendar_sync_error: booking.calendar_sync_error });
+                      return <span className="a-dispatch-sync" data-tone={reason.tone} title={reason.detail}><Icon name="sync" size={14} />Calendar: {reason.label}</span>;
+                    })()}
                   </div>
                   {booking.customer_notes && <p className="a-dispatch-note"><strong>Customer note:</strong> {booking.customer_notes}</p>}
                 </div>
