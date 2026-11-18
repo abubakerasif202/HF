@@ -4,6 +4,7 @@ import { useTransition } from "react";
 import { retryCalendarSyncAction } from "./actions.ts";
 import { AdminStatusBadge } from "../../../_components/AdminStatusBadge";
 import { Icon } from "../../../_components/Icon";
+import type { CalendarSyncReason } from "../../../../../lib/calendar-sync.ts";
 
 interface Props {
   bookingId: string;
@@ -13,9 +14,11 @@ interface Props {
   /** Whether this booking's state is one that is mirrored to Google. */
   canSync: boolean;
   eventLink: string | null;
+  /** Why the calendar is in this state (valid "nothing to sync" vs a real failure). */
+  reason: CalendarSyncReason;
 }
 
-export function CalendarSyncStatus({ bookingId, status, error, canSync, eventLink }: Props) {
+export function CalendarSyncStatus({ bookingId, status, canSync, eventLink, reason }: Props) {
   const [pending, startTransition] = useTransition();
   const showRetry = canSync && (status === "failed" || status === "pending");
 
@@ -40,10 +43,9 @@ export function CalendarSyncStatus({ bookingId, status, error, canSync, eventLin
           </a>
         )}
       </div>
-      {status === "not_applicable" && (
-        <p className="admin-help">Google Calendar isn&apos;t connected, so bookings aren&apos;t mirrored to it. Bookings work normally without it.</p>
-      )}
-      {status === "failed" && error && <p className="text-xs font-semibold text-[var(--admin-danger)]">{error}</p>}
+      <p className={reason.tone === "failed" ? "text-xs font-semibold text-[var(--admin-danger)]" : "admin-help"} data-sync-tone={reason.tone}>
+        <strong>{reason.label}.</strong> {reason.detail}
+      </p>
     </div>
   );
 }

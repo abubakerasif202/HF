@@ -6,6 +6,7 @@ import { getSupabaseAdmin } from "../../../../../lib/server/supabase.ts";
 import { StatusControls } from "./StatusControls";
 import { RescheduleForm } from "./RescheduleForm";
 import { CalendarSyncStatus } from "./CalendarSyncStatus";
+import { calendarSyncReason } from "../../../../../lib/calendar-sync.ts";
 import { NoteForm } from "./NoteForm";
 import { BookingHero } from "./BookingHero";
 import { BillingCard } from "./BillingCard";
@@ -230,6 +231,7 @@ export default async function AdminBookingDetailPage({ params }: { params: Promi
               bookingId={booking.id}
               status={booking.calendar_sync_status}
               error={booking.calendar_sync_error}
+              reason={calendarSyncReason(booking)}
               canSync={["confirmed", "assigned", "in_progress", "completed", "cancelled"].includes(booking.booking_status)}
               eventLink={booking.calendar_sync_status === "synced" && booking.booking_status !== "cancelled" ? googleCalendarEventLink(booking.google_calendar_event_id) : null}
             />

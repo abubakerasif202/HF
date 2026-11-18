@@ -66,7 +66,7 @@ export async function GET(request: NextRequest) {
     const nextDay = zonedWallTimeToInstant(year, month, day + 1, 0, 0, settings.timezone);
     const [bookingsResult, crewsResult, importsResult, vehiclesResult] = await Promise.all([
       getSupabaseAdmin().from("bookings")
-        .select("id, booking_number, booking_status, starts_at, ends_at, estimated_duration_minutes, crew_size, crew_id, vehicle_id, dispatch_additional_vehicle_ids, dispatch_truck_count, dispatch_travel_minutes, dispatch_overnight, dispatch_truck_left_onsite, dispatch_pricing_type, dispatch_fixed_price_cents, dispatch_customer_requirements, dispatch_checklist, customer_notes, internal_notes, pickup_address, destination_address, customers(name, phone)")
+        .select("id, booking_number, booking_status, starts_at, ends_at, estimated_duration_minutes, crew_size, crew_id, vehicle_id, dispatch_additional_vehicle_ids, dispatch_truck_count, dispatch_travel_minutes, dispatch_overnight, dispatch_truck_left_onsite, dispatch_pricing_type, dispatch_fixed_price_cents, dispatch_customer_requirements, dispatch_checklist, calendar_sync_status, calendar_sync_error, google_calendar_event_id, customer_notes, internal_notes, pickup_address, destination_address, customers(name, phone)")
         .lt("starts_at", nextDay.toISOString()).gt("ends_at", dayStart.toISOString()).order("starts_at"),
       getSupabaseAdmin().from("crews").select("id, name").eq("active", true).order("name"),
       getSupabaseAdmin().from("google_calendar_imports")

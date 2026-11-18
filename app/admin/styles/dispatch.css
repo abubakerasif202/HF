@@ -152,3 +152,9 @@
   .a-find-result-when { text-align: left; }
   .a-find-actions .admin-btn { flex: 1 1 140px; }
 }
+
+.a-dispatch-sync { font-weight: 700; }
+.a-dispatch-sync[data-tone="ok"] svg { color: var(--a-success); }
+.a-dispatch-sync[data-tone="waiting"] { color: var(--a-muted); }
+.a-dispatch-sync[data-tone="retry"] { color: var(--a-warning); }
+.a-dispatch-sync[data-tone="failed"] { color: var(--a-danger); }
