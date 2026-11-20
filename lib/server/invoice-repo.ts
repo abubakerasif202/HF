@@ -6,6 +6,7 @@ import {
   type InvoiceLine, type InvoicePayment, type InvoiceSettings, type InvoiceDraftPayload,
 } from "../invoice.ts";
 import type { InvoiceSnapshot } from "../invoice-pdf.ts";
+import { applyContactSnapshot } from "../booking/contact.ts";
 
 export class InvoiceError extends Error {
   status: number;
@@ -218,8 +219,8 @@ export async function createInvoiceDraftForBooking(bookingId: string, actor: str
     .select("*, customers(name, email, phone)").eq("id", bookingId).maybeSingle();
   if (error) throw mapInvoiceError(error);
   if (!booking) throw new InvoiceError(404, "booking_not_found", "Booking not found.");
-  const customers = (booking as Row).customers;
-  const flat = { ...(booking as Row), customers: Array.isArray(customers) ? (customers[0] ?? null) : (customers ?? null) };
+  // The booking's own contact snapshot wins over the shared customers row.
+  const flat = applyContactSnapshot(booking as Row);
   const draft: InvoiceDraftPayload = prefillInvoiceFromBooking(flat as unknown as Parameters<typeof prefillInvoiceFromBooking>[0], await getInvoiceSettings());
   const { data, error: rpcError } = await admin.rpc("create_invoice_draft", { p_booking_id: bookingId, p_actor: actor, p_draft: draft });
   if (rpcError) throw mapInvoiceError(rpcError);

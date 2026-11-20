@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import { getAdminAuthState } from "../../../../../lib/server/supabase-ssr.ts";
 import { getSupabaseAdmin } from "../../../../../lib/server/supabase.ts";
 import { adelaideDay } from "../../../../../lib/admin/dates.ts";
+import { resolveBookingContact } from "../../../../../lib/booking/contact.ts";
 import { selectDispatchQueues, WORK_STATUSES } from "../../../../../lib/dispatch.ts";
 import { addressLabel } from "../../../../../lib/booking-finder.ts";
 
@@ -25,6 +26,8 @@ interface QueueRow {
   dispatch_truck_count: number | null;
   pickup_address: unknown;
   destination_address: unknown;
+  contact_name?: string | null;
+  contact_email?: string | null;
   customers: { name: string | null } | Array<{ name: string | null }> | null;
 }
 
@@ -42,7 +45,7 @@ export async function GET() {
     const admin = getSupabaseAdmin();
     const [bookings, crews, vehicles] = await Promise.all([
       admin.from("bookings")
-        .select("id, booking_number, booking_status, starts_at, ends_at, crew_id, vehicle_id, dispatch_additional_vehicle_ids, dispatch_truck_count, pickup_address, destination_address, customers(name)")
+        .select("id, booking_number, booking_status, starts_at, ends_at, crew_id, vehicle_id, dispatch_additional_vehicle_ids, dispatch_truck_count, pickup_address, destination_address, contact_name, contact_email, customers(name)")
         .in("booking_status", [...WORK_STATUSES, "completed"]).gte("starts_at", from).lt("starts_at", to).order("starts_at").limit(500),
       admin.from("crews").select("id, name"),
       admin.from("vehicles").select("id, name"),
@@ -55,7 +58,7 @@ export async function GET() {
     const truckNames = new Map(((vehicles.data ?? []) as Array<{ id: string; name: string }>).map((v) => [v.id, v.name]));
     const queues = selectDispatchQueues((bookings.data ?? []) as unknown as QueueRow[], now);
     const shape = (row: QueueRow) => {
-      const customer = Array.isArray(row.customers) ? row.customers[0] : row.customers;
+      const customer = resolveBookingContact(row);
       const trucks = [...(row.vehicle_id ? [row.vehicle_id] : []), ...(row.dispatch_additional_vehicle_ids ?? [])];
       return {
         id: row.id, bookingNumber: row.booking_number, status: row.booking_status, startsAt: row.starts_at, endsAt: row.ends_at,

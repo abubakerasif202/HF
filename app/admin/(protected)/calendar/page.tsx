@@ -4,6 +4,7 @@ import { getBusinessSettings } from "../../../../lib/server/booking-repo.ts";
 import { findMovingPackage } from "../../../../lib/site-data.ts";
 import { getRangeForView, type CalendarView } from "../../../../lib/booking/calendar-range.ts";
 import { loadGoogleBlocks } from "../../../../lib/server/calendar-google-blocks.ts";
+import { resolveBookingContact } from "../../../../lib/booking/contact.ts";
 import { CalendarClient } from "./CalendarClient";
 import "../../styles/calendar.css";
 
@@ -44,7 +45,7 @@ export default async function AdminCalendarPage({
   const [{ data: bookings, error: bookingError }, { data: blockedTimes }, { data: vehicles }, { data: crews }] = await Promise.all([
     supabase
       .from("bookings")
-      .select("id, booking_number, starts_at, ends_at, booking_status, crew_size, package_id, vehicle_id, crew_id, vehicles!bookings_vehicle_id_fkey(name), crews(name), customers(name)")
+      .select("id, booking_number, starts_at, ends_at, booking_status, crew_size, package_id, vehicle_id, crew_id, vehicles!bookings_vehicle_id_fkey(name), crews(name), contact_name, contact_email, customers(name)")
       .not("booking_status", "in", "(cancelled,expired,draft)")
       .lt("starts_at", end.toISOString())
       .gt("ends_at", start.toISOString())
@@ -73,7 +74,7 @@ export default async function AdminCalendarPage({
     crewId: b.crew_id,
     vehicleName: Array.isArray(b.vehicles) ? b.vehicles[0]?.name : (b.vehicles as { name: string } | null)?.name,
     crewName: Array.isArray(b.crews) ? b.crews[0]?.name : (b.crews as { name: string } | null)?.name,
-    customerName: Array.isArray(b.customers) ? b.customers[0]?.name : (b.customers as { name: string } | null)?.name,
+    customerName: resolveBookingContact(b)?.name ?? undefined,
   }));
 
   const googleBlocks = await loadGoogleBlocks(start, end, settings.timezone);

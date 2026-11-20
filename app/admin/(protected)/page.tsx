@@ -6,6 +6,7 @@ import { BarChart, DonutChart, PipelineBars, Sparkline, type BarDatum } from "..
 import { Icon } from "../_components/Icon";
 import { getSupabaseAdmin } from "../../../lib/server/supabase.ts";
 import { adelaideDay, adelaideDayOffset } from "../../../lib/admin/dates.ts";
+import { resolveBookingContact } from "../../../lib/booking/contact.ts";
 import { instantToZonedParts } from "../../../lib/booking/timezone.ts";
 
 export const dynamic = "force-dynamic";
@@ -36,6 +37,8 @@ type MoveRow = {
   destination_address: AddressJson;
   vehicle_id: string | null;
   crew_id: string | null;
+  contact_name?: string | null;
+  contact_email?: string | null;
   customers: { name: string | null } | { name: string | null }[] | null;
 };
 
@@ -119,7 +122,7 @@ export default async function AdminDashboardPage() {
     supabase.from("bookings").select("balance_due_cents").gt("balance_due_cents", 0).in("booking_status", ["confirmed", "assigned", "completed"]),
     supabase
       .from("bookings")
-      .select("id, booking_number, starts_at, booking_status, pickup_address, destination_address, vehicle_id, crew_id, customers(name)")
+      .select("id, booking_number, starts_at, booking_status, pickup_address, destination_address, vehicle_id, crew_id, contact_name, contact_email, customers(name)")
       .gte("starts_at", nowIso)
       .in("booking_status", [...LIVE_STATUSES])
       .order("starts_at", { ascending: true })
@@ -329,7 +332,7 @@ export default async function AdminDashboardPage() {
           ) : (
             <ol className="a-move-list">
               {moves.map((move) => {
-                const customer = firstOf(move.customers);
+                const customer = resolveBookingContact(move);
                 const start = new Date(move.starts_at);
                 return (
                   <li key={move.id} className="a-move">

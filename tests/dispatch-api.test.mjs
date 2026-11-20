@@ -21,7 +21,7 @@ function harness({ auth = "authorized", databaseError, calendarError, clashes } 
         rpc: async (name, args) => { calls.push([name, args]); return { data: !databaseError, error: databaseError }; },
         from: () => ({ select: () => ({ eq: () => ({ maybeSingle: async () => ({ data: { starts_at: "2026-11-20T00:00:00Z", ends_at: "2026-11-20T03:00:00Z", crew_id: "crew-1", vehicle_id: null, dispatch_additional_vehicle_ids: [] } }) }) }) }),
       }) };
-      if (id.includes("booking-repo") || id.includes("timezone") || id.endsWith("dispatch.ts")) return {};
+      if (id.includes("booking-repo") || id.includes("timezone") || id.includes("booking/contact") || id.endsWith("dispatch.ts")) return {};
       return require(id);
     },
   });
