@@ -95,3 +95,12 @@ test("job closeout page and actions are owner-guarded", async () => {
     assert.match(body.slice(0, 200), /requireStaff\(\)/, `${name} must authorize first`);
   }
 });
+
+test("customers pages and action are covered by the owner guards", async () => {
+  const page = await readFile(path.join(root, "app/admin/(protected)/customers/page.tsx"), "utf8");
+  const detail = await readFile(path.join(root, "app/admin/(protected)/customers/[id]/page.tsx"), "utf8");
+  const actions = await readFile(path.join(root, "app/admin/(protected)/customers/actions.ts"), "utf8");
+  assert.match(page, /await requireAdmin\(\)/);
+  assert.match(detail, /await requireAdmin\(\)/);
+  assert.match(actions.slice(actions.indexOf("export async function updateCustomerAction")), /^[\s\S]{0,200}await requireStaff\(\)/);
+});

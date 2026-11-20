@@ -1,0 +1,21 @@
+/* Customers: directory list, detail page and contact edit form. */
+.a-cust { display: grid; grid-template-columns: minmax(0, 1fr); gap: 18px; }
+.a-cust-search { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 10px; }
+.a-cust-search-field { flex: 1 1 260px; min-width: 0; }
+.a-cust-search .admin-input { width: 100%; min-height: 44px; }
+.a-cust-search .admin-btn { min-height: 44px; }
+.a-cust-contact { display: block; overflow-wrap: anywhere; }
+.a-cust-owing { color: var(--a-danger); font-weight: 800; }
+.a-cust-pager { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; padding: 14px 18px; border-top: 1px solid var(--a-line); color: var(--a-ink-2); }
+.a-cust-pager-links { display: flex; gap: 8px; }
+.a-cust-pager .admin-btn { min-height: 44px; }
+
+.a-cust-grid { display: grid; grid-template-columns: minmax(0, 1fr); gap: 18px; align-items: start; }
+@media (min-width: 900px) { .a-cust-grid { grid-template-columns: minmax(0, 3fr) minmax(0, 2fr); } }
+.a-cust-form { display: grid; gap: 14px; }
+.a-cust-form .admin-field { min-width: 0; }
+.a-cust-form .admin-input { width: 100%; min-height: 44px; }
+.a-cust-form-actions { display: flex; gap: 10px; }
+.a-cust-form-actions .admin-btn { min-height: 44px; }
+.a-cust-note { margin: 0; color: var(--a-ink-2); font-size: 0.85rem; }
+.a-cust-search .admin-btn:focus-visible, .a-cust-pager .admin-btn:focus-visible, .a-cust-form .admin-btn:focus-visible { outline: 2px solid var(--a-focus); outline-offset: 2px; }

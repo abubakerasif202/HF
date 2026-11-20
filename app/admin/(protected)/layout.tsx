@@ -15,6 +15,7 @@ const NAV_GROUPS: NavGroup[] = [
       { href: "/admin/bookings", label: "Bookings", icon: "bookings" },
       { href: "/admin/dispatch", label: "Dispatch", icon: "truck" },
       { href: "/admin/quotes", label: "Quote enquiries", icon: "inbox" },
+      { href: "/admin/customers", label: "Customers", icon: "user" },
       { href: "/admin/invoices", label: "Invoices", icon: "dollar" },
       { href: "/admin/calendar", label: "Calendar", icon: "calendar" },
       { href: "/admin/closeout", label: "Job closeout", icon: "check" },
