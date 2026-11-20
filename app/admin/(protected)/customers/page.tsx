@@ -4,6 +4,7 @@ import { loadCustomerDirectory } from "../../../../lib/server/customer-repo.ts";
 import { CUSTOMER_MAX_QUERY_LENGTH, filterCustomers, paginate } from "../../../../lib/customers.ts";
 import { AdminAlert, AdminCard, AdminEmptyState, AdminPageHeader, DataTable, formatAdelaide, formatMoney } from "../../_components/ui";
 import { Icon } from "../../_components/Icon";
+import { ExportCsvLink } from "../../_components/ExportCsvLink";
 import "../../styles/customers.css";
 
 export const dynamic = "force-dynamic";
@@ -36,6 +37,7 @@ export default async function CustomersPage({ searchParams }: { searchParams: Pr
         eyebrow="Operations"
         title="Customers"
         description="Everyone who has booked. Booking counts leave out abandoned holds; money shows issued invoices only."
+actions={<ExportCsvLink href={`/api/admin/export/customers${query ? `?${new URLSearchParams({ q: query }).toString()}` : ""}`} />}
       />
       <form className="a-cust-search" role="search" action="/admin/customers" method="get">
         <label className="admin-field a-cust-search-field">

@@ -127,6 +127,7 @@ export async function POST(request: Request) {
       booking = await createBookingHold({
         bookingNumber,
         customerId,
+        contact: { name: input.customer.name, email: input.customer.email, phone: input.customer.phone || null },
         serviceId: service.id,
         startsAt,
         endsAt,

@@ -86,6 +86,7 @@ test("migration 0017 makes the RLS helper owner-only and revokes anon grants", a
   assert.match(sql, /revoke all on table[\s\S]*public\.bookings[\s\S]*from anon, authenticated/);
   assert.doesNotMatch(sql, /grant [^;]* to anon/i);
 });
+
 test("job closeout page and actions are owner-guarded", async () => {
   const page = await readFile(path.join(root, "app/admin/(protected)/closeout/page.tsx"), "utf8");
   assert.match(page, /await requireAdmin\(\)/);
@@ -103,6 +104,7 @@ test("customers pages and action are covered by the owner guards", async () => {
   assert.match(page, /await requireAdmin\(\)/);
   assert.match(detail, /await requireAdmin\(\)/);
   assert.match(actions.slice(actions.indexOf("export async function updateCustomerAction")), /^[\s\S]{0,200}await requireStaff\(\)/);
+});
 
 test("reports page is owner-guarded and the reports repo is read-only and server-only", async () => {
   const page = await readFile(path.join(root, "app/admin/(protected)/reports/page.tsx"), "utf8");

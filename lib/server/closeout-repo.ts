@@ -1,4 +1,5 @@
 import "server-only";
+import { resolveBookingContact } from "../booking/contact.ts";
 import { getSupabaseAdmin } from "./supabase.ts";
 import { CLOSEOUT_STATUSES } from "../admin/closeout.ts";
 
@@ -31,7 +32,10 @@ interface Row {
   pickup_address: AddressJson;
   destination_address: AddressJson;
   crew_id: string | null;
-  customers: { name: string | null; phone: string | null } | { name: string | null; phone: string | null }[] | null;
+  contact_name: string | null;
+  contact_email: string | null;
+  contact_phone: string | null;
+  customers: { name: string | null; email: string | null; phone: string | null } | { name: string | null; email: string | null; phone: string | null }[] | null;
 }
 
 /**
@@ -43,7 +47,7 @@ export async function listCloseoutJobs(limit: number, now: Date = new Date(), { 
   const { data, count, error } = await supabase
     .from("bookings")
     .select(
-      "id, booking_number, starts_at, ends_at, booking_status, payment_status, estimated_duration_minutes, pickup_address, destination_address, crew_id, customers(name, phone)",
+      "id, booking_number, starts_at, ends_at, booking_status, payment_status, estimated_duration_minutes, pickup_address, destination_address, crew_id, contact_name, contact_email, contact_phone, customers(name, email, phone)",
       { count: "exact" },
     )
     .lt("ends_at", now.toISOString())
@@ -73,7 +77,7 @@ export async function listCloseoutJobs(limit: number, now: Date = new Date(), { 
   return {
     total: count ?? rows.length,
     jobs: rows.map((row) => {
-      const customer = Array.isArray(row.customers) ? (row.customers[0] ?? null) : row.customers;
+      const customer = resolveBookingContact(row);
       return {
         id: row.id,
         bookingNumber: row.booking_number,
