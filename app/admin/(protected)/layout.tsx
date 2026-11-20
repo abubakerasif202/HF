@@ -3,6 +3,7 @@ import { getStaffSession } from "../../../lib/server/supabase-ssr.ts";
 import { countQuotesNeedingAttention } from "../../../lib/server/quote-crm-repo.ts";
 import { isBookingSystemLive } from "../../../lib/server/config.ts";
 import { AdminShell, type NavGroup } from "../_components/shell/AdminShell";
+import { countCloseoutJobs } from "../../../lib/server/closeout-repo.ts";
 
 export const dynamic = "force-dynamic";
 
@@ -16,6 +17,7 @@ const NAV_GROUPS: NavGroup[] = [
       { href: "/admin/quotes", label: "Quote enquiries", icon: "inbox" },
       { href: "/admin/invoices", label: "Invoices", icon: "dollar" },
       { href: "/admin/calendar", label: "Calendar", icon: "calendar" },
+      { href: "/admin/closeout", label: "Job closeout", icon: "check" },
     ],
   },
   {
@@ -43,8 +45,9 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   if (!staff) redirect("/admin/login");
 
   // Untouched enquiries plus open follow-ups that are overdue. Never blocks the page if it fails.
-  const needsAttention = await countQuotesNeedingAttention();
+  const [needsAttention, closeoutJobs] = await Promise.all([countQuotesNeedingAttention(), countCloseoutJobs()]);
   const badges: Record<string, number> = needsAttention ? { "/admin/quotes": needsAttention } : {};
+  if (closeoutJobs) badges["/admin/closeout"] = closeoutJobs;
 
   return (
     <div className="admin-shell">
