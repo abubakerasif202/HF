@@ -1,5 +1,6 @@
 import "server-only";
 import { getSupabaseAdmin } from "./supabase.ts";
+import { resolveBookingContact } from "../booking/contact.ts";
 import { conflictLabel, findDispatchConflicts, LIVE_STATUSES, type ConflictCertainty, type DispatchBooking } from "../dispatch.ts";
 
 export interface BookingConflictView {
@@ -38,7 +39,7 @@ export async function loadBookingConflicts(subject: ConflictSubject): Promise<Bo
 
   const [others, timed, openEnded] = await Promise.all([
     admin.from("bookings")
-      .select("id, booking_number, booking_status, starts_at, ends_at, estimated_duration_minutes, crew_id, vehicle_id, dispatch_additional_vehicle_ids, customers(name)")
+      .select("id, booking_number, booking_status, starts_at, ends_at, estimated_duration_minutes, crew_id, vehicle_id, dispatch_additional_vehicle_ids, contact_name, contact_email, customers(name)")
       .in("booking_status", [...LIVE_STATUSES]).neq("id", subject.id).lt("starts_at", windowEnd).gt("ends_at", windowStart),
     admin.from("google_calendar_imports").select("id, summary, starts_at, ends_at, event_status")
       .in("event_status", ["confirmed", "tentative"]).lt("starts_at", windowEnd).gt("ends_at", windowStart),
@@ -49,7 +50,7 @@ export async function loadBookingConflicts(subject: ConflictSubject): Promise<Bo
   if (timed.error) throw timed.error;
   if (openEnded.error) throw openEnded.error;
 
-  type OtherRow = ConflictSubject & { booking_number: string; customers: { name?: string | null } | Array<{ name?: string | null }> | null };
+  type OtherRow = ConflictSubject & { booking_number: string; contact_name?: string | null; contact_email?: string | null; customers: { name?: string | null } | Array<{ name?: string | null }> | null };
   const otherRows = (others.data ?? []) as unknown as OtherRow[];
   const events = [...(timed.data ?? []), ...(openEnded.data ?? [])] as Array<{ id: string; summary: string | null; starts_at: string | null; ends_at: string | null; event_status: string }>;
   const conflicts = findDispatchConflicts(
@@ -60,7 +61,7 @@ export async function loadBookingConflicts(subject: ConflictSubject): Promise<Bo
   return conflicts.map((conflict): BookingConflictView => {
     const row = otherRows.find((r) => r.id === conflict.otherId);
     const event = events.find((e) => e.id === conflict.otherId);
-    const customer = row ? (Array.isArray(row.customers) ? row.customers[0] : row.customers) : null;
+    const customer = row ? resolveBookingContact(row) : null;
     return {
       kind: conflict.kind, certainty: conflict.certainty, label: conflictLabel(conflict),
       other: {

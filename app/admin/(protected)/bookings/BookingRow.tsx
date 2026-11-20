@@ -29,7 +29,7 @@ export interface BookingListItem {
   balance_due_cents: number;
   pickup_address: AddressJson;
   destination_address: AddressJson;
-  customers: { name: string; email: string; phone: string | null } | null;
+  customers: { name: string | null; email: string | null; phone: string | null } | null;
 }
 
 const CANCELLABLE = ["held", "pending_payment", "confirmed", "assigned"];

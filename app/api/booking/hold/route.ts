@@ -191,6 +191,7 @@ export async function POST(request: NextRequest) {
       const booking = await createBookingHold({
         bookingNumber,
         customerId,
+        contact: { name: input.customer.name, email: normalizedEmail, phone: input.customer.phone },
         serviceId: service.id,
         startsAt,
         endsAt,

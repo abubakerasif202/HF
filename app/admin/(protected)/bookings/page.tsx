@@ -5,6 +5,7 @@ import { BookingRow, type BookingListItem } from "./BookingRow";
 import { BookingStatusFilter, BookingsSummaryStrip } from "./BookingsOverview";
 import { groupBookings, statusCounts, summariseBookings } from "./grouping";
 import { AdminEmptyState, AdminPageHeader, formatAdelaide } from "../../_components/ui";
+import { applyContactSnapshot } from "../../../../lib/booking/contact.ts";
 import "../../styles/bookings.css";
 
 export const dynamic = "force-dynamic";
@@ -17,7 +18,7 @@ export default async function AdminBookingsPage({ searchParams }: { searchParams
   const [{ data: bookings }, { data: vehicles }, { data: crews }] = await Promise.all([
     supabase
       .from("bookings")
-      .select("id, booking_number, starts_at, booking_status, payment_status, crew_size, package_id, vehicle_id, crew_id, subtotal_cents, deposit_paid_cents, balance_due_cents, pickup_address, destination_address, customers(name, email, phone)")
+      .select("id, booking_number, starts_at, booking_status, payment_status, crew_size, package_id, vehicle_id, crew_id, subtotal_cents, deposit_paid_cents, balance_due_cents, pickup_address, destination_address, contact_name, contact_email, contact_phone, customers(name, email, phone)")
       .order("starts_at", { ascending: true })
       .limit(100),
     supabase.from("vehicles").select("id, name").eq("active", true),
@@ -25,10 +26,8 @@ export default async function AdminBookingsPage({ searchParams }: { searchParams
   ]);
 
   const now = new Date();
-  const rows: BookingListItem[] = (bookings ?? []).map((booking) => ({
-    ...booking,
-    customers: Array.isArray(booking.customers) ? (booking.customers[0] ?? null) : booking.customers,
-  }));
+  // Show the contact typed on each booking; the shared customer row is only a fallback.
+  const rows: BookingListItem[] = (bookings ?? []).map((booking) => applyContactSnapshot(booking));
   const statuses = statusCounts(rows);
   const requested = Array.isArray(statusParam) ? statusParam[0] : statusParam;
   const activeStatus = statuses.some((s) => s.status === requested) ? (requested as string) : "all";

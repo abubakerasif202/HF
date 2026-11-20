@@ -50,7 +50,7 @@ export default async function BookingSuccessPage({ searchParams }: { searchParam
   // amount; everything since pays nothing up-front. Read what was
   // actually recorded — never assume either way.
   const amountPaidCents: number = booking.deposit_paid_cents ?? 0;
-  const customer = Array.isArray(booking.customers) ? booking.customers[0] : booking.customers;
+  const customer = booking.customers;
 
   return (
     <main className="booking-shell mx-auto max-w-2xl px-6 py-24 text-center">
