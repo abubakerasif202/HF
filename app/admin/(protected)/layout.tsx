@@ -16,6 +16,7 @@ const NAV_GROUPS: NavGroup[] = [
       { href: "/admin/quotes", label: "Quote enquiries", icon: "inbox" },
       { href: "/admin/invoices", label: "Invoices", icon: "dollar" },
       { href: "/admin/calendar", label: "Calendar", icon: "calendar" },
+      { href: "/admin/reports", label: "Reports", icon: "trendUp" },
     ],
   },
   {
