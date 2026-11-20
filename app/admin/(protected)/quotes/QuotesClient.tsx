@@ -7,7 +7,6 @@ import { AdminStatusBadge, QUOTE_STATUS } from "../../_components/AdminStatusBad
 import { ConfirmationDialog } from "../../_components/ConfirmationDialog";
 import { DetailDrawer } from "../../_components/DetailDrawer";
 import { Icon } from "../../_components/Icon";
-<<<<<<< ours
 import {
   BULK_MAX_IDS,
   DEFAULT_CLOSE_HM,
@@ -35,9 +34,7 @@ const TABS: { value: Tab; label: string }[] = [
   { value: "overdue", label: "Overdue" },
   { value: "all", label: "All" },
 ];
-=======
 import { ExportCsvLink } from "../../_components/ExportCsvLink";
->>>>>>> theirs
 
 const STATUS_COLOR: Record<QuoteStatus, string> = {
   new: "var(--a-brand)",
@@ -209,12 +206,8 @@ function QuotesList({ initialSummary, businessHours }: { initialSummary: QuoteSu
       <AdminPageHeader
         eyebrow="Customer desk"
         title={<>Quote <em>enquiries</em></>}
-<<<<<<< ours
         description="Every website quote request in one place. Reply, set a follow-up, and turn a won enquiry into a booking."
-=======
-        description="Every website quote request in one place. Open an enquiry to call, email and move it through your follow-up."
         actions={<ExportCsvLink href={`/api/admin/export/quotes?${new URLSearchParams({ ...(status !== "all" ? { status } : {}), ...(search.trim() ? { q: search.trim() } : {}) }).toString()}`} />}
->>>>>>> theirs
       />
 
       {counts && (

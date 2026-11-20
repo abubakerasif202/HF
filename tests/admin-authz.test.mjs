@@ -86,7 +86,6 @@ test("migration 0017 makes the RLS helper owner-only and revokes anon grants", a
   assert.match(sql, /revoke all on table[\s\S]*public\.bookings[\s\S]*from anon, authenticated/);
   assert.doesNotMatch(sql, /grant [^;]* to anon/i);
 });
-<<<<<<< ours
 test("job closeout page and actions are owner-guarded", async () => {
   const page = await readFile(path.join(root, "app/admin/(protected)/closeout/page.tsx"), "utf8");
   assert.match(page, /await requireAdmin\(\)/);
@@ -113,7 +112,6 @@ test("reports page is owner-guarded and the reports repo is read-only and server
   assert.match(repo, /^import "server-only";/);
   assert.doesNotMatch(repo, /\.(insert|update|delete|upsert|rpc)\(/);
 });
-=======
 
 test("CSV export and global search routes authorize on the server and never cache", async () => {
   for (const name of ["bookings", "quotes", "invoices", "customers"]) {
@@ -128,4 +126,3 @@ test("CSV export and global search routes authorize on the server and never cach
   assert.match(shared, /private, no-store, max-age=0/);
   assert.match(shared, /attachment; filename=/);
 });
->>>>>>> theirs

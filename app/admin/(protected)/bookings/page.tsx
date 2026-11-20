@@ -5,11 +5,8 @@ import { BookingRow, type BookingListItem } from "./BookingRow";
 import { BookingStatusFilter, BookingsSummaryStrip } from "./BookingsOverview";
 import { groupBookings, statusCounts, summariseBookings } from "./grouping";
 import { AdminEmptyState, AdminPageHeader, formatAdelaide } from "../../_components/ui";
-<<<<<<< ours
 import { applyContactSnapshot } from "../../../../lib/booking/contact.ts";
-=======
 import { ExportCsvLink } from "../../_components/ExportCsvLink";
->>>>>>> theirs
 import "../../styles/bookings.css";
 
 export const dynamic = "force-dynamic";
