@@ -22,12 +22,10 @@ from customers c
 where b.customer_id = c.id
   and (b.contact_name is null or b.contact_phone is null or b.contact_email is null);
 
--- create_booking_hold: also store the submitted contact. The three new
--- parameters are last and default to null so older callers still work. The
--- previous 15-argument signature is dropped to avoid an ambiguous overload.
-drop function if exists create_booking_hold(text, uuid, uuid, timestamptz, timestamptz, integer, integer, uuid, jsonb, jsonb, jsonb, text, integer, text, text);
-
-create or replace function create_booking_hold(
+-- Preserve create_booking_hold (15 arguments) untouched for existing production callers.
+-- Publish a contact-aware function under a distinct name instead of changing
+-- or overloading the live RPC. Old and new Vercel builds can run concurrently.
+create or replace function create_booking_hold_with_contact(
   p_booking_number text,
   p_customer_id uuid,
   p_service_id uuid,
@@ -82,5 +80,8 @@ exception
 end;
 $$;
 
-revoke execute on function create_booking_hold(text, uuid, uuid, timestamptz, timestamptz, integer, integer, uuid, jsonb, jsonb, jsonb, text, integer, text, text, text, text, text) from public, anon, authenticated;
-grant execute on function create_booking_hold(text, uuid, uuid, timestamptz, timestamptz, integer, integer, uuid, jsonb, jsonb, jsonb, text, integer, text, text, text, text, text) to service_role;
+revoke execute on function create_booking_hold_with_contact(text, uuid, uuid, timestamptz, timestamptz, integer, integer, uuid, jsonb, jsonb, jsonb, text, integer, text, text, text, text, text) from public, anon, authenticated;
+grant execute on function create_booking_hold_with_contact(text, uuid, uuid, timestamptz, timestamptz, integer, integer, uuid, jsonb, jsonb, jsonb, text, integer, text, text, text, text, text) to service_role;
+
+-- Refresh PostgREST's cached function signatures before the new code deploys.
+notify pgrst, 'reload schema';

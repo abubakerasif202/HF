@@ -32,6 +32,7 @@ test("the hold route stores the submitted contact and never writes to customers"
   const fn = repo.slice(repo.indexOf("export async function findOrCreateCustomer"), repo.indexOf("export async function generateBookingNumber"));
   assert.doesNotMatch(fn, /\.update\(|\.upsert\(/, "a public request must not overwrite an existing customer row");
   assert.match(repo, /p_contact_phone:\s*input\.contact\.phone/);
+  assert.match(repo, /\.rpc\("create_booking_hold_with_contact"/, "contact-aware calls must use a separate RPC to preserve legacy bookings");
 });
 
 test("every place that shows or uses a booking contact prefers the snapshot", () => {
@@ -62,8 +63,15 @@ const SEED = `
     values ('b0000000-0000-4000-8000-000000000001','HF-2026-00001','a0000000-0000-4000-8000-000000000001','2026-12-01 00:00:00+00','2026-12-01 03:00:00+00',180,2,'confirmed');
 `;
 
+test("migration 0020 preserves the legacy booking RPC during a rolling release", () => {
+  const migration = read("supabase/migrations/0020_booking_contact_snapshot.sql");
+  assert.match(migration, /create or replace function create_booking_hold_with_contact\s*\(/i);
+  assert.doesNotMatch(migration, /drop\s+function(?:\s+if\s+exists)?\s+create_booking_hold\s*\(/i);
+  assert.match(migration, /notify\s+pgrst\s*,\s*'reload schema'/i);
+});
+
 const HOLD = (number, startsAt, contact) => `
-  select (create_booking_hold(
+  select (${contact ? "create_booking_hold_with_contact" : "create_booking_hold"}(
     p_booking_number => '${number}', p_customer_id => 'a0000000-0000-4000-8000-000000000001',
     p_service_id => 'e0000000-0000-4000-8000-000000000001', p_starts_at => '${startsAt}', p_ends_at => '${startsAt}'::timestamptz + interval '3 hours',
     p_estimated_duration_minutes => 180, p_crew_size => 2, p_vehicle_id => 'd0000000-0000-4000-8000-000000000001',
@@ -95,8 +103,10 @@ test("an existing customer who books with a new phone gets that phone on the boo
     assert.equal(sql("select count(*) from bookings where booking_number = 'HF-2026-00003' and contact_phone is null"), "1");
 
     // Still service_role only.
-    assert.equal(sql("select has_function_privilege('service_role', 'create_booking_hold(text,uuid,uuid,timestamptz,timestamptz,integer,integer,uuid,jsonb,jsonb,jsonb,text,integer,text,text,text,text,text)', 'execute')"), "t");
-    assert.equal(sql("select has_function_privilege('anon', 'create_booking_hold(text,uuid,uuid,timestamptz,timestamptz,integer,integer,uuid,jsonb,jsonb,jsonb,text,integer,text,text,text,text,text)', 'execute')"), "f");
-    assert.equal(sql("select count(*) from pg_proc where proname = 'create_booking_hold'"), "1", "no ambiguous overload");
+    assert.equal(sql("select has_function_privilege('service_role', 'create_booking_hold_with_contact(text,uuid,uuid,timestamptz,timestamptz,integer,integer,uuid,jsonb,jsonb,jsonb,text,integer,text,text,text,text,text)', 'execute')"), "t");
+    assert.equal(sql("select has_function_privilege('anon', 'create_booking_hold_with_contact(text,uuid,uuid,timestamptz,timestamptz,integer,integer,uuid,jsonb,jsonb,jsonb,text,integer,text,text,text,text,text)', 'execute')"), "f");
+    assert.equal(sql("select count(*) from pg_proc where proname = 'create_booking_hold'"), "1", "legacy RPC remains available");
+    assert.equal(sql("select count(*) from pg_proc where proname = 'create_booking_hold_with_contact'"), "1", "contact-aware RPC uses a separate function name");
+    assert.equal(sql("select has_function_privilege('service_role', 'create_booking_hold(text,uuid,uuid,timestamptz,timestamptz,integer,integer,uuid,jsonb,jsonb,jsonb,text,integer,text,text)', 'execute')"), "t", "old server code keeps execute access");
   });
 });

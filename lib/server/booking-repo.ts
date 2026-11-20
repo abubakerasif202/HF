@@ -179,7 +179,7 @@ export class SlotUnavailableError extends Error {
 }
 
 export async function createBookingHold(input: CreateHoldInput) {
-  const { data, error } = await getSupabaseAdmin().rpc("create_booking_hold", {
+  const { data, error } = await getSupabaseAdmin().rpc("create_booking_hold_with_contact", {
     p_booking_number: input.bookingNumber,
     p_customer_id: input.customerId,
     p_service_id: input.serviceId,
