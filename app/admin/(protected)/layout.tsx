@@ -1,8 +1,9 @@
 import { redirect } from "next/navigation";
 import { getStaffSession } from "../../../lib/server/supabase-ssr.ts";
-import { getSupabaseAdmin } from "../../../lib/server/supabase.ts";
+import { countQuotesNeedingAttention } from "../../../lib/server/quote-crm-repo.ts";
 import { isBookingSystemLive } from "../../../lib/server/config.ts";
 import { AdminShell, type NavGroup } from "../_components/shell/AdminShell";
+import { countCloseoutJobs } from "../../../lib/server/closeout-repo.ts";
 
 export const dynamic = "force-dynamic";
 
@@ -14,8 +15,11 @@ const NAV_GROUPS: NavGroup[] = [
       { href: "/admin/bookings", label: "Bookings", icon: "bookings" },
       { href: "/admin/dispatch", label: "Dispatch", icon: "truck" },
       { href: "/admin/quotes", label: "Quote enquiries", icon: "inbox" },
+      { href: "/admin/customers", label: "Customers", icon: "user" },
       { href: "/admin/invoices", label: "Invoices", icon: "dollar" },
       { href: "/admin/calendar", label: "Calendar", icon: "calendar" },
+      { href: "/admin/closeout", label: "Job closeout", icon: "check" },
+      { href: "/admin/reports", label: "Reports", icon: "trendUp" },
     ],
   },
   {
@@ -30,18 +34,6 @@ const NAV_GROUPS: NavGroup[] = [
   },
 ];
 
-/** Live count of untouched enquiries for the sidebar badge. Never blocks the page if it fails. */
-async function newEnquiryCount(): Promise<number | null> {
-  try {
-    const { count, error } = await getSupabaseAdmin()
-      .from("quote_requests")
-      .select("id", { count: "exact", head: true })
-      .eq("quote_status", "new");
-    return error ? null : (count ?? 0);
-  } catch {
-    return null;
-  }
-}
 
 /**
  * Shared authenticated shell for every /admin/* page except /admin/login.
@@ -54,8 +46,10 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   const staff = await getStaffSession();
   if (!staff) redirect("/admin/login");
 
-  const newEnquiries = await newEnquiryCount();
-  const badges: Record<string, number> = newEnquiries ? { "/admin/quotes": newEnquiries } : {};
+  // Untouched enquiries plus open follow-ups that are overdue. Never blocks the page if it fails.
+  const [needsAttention, closeoutJobs] = await Promise.all([countQuotesNeedingAttention(), countCloseoutJobs()]);
+  const badges: Record<string, number> = needsAttention ? { "/admin/quotes": needsAttention } : {};
+  if (closeoutJobs) badges["/admin/closeout"] = closeoutJobs;
 
   return (
     <div className="admin-shell">

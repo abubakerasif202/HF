@@ -4,6 +4,7 @@ import type { BusinessSettings, BusyInterval, PricingRule, PricingSnapshot } fro
 import type { FleetVehicle } from "../booking/vehicles.ts";
 import { findMovingPackage } from "../site-data.ts";
 import type { ConfirmRpcResult } from "../booking/confirmation.ts";
+import { applyContactSnapshot } from "../booking/contact.ts";
 
 type Address = { formattedAddress?: string; addressLine?: string; suburb?: string } | null;
 
@@ -14,6 +15,9 @@ export interface ConfirmedBookingRow {
   access_token: string;
   booking_status: string;
   customer_id: string | null;
+  contact_name?: string | null;
+  contact_email?: string | null;
+  contact_phone?: string | null;
   starts_at: string;
   ends_at: string;
   pickup_address: Address;
@@ -151,6 +155,8 @@ export async function generateBookingNumber(): Promise<string> {
 export interface CreateHoldInput {
   bookingNumber: string;
   customerId: string;
+  /** What the customer typed for this booking; stored on the booking, never written to `customers`. */
+  contact: { name: string; email: string; phone?: string | null };
   serviceId: string;
   startsAt: Date;
   endsAt: Date;
@@ -173,7 +179,7 @@ export class SlotUnavailableError extends Error {
 }
 
 export async function createBookingHold(input: CreateHoldInput) {
-  const { data, error } = await getSupabaseAdmin().rpc("create_booking_hold", {
+  const { data, error } = await getSupabaseAdmin().rpc("create_booking_hold_with_contact", {
     p_booking_number: input.bookingNumber,
     p_customer_id: input.customerId,
     p_service_id: input.serviceId,
@@ -189,6 +195,9 @@ export async function createBookingHold(input: CreateHoldInput) {
     p_hold_minutes: input.holdMinutes,
     p_package_id: input.packageId,
     p_truck_class: input.truckClass,
+    p_contact_name: input.contact.name,
+    p_contact_phone: input.contact.phone ?? null,
+    p_contact_email: input.contact.email,
   });
   if (error) {
     if (error.code === "23P01" || /slot_unavailable/.test(error.message)) {
@@ -208,7 +217,7 @@ export async function getBookingById(id: string) {
 export async function getBookingByAccessToken(token: string) {
   const { data, error } = await getSupabaseAdmin().from("bookings").select("*, customers(name, email)").eq("access_token", token).maybeSingle();
   if (error) throw error;
-  return data;
+  return data ? applyContactSnapshot(data) : data;
 }
 
 /**

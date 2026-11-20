@@ -12,7 +12,7 @@ const staticPages: Record<string, { type: "about" | "contact" | "pricing" | "ade
   contact: { type: "contact", title: "Contact HF Removals Adelaide – Free Moving Quote", description: `Call HF Removals Adelaide on ${business.phones[0].display} or send your inventory and access details for a free quote on a house, office or interstate move.`, schema: "ContactPage" },
   pricing: { type: "pricing", title: "Removalist Prices Adelaide & Hourly Rates", description: `Adelaide removalist prices and hourly rates from ${entryLocalRate.halfHour}/30 min (${entryLocalRate.hourly}/hour) with a 2-man crew. Compare Small, MR and HR trucks; minimum service and call-out apply. Free quotes.`, schema: "WebPage" },
   "adelaide-removalists": { type: "adelaide", title: "Adelaide Removalists: Moving Guide & Planning | HF Removals", description: "Planning an Adelaide move? Choose the right service, plan access, understand how pricing works and prepare before you request a quote.", schema: "WebPage" },
-  privacy: { type: "privacy", title: "Privacy", description: "How HF Removals Adelaide handles website enquiry information.", schema: "WebPage" },
+  privacy: { type: "privacy", title: "Privacy", description: "How HF Removals Adelaide uses the contact, route, date and move details you submit in a quote enquiry, and how that enquiry is delivered.", schema: "WebPage" },
   terms: { type: "terms", title: "Website Terms", description: "General website, pricing and insurance wording terms for HF Removals Adelaide.", schema: "WebPage" },
 };
 

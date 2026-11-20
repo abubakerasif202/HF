@@ -1,0 +1,28 @@
+.a-closeout { display: grid; gap: clamp(16px, 2.2vw, 24px); }
+.a-closeout-list { display: grid; margin: 0; padding: 0; list-style: none; }
+.a-closeout-row { display: grid; grid-template-columns: minmax(0, 1fr) minmax(280px, 380px); gap: 20px 28px; align-items: start; padding: 20px 26px; border-bottom: 1px solid var(--a-line); }
+.a-closeout-row:last-child { border-bottom: 0; }
+.a-closeout-main { display: grid; gap: 6px; min-width: 0; }
+.a-closeout-title { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; color: var(--a-ink); font-weight: 700; }
+.a-closeout-route { color: var(--a-muted); font-size: 0.9rem; overflow-wrap: anywhere; }
+.a-closeout-meta { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 16px; color: var(--a-muted); font-size: 0.82rem; }
+.a-closeout-meta > span, .a-closeout-meta > a { display: inline-flex; align-items: center; gap: 5px; }
+.a-closeout-meta [data-missing="true"] { color: var(--a-danger); font-weight: 700; }
+.a-closeout-age { font-weight: 700; }
+.a-closeout-age[data-stale="true"] { color: var(--a-danger); }
+.a-closeout-actions { display: grid; gap: 10px; min-width: 0; }
+.a-closeout-finalise { display: flex; flex-wrap: wrap; align-items: end; gap: 10px; }
+.a-closeout-finalise .admin-field { flex: 1 1 150px; min-width: 0; }
+.a-closeout-finalise .admin-input { width: 100%; min-height: 44px; }
+.a-closeout-finalise .admin-btn { min-height: 44px; }
+.a-closeout-secondary { display: flex; flex-wrap: wrap; gap: 8px; }
+.a-closeout-more { padding: 14px 26px 18px; margin: 0; }
+.a-closeout-card-list { display: grid; margin: 0; padding: 0; list-style: none; }
+.a-closeout-card-list li { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 26px; border-bottom: 1px solid var(--a-line); }
+.a-closeout-card-list li:last-child { border-bottom: 0; }
+.a-closeout-card-list .a-closeout-card-age { color: var(--a-muted); font-size: 0.8rem; }
+
+@media (max-width: 900px) {
+  .a-closeout-row { grid-template-columns: minmax(0, 1fr); padding: 18px 16px; }
+  .a-closeout-more, .a-closeout-card-list li { padding-left: 16px; padding-right: 16px; }
+}

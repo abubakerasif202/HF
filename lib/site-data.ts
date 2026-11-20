@@ -681,14 +681,14 @@ export const interstateRoutes: ContentPage[] = routeDetails.map(([slug, destinat
 }));
 
 const guideSeed = [
-  ["adelaide-moving-checklist", "Adelaide Moving Checklist", "Build a calm sequence from early inventory to final placement.", ["Create a room-by-room inventory", "Confirm both addresses and access", "Book packing support if needed", "Label cartons by destination room"]],
-  ["how-removalist-pricing-works", "How Removalist Costs Are Calculated", "How removalist costs work: minimum service and call-out fees, access and interstate volume all shape a quote. See the pricing page for HF's rates.", ["Understand service time and call-out fees", "Identify what affects loading and unloading", "Estimate interstate volume separately", "Compare quotes using the same scope"]],
-  ["estimate-moving-volume", "How to Estimate Moving Volume", "Prepare a practical inventory for a per-cubic-metre quote.", ["List furniture and appliances", "Count packed cartons", "Measure unusually large items", "Flag garage and outdoor goods"]],
-  ["preparing-interstate-move", "Preparing for an Interstate Move", "Reduce uncertainty before an interstate quote and moving day.", ["Confirm the destination suburb", "Build an accurate volume estimate", "Plan packing for distance", "Keep essentials and documents separate"]],
-  ["apartment-moving-preparation", "Apartment Moving Preparation", "Plan lifts, loading access, stairs and compact-space moves.", ["Check lift requirements", "Confirm loading access", "Measure tight entries", "Label destination rooms"]],
-  ["office-relocation-checklist", "Office Relocation Checklist", "Coordinate people, equipment, furniture and site access.", ["Nominate site contacts", "Group items by destination", "Identify equipment handling needs", "Share loading and lift rules"]],
-  ["packing-before-moving-day", "Packing Before Moving Day", "Pack in a sequence that protects belongings and supports placement.", ["Start with low-use rooms", "Use clear carton labels", "Separate fragile items", "Keep essentials with you"]],
-  ["preparing-large-furniture", "Preparing Large Furniture", "Identify measurements, dismantling and protection requirements early.", ["Measure entries and furniture", "Discuss dismantling", "Empty and secure moving parts", "Request suitable protective wrapping"]],
+  ["adelaide-moving-checklist", "Adelaide Moving Checklist", "Build a calm sequence from early inventory to final placement.", ["Create a room-by-room inventory", "Confirm both addresses and access", "Book packing support if needed", "Label cartons by destination room"], "Adelaide moving checklist: build a room-by-room inventory, confirm both addresses and access, book packing help and label cartons by destination room."],
+  ["how-removalist-pricing-works", "How Removalist Costs Are Calculated", "How removalist costs work: minimum service and call-out fees, access and interstate volume all shape a quote. See the pricing page for HF's rates.", ["Understand service time and call-out fees", "Identify what affects loading and unloading", "Estimate interstate volume separately", "Compare quotes using the same scope"], "How removalist costs work: minimum service and call-out fees, access and interstate volume all shape a quote. See the pricing page for HF's rates."],
+  ["estimate-moving-volume", "How to Estimate Moving Volume", "Prepare a practical inventory for a per-cubic-metre quote.", ["List furniture and appliances", "Count packed cartons", "Measure unusually large items", "Flag garage and outdoor goods"], "How to estimate moving volume for a per-cubic-metre quote: list furniture and appliances, count cartons, measure large items and flag garage goods."],
+  ["preparing-interstate-move", "Preparing for an Interstate Move", "Reduce uncertainty before an interstate quote and moving day.", ["Confirm the destination suburb", "Build an accurate volume estimate", "Plan packing for distance", "Keep essentials and documents separate"], "Preparing for an interstate move from Adelaide: confirm the destination suburb, estimate volume accurately, pack for distance and keep documents separate."],
+  ["apartment-moving-preparation", "Apartment Moving Preparation", "Plan lifts, loading access, stairs and compact-space moves.", ["Check lift requirements", "Confirm loading access", "Measure tight entries", "Label destination rooms"], "Apartment moving preparation: check lift requirements, confirm loading access, measure tight entries and label destination rooms before moving day."],
+  ["office-relocation-checklist", "Office Relocation Checklist", "Coordinate people, equipment, furniture and site access.", ["Nominate site contacts", "Group items by destination", "Identify equipment handling needs", "Share loading and lift rules"], "Office relocation checklist: nominate site contacts, group items by destination, plan equipment handling and share loading and lift rules early."],
+  ["packing-before-moving-day", "Packing Before Moving Day", "Pack in a sequence that protects belongings and supports placement.", ["Start with low-use rooms", "Use clear carton labels", "Separate fragile items", "Keep essentials with you"], "Packing before moving day: start with low-use rooms, use clear carton labels, separate fragile items and keep essentials with you for the first night."],
+  ["preparing-large-furniture", "Preparing Large Furniture", "Identify measurements, dismantling and protection requirements early.", ["Measure entries and furniture", "Discuss dismantling", "Empty and secure moving parts", "Request suitable protective wrapping"], "Preparing large furniture for a move: measure entries and pieces, discuss dismantling, secure moving parts and request suitable protective wrapping."],
 ] as const;
 
 const guideBodies: Record<string, string[]> = {
@@ -773,13 +773,13 @@ const guideFaqs: Record<string, Faq[]> = {
   ],
 };
 
-export const guides: ContentPage[] = guideSeed.map(([slug, title, description, highlights]) => ({
+export const guides: ContentPage[] = guideSeed.map(([slug, title, intro, highlights, metaDescription]) => ({
   slug,
   kind: "guide",
   eyebrow: "Moving guide",
   title,
-  description,
-  intro: description,
+  description: metaDescription,
+  intro,
   highlights: [...highlights],
   sections: highlights.map((heading, index) => ({
     title: `${String(index + 1).padStart(2, "0")} — ${heading}`,

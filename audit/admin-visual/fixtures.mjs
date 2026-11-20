@@ -332,6 +332,51 @@ bookings.push(
     finalised_at: null, finalised_by: null,
   },
 );
+// ---------- ops-upgrade additions (SYNTHETIC): closeout jobs, CRM fields, issued invoices ----------
+{
+  const tpl = bookings.find((b) => b.booking_number === "HF-1010");
+  const closeoutPlan = [[-6, 8, "in_progress", 0], [-3, 9, "confirmed", 1], [-2, 13, "assigned", 2], [-1, 7, "confirmed", 3], [-1, 15, "assigned", 4]];
+  closeoutPlan.forEach(([day, hour, status, k], i) => {
+    const starts = adelaideIso(day, hour);
+    const customer = customers[(i + 6) % customers.length];
+    bookings.push({
+      ...tpl, id: uuid(0x62, i + 1), booking_number: `HF-${3001 + i}`, customer_id: customer.id, starts_at: starts,
+      ends_at: plusMinutes(starts, 240), estimated_duration_minutes: 240, booking_status: status, payment_status: "not_required",
+      crew_id: i === 3 ? null : crews[k % 3].id, access_token: uuid(0x63, i + 1),
+      pickup_address: addr(500 + i, SUBURBS[i % SUBURBS.length]), destination_address: addr(600 + i, SUBURBS[(i + 5) % SUBURBS.length]),
+      contact_name: customer.name, contact_email: customer.email, contact_phone: customer.phone,
+    });
+  });
+
+  // CRM fields on the quote enquiries.
+  quote_requests.forEach((q, i) => {
+    Object.assign(q, { notes: i % 3 === 0 ? "Sample note: customer prefers a morning start." : null, follow_up_at: null, status_changed_at: q.created_at, first_response_at: q.quote_status === "new" ? null : minutesAgo(60 * 3), quoted_amount_cents: ["quote_sent", "follow_up", "booked", "completed"].includes(q.quote_status) ? 62000 + i * 1500 : null, lost_reason: q.quote_status === "lost" ? "price" : null, booking_id: null });
+    if (q.quote_status === "follow_up") q.follow_up_at = adelaideIso(i % 2 === 0 ? -2 : 0, 9);
+    if (q.quote_status === "quote_sent" && i === 4) q.follow_up_at = adelaideIso(3, 9);
+  });
+  const booked = quote_requests.filter((q) => q.quote_status === "booked" || q.quote_status === "completed");
+  booked.forEach((q, i) => { q.booking_id = bookings[i + 1].id; });
+
+  // Issued invoices with payments so customers / reports / invoices show real totals.
+  const invoicesOut = [];
+  const paymentsOut = [];
+  ["HF-1001", "HF-1002", "HF-1004", "HF-1005", "HF-1008"].forEach((no, i) => {
+    const b = bookings.find((x) => x.booking_number === no);
+    const customer = customers.find((c) => c.id === b.customer_id);
+    const total = 52000 + i * 8800;
+    const id = uuid(0xb0, i + 1);
+    invoicesOut.push({
+      id, booking_id: b.id, status: "issued", invoice_number: `SAMPLE-${String(i + 1).padStart(4, "0")}`, invoice_sequence: i + 1, pricing_mode: "hourly", pricing_source: "booking",
+      amounts_include_gst: true, customer: { name: customer.name, email: customer.email, phone: customer.phone }, booking_reference: b.booking_number, service_date: b.starts_at.slice(0, 10),
+      issue_date: adelaideDate(-12 + i), due_date: adelaideDate(i < 2 ? -5 : 9 + i), notes: null, version: 2, issue_idempotency_key: null, snapshot: {}, subtotal_cents: Math.round(total / 1.1), gst_cents: total - Math.round(total / 1.1), total_cents: total,
+      replaces_invoice_id: null, voided_at: null, voided_by: null, void_reason: null, created_by: OWNER_ID, created_at: minutesAgo(60 * 24 * (12 - i)), updated_at: minutesAgo(60 * 24 * (12 - i)),
+    });
+    if (i % 2 === 0) paymentsOut.push({ id: uuid(0xb1, i + 1), invoice_id: id, kind: "payment", amount_cents: total, received_on: adelaideDate(-8 + i), method: "bank_transfer", reference: null, source: "manual", reverses_payment_id: null, idempotency_key: null, recorded_by: OWNER_ID, created_at: minutesAgo(60 * 24 * (8 - i)) });
+    else if (i === 1) paymentsOut.push({ id: uuid(0xb1, i + 1), invoice_id: id, kind: "deposit", amount_cents: 10000, received_on: adelaideDate(-10), method: "card", reference: null, source: "manual", reverses_payment_id: null, idempotency_key: null, recorded_by: OWNER_ID, created_at: minutesAgo(60 * 24 * 10) });
+  });
+  globalThis.__opsInvoices = { invoicesOut, paymentsOut };
+}
+
 // Match the dispatch migration defaults for every synthetic booking.
 for (const booking of bookings) {
   Object.assign(booking, {
@@ -354,12 +399,13 @@ export const tables = {
   ],
   // Migration 0019 (invoicing). Settings start unconfigured, exactly as in a fresh database.
   invoice_settings: [{ id: true, abn: null, gst_registered: null, rates_include_gst: null, bank_account_name: null, bank_bsb: null, bank_account_number: null, payment_instructions: null, payment_terms_days: null, invoice_prefix: null, next_invoice_number: 1, footer_note: null, logo_confirmed: false, updated_at: minutesAgo(60 * 24) }],
-  invoices: [], invoice_lines: [], invoice_payments: [], invoice_events: [], booking_vehicle_reservations: [],
+  invoices: globalThis.__opsInvoices.invoicesOut, invoice_lines: [], invoice_payments: globalThis.__opsInvoices.paymentsOut, invoice_events: [], booking_vehicle_reservations: [], admin_audit: [],
 };
 
 /** many-to-one embeds: tables[name] -> { relationName: [targetTable, foreignKeyColumn] } */
 export const relations = {
   bookings: { customers: ["customers", "customer_id"], services: ["services", "service_id"], vehicles: ["vehicles", "vehicle_id"], crews: ["crews", "crew_id"] },
+  quote_requests: { bookings: ["bookings", "booking_id"] },
   blocked_times: { vehicles: ["vehicles", "vehicle_id"], crews: ["crews", "crew_id"] },
   crew_members: { crews: ["crews", "crew_id"] },
   booking_events: { bookings: ["bookings", "booking_id"] },

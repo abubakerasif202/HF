@@ -162,6 +162,7 @@ test("dispatch queues are owner-only", async () => {
       "supabase-ssr": { getAdminAuthState: async () => auth },
       "lib/server/supabase.ts": { getSupabaseAdmin: () => { calls.push("db"); return {}; } },
       "admin/dates": datesLib, "lib/dispatch.ts": dispatchLib, "booking-finder": finderLib,
+      "booking/contact": { resolveBookingContact: (row) => row.customers ?? null },
     });
     assert.equal((await mod.GET()).status, status);
     assert.equal(calls.length, 0);

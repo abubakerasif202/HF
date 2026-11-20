@@ -21,6 +21,7 @@ import { Icon } from "../../../_components/Icon";
 import { describePackage } from "../../../../../lib/booking/pricing.ts";
 import { googleCalendarEventLink } from "../../../../../lib/server/google-calendar.ts";
 import { fullAddress, type AddressJson } from "../places";
+import { resolveBookingContact } from "../../../../../lib/booking/contact.ts";
 import "../../../styles/bookings.css";
 
 export const dynamic = "force-dynamic";
@@ -45,7 +46,8 @@ export default async function AdminBookingDetailPage({ params }: { params: Promi
   if (bookingError) throw bookingError;
   if (!booking) notFound();
 
-  const customer = firstOf(booking.customers);
+  // The contact typed on this booking wins over the shared customer row.
+  const customer = resolveBookingContact(booking);
   const service = firstOf(booking.services);
   const vehicle = firstOf(booking.vehicles);
   const crew = firstOf(booking.crews);

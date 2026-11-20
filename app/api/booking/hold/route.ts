@@ -23,16 +23,21 @@ import { TRUCK_UNAVAILABLE_MESSAGE } from "../../../../lib/site-data.ts";
 export const dynamic = "force-dynamic";
 
 const addressSchema = z.object({
-  addressLine: z.string().min(1),
-  suburb: z.string().min(1),
-  state: z.string().min(1),
-  postcode: z.string().min(1),
-  country: z.string().default("Australia"),
-  formattedAddress: z.string().optional(),
-  latitude: z.number().optional(),
-  longitude: z.number().optional(),
-  placeId: z.string().optional(),
+  addressLine: z.string().min(1).max(300),
+  suburb: z.string().min(1).max(120),
+  state: z.string().min(1).max(60),
+  postcode: z.string().min(1).max(12),
+  country: z.string().max(60).default("Australia"),
+  formattedAddress: z.string().max(400).optional(),
+  latitude: z.number().min(-90).max(90).optional(),
+  longitude: z.number().min(-180).max(180).optional(),
+  placeId: z.string().max(300).optional(),
 });
+
+// Public, unauthenticated endpoint: cap the request so a single call cannot
+// store an arbitrarily large booking row. Real wizard payloads are ~2-4 KB.
+const MAX_BODY_BYTES = 32_768;
+const MAX_MOVE_DETAILS_BYTES = 8_192;
 
 const bodySchema = z.object({
   serviceSlug: z.string().min(1),
@@ -44,11 +49,12 @@ const bodySchema = z.object({
   estimatedDurationMinutes: z.coerce.number().int().min(30).max(600).optional(),
   pickupAddress: addressSchema,
   destinationAddress: addressSchema,
-  moveDetails: z.record(z.string(), z.unknown()).default({}),
+  moveDetails: z.record(z.string().max(100), z.unknown()).default({})
+    .refine((value) => JSON.stringify(value).length <= MAX_MOVE_DETAILS_BYTES, "Move details are too large"),
   customer: z.object({
-    name: z.string().min(1),
-    email: z.string().email(),
-    phone: z.string().optional(),
+    name: z.string().trim().min(1).max(200),
+    email: z.string().trim().max(254).email(),
+    phone: z.string().trim().max(40).optional(),
   }),
   customerNotes: z.string().max(2000).optional(),
   // Honeypot: a real customer never fills this (it's not shown in the
@@ -76,21 +82,26 @@ export async function POST(request: NextRequest) {
     const limited = await enforceRateLimit(request, "hold");
     if (limited) return limited;
 
-    const body = bodySchema.safeParse(await request.json().catch(() => null));
+    if (Number(request.headers.get("content-length") ?? 0) > MAX_BODY_BYTES) {
+      return jsonError(413, "Booking request is too large.");
+    }
+    const raw = await request.text().catch(() => "");
+    if (raw.length > MAX_BODY_BYTES) return jsonError(413, "Booking request is too large.");
+    let json: unknown = null;
+    try { json = JSON.parse(raw); } catch { json = null; }
+    const body = bodySchema.safeParse(json);
     if (!body.success) return jsonError(400, "Invalid booking request", { issues: body.error.issues });
     const input = body.data;
 
     if (input.website) {
-      // Honeypot tripped — respond as if it succeeded so the bot doesn't
-      // learn to look for a different signal, but never actually create a hold.
+      // Honeypot tripped — answer with a generic throttle response (the same
+      // shape a real rate limit gives) and never create a hold.
       return jsonError(429, "Too many requests.");
     }
 
-    // Cheap anti-spam caps. With no payment friction any more, these are
-    // the floor that stops one email from squatting on (or confirming)
-    // every slot. They do not stop a determined attacker rotating
-    // emails/IPs — a proper per-IP rate limiter (e.g. Upstash Redis or
-    // Vercel's edge rate limiting) is the real fix and is not wired up here.
+    // Per-email caps, layered on the per-IP limiter above (migration 0012).
+    // With no payment friction, these stop one email from squatting on (or
+    // confirming) every slot.
     const normalizedEmail = input.customer.email.trim().toLowerCase();
     const { count: activeHoldCount } = await getSupabaseAdmin()
       .from("bookings")
@@ -180,6 +191,7 @@ export async function POST(request: NextRequest) {
       const booking = await createBookingHold({
         bookingNumber,
         customerId,
+        contact: { name: input.customer.name, email: normalizedEmail, phone: input.customer.phone },
         serviceId: service.id,
         startsAt,
         endsAt,

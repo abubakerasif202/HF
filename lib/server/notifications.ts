@@ -18,6 +18,7 @@ interface BookingRow {
   booking_number: string;
   starts_at: string;
   customer_id: string | null;
+  contact_email?: string | null;
   pickup_address: Address | null;
   destination_address: Address | null;
   deposit_paid_cents: number;
@@ -79,7 +80,7 @@ export async function sendBookingConfirmedEmail(booking: BookingRow): Promise<vo
     return;
   }
 
-  const email = await getCustomerEmail(booking.customer_id);
+  const email = booking.contact_email?.trim() || (await getCustomerEmail(booking.customer_id));
   if (!email) return;
 
   try {

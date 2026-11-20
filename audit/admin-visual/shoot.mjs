@@ -6,7 +6,7 @@ import { chromium } from "@playwright/test";
 import { mkdirSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { FEATURED_BOOKING_ID, FINALISED_BOOKING_ID } from "./fixtures.mjs";
+import { FEATURED_BOOKING_ID, FINALISED_BOOKING_ID, customers } from "./fixtures.mjs";
 import { buildAuthCookies } from "./session.mjs";
 
 const here = path.dirname(fileURLToPath(import.meta.url));
@@ -25,6 +25,11 @@ const AUTHED_ROUTES = [
   ["booking-detail", `/admin/bookings/${FEATURED_BOOKING_ID}`],
   ["booking-detail-finalised", `/admin/bookings/${FINALISED_BOOKING_ID}`],
   ["quotes", "/admin/quotes"],
+  ["closeout", "/admin/closeout"],
+  ["customers", "/admin/customers"],
+  ["customer-detail", `/admin/customers/${customers[0].id}`],
+  ["reports", "/admin/reports"],
+  ["invoices", "/admin/invoices"],
   ["quotes-drawer", "/admin/quotes", async (page) => { await page.locator(".a-lead").first().click(); await page.waitForSelector(".a-drawer"); await page.waitForTimeout(600); }],
   ["sidebar-collapsed", "/admin", async (page) => { const c = page.locator(".a-collapse").first(); if (!(await c.isVisible())) return; await c.click(); await page.waitForTimeout(600); }],
   ["mobile-menu", "/admin", async (page) => { const b = page.locator(".a-menu-btn"); if (await b.isVisible()) { await b.click(); await page.waitForTimeout(600); } }],

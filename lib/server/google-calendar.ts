@@ -3,6 +3,7 @@ import { google } from "googleapis";
 import { googleCalendarConfig } from "./config.ts";
 import { getSupabaseAdmin } from "./supabase.ts";
 import { business } from "../site-data.ts";
+import { resolveBookingContact } from "../booking/contact.ts";
 import { reconcileCalendarEvent, type CalendarBooking, type CalendarClient } from "../calendar-sync.ts";
 
 /**
@@ -45,13 +46,12 @@ function adminBaseUrl(): string {
 async function loadCalendarBooking(bookingId: string): Promise<CalendarBooking | null> {
   const { data, error } = await getSupabaseAdmin()
     .from("bookings")
-    .select("id, booking_number, booking_status, starts_at, ends_at, crew_size, package_id, pickup_address, destination_address, pricing_snapshot, google_calendar_event_id, customers(name, email, phone)")
+    .select("id, booking_number, booking_status, starts_at, ends_at, crew_size, package_id, pickup_address, destination_address, pricing_snapshot, google_calendar_event_id, contact_name, contact_email, contact_phone, customers(name, email, phone)")
     .eq("id", bookingId)
     .maybeSingle();
   if (error) throw error;
   if (!data) return null;
-  const customer = Array.isArray(data.customers) ? data.customers[0] : data.customers;
-  return { ...data, customer: customer ?? null } as CalendarBooking;
+  return { ...data, customer: resolveBookingContact(data) } as CalendarBooking;
 }
 
 /**

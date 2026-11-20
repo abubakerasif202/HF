@@ -62,12 +62,23 @@ function matches(row, column, spec) {
 
 function applyFilters(rows, params) {
   const filters = [];
+  const orGroups = [];
   for (const [key, value] of params) {
     if (RESERVED.has(key)) continue;
-    if (key === "or" || key === "and") { console.warn(`[mock] logical filter "${key}" is not supported; ignored`); continue; }
+    if (key === "or") { orGroups.push(value.replace(/^\(|\)$/g, "").split(",")); continue; }
+    if (key === "and") { console.warn(`[mock] logical filter "${key}" is not supported; ignored`); continue; }
     filters.push([key, value]);
   }
-  return rows.filter((row) => filters.every(([column, spec]) => matches(row, column, spec)));
+  // PostgREST or=(a.ilike.*x*,payload->>k.ilike.*x*): column may be a JSON text path (payload->>key).
+  const orMatch = (row, term) => {
+    const m = /^([\w>-]+?)\.((?:not\.)?\w+\..*)$/s.exec(term);
+    if (!m) return false;
+    const [, col, spec] = m;
+    const json = /^(\w+)->>(\w+)$/.exec(col);
+    const target = json ? { ...row, [col]: row[json[1]]?.[json[2]] ?? null } : row;
+    return matches(target, col, spec);
+  };
+  return rows.filter((row) => filters.every(([column, spec]) => matches(row, column, spec)) && orGroups.every((group) => group.some((term) => orMatch(row, term))));
 }
 
 function applyOrder(rows, orderParam) {
