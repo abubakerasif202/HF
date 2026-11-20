@@ -4,21 +4,37 @@ import { useCallback, useMemo, useState, type CSSProperties } from "react";
 import { Refine, useList, useUpdate, type DataProvider } from "@refinedev/core";
 import { AdminAlert, AdminCard, AdminEmptyState, AdminPageHeader, SkeletonLoader, formatAdelaide } from "../../_components/ui";
 import { AdminStatusBadge, QUOTE_STATUS } from "../../_components/AdminStatusBadge";
+import { ConfirmationDialog } from "../../_components/ConfirmationDialog";
 import { DetailDrawer } from "../../_components/DetailDrawer";
 import { Icon } from "../../_components/Icon";
+import {
+  BULK_MAX_IDS,
+  DEFAULT_CLOSE_HM,
+  DEFAULT_OPEN_HM,
+  LOST_REASONS,
+  followUpState,
+  followUpYmd,
+  responseBadge,
+  type LostReason,
+  type QuoteSummary,
+} from "../../../../lib/admin/quote-crm";
+import { QuoteDetailPanel } from "./QuoteDetailPanel";
+import { QUOTE_STATUS_ORDER, type QuoteStatus } from "./quoteStatus";
+import { formatPreferredDate, initialsOf, shortDate } from "./quoteFormat";
+import { displayName, field, hasValue, type Quote, type QuotePatch } from "./quoteTypes";
+import "../../styles/quotes.css";
 
-import { QUOTE_STATUS_ORDER, type QuoteStatus, type StatusCounts } from "./quoteStatus";
+type Tab = "all" | "needs_reply" | "due" | "overdue";
+type Sort = "newest" | "oldest";
+type BusinessHours = { open: string; close: string };
 
-type DeliveryStatus = "pending" | "sent" | "failed" | "unknown";
-type Quote = {
-  id: string;
-  payload: Record<string, string | string[]>;
-  quote_status: QuoteStatus;
-  delivery_status: DeliveryStatus;
-  created_at: string;
-};
+const TABS: { value: Tab; label: string }[] = [
+  { value: "needs_reply", label: "Needs reply" },
+  { value: "due", label: "Follow-ups due" },
+  { value: "overdue", label: "Overdue" },
+  { value: "all", label: "All" },
+];
 
-const STATUSES: { value: QuoteStatus; label: string }[] = QUOTE_STATUS_ORDER.map((value) => ({ value, label: QUOTE_STATUS[value].label }));
 const STATUS_COLOR: Record<QuoteStatus, string> = {
   new: "var(--a-brand)",
   quote_sent: "var(--a-info)",
@@ -28,100 +44,20 @@ const STATUS_COLOR: Record<QuoteStatus, string> = {
   lost: "var(--a-faint)",
 };
 
-/** Suggested next steps per stage. These only ever change quote_status, the one real mutation available. */
-const NEXT_STEPS: Record<QuoteStatus, { to: QuoteStatus; label: string; primary?: boolean }[]> = {
-  new: [{ to: "quote_sent", label: "Mark quote sent", primary: true }, { to: "follow_up", label: "Needs follow-up" }, { to: "lost", label: "Mark lost" }],
-  quote_sent: [{ to: "follow_up", label: "Needs follow-up", primary: true }, { to: "booked", label: "Mark booked" }, { to: "lost", label: "Mark lost" }],
-  follow_up: [{ to: "booked", label: "Mark booked", primary: true }, { to: "quote_sent", label: "Back to quote sent" }, { to: "lost", label: "Mark lost" }],
-  booked: [{ to: "completed", label: "Mark completed", primary: true }, { to: "follow_up", label: "Back to follow-up" }],
-  completed: [{ to: "follow_up", label: "Reopen as follow-up" }],
-  lost: [{ to: "new", label: "Reopen as new", primary: true }],
-};
-
-const DETAIL_FIELDS: { key: string; label: string }[] = [
-  { key: "move_category", label: "Move category" },
-  { key: "move_type", label: "Move type" },
-  { key: "truck_package_id", label: "Truck selection" },
-  { key: "property_size", label: "Property size" },
-  { key: "floor_access", label: "Floor access" },
-  { key: "parking_access", label: "Parking" },
-  { key: "boxes_needed", label: "Boxes" },
-  { key: "services[]", label: "Extra services" },
-];
-
-const MISSING = "—";
-
-function field(quote: Quote, name: string): string {
-  const value = quote.payload?.[name];
-  if (typeof value === "string") return value.trim() || MISSING;
-  return Array.isArray(value) ? value.join(", ") || MISSING : MISSING;
-}
-
-function hasValue(value: string): boolean {
-  return value !== MISSING;
-}
-
-function initialsOf(name: string): string {
-  const parts = name.split(/\s+/).filter(Boolean);
-  if (!hasValue(name) || parts.length === 0) return "?";
-  return ((parts[0][0] ?? "") + (parts.length > 1 ? (parts[parts.length - 1][0] ?? "") : "")).toUpperCase();
-}
-
-/** tel: target only when the value contains a plausible number (never "tel:—"). */
-function telHref(phone: string): string | null {
-  const digits = phone.replace(/[^\d+]/g, "");
-  return digits.replace(/\D/g, "").length >= 6 ? `tel:${digits}` : null;
-}
-
-function mailHref(email: string): string | null {
-  return /^[^\s@,;<>]+@[^\s@,;<>]+\.[^\s@,;<>]+$/.test(email) ? `mailto:${email}` : null;
-}
-
-/** Customer-supplied URL: link only http(s) pages on the HF domain. Anything else shows as plain text. */
-function safeSourceUrl(value: string): string | null {
-  try {
-    const url = new URL(value);
-    const host = url.hostname.toLowerCase();
-    const ours = host === "hfremovalsadelaide.com.au" || host.endsWith(".hfremovalsadelaide.com.au");
-    return (url.protocol === "https:" || url.protocol === "http:") && ours ? url.toString() : null;
-  } catch {
-    return null;
-  }
-}
-
-function formatPreferredDate(value: string): { text: string; soon: string | null } {
-  const match = /^(\d{4})-(\d{2})-(\d{2})/.exec(value);
-  if (!match) return { text: value, soon: null };
-  const date = new Date(Date.UTC(Number(match[1]), Number(match[2]) - 1, Number(match[3])));
-  const text = date.toLocaleDateString("en-AU", { timeZone: "UTC", weekday: "short", day: "numeric", month: "short", year: "numeric" });
-  const today = new Date();
-  const days = Math.round((date.getTime() - Date.UTC(today.getFullYear(), today.getMonth(), today.getDate())) / 86_400_000);
-  const soon = days === 0 ? "Today" : days === 1 ? "Tomorrow" : days > 1 && days <= 14 ? `In ${days} days` : days < 0 ? "Date passed" : null;
-  return { text, soon };
-}
-
-function ago(iso: string): string {
-  const minutes = Math.round((Date.now() - new Date(iso).getTime()) / 60_000);
-  if (minutes < 1) return "Just now";
-  if (minutes < 60) return `${minutes}m ago`;
-  const hours = Math.round(minutes / 60);
-  if (hours < 24) return `${hours}h ago`;
-  const days = Math.round(hours / 24);
-  return `${days}d ago`;
-}
+const PAGE_SIZE = 20;
 
 const dataProvider: DataProvider = {
   getApiUrl: () => "/api/admin/quotes",
-  getList: async ({ resource, pagination, filters }) => {
+  getList: async ({ resource, pagination, filters, meta }) => {
     if (resource !== "quotes") throw new Error("Unknown resource");
     const params = new URLSearchParams({
       page: String(pagination?.currentPage ?? 1),
-      pageSize: String(pagination?.pageSize ?? 20),
+      pageSize: String(pagination?.pageSize ?? PAGE_SIZE),
     });
     const filter = filters?.find((item) => "field" in item && item.field === "quote_status");
-    if (filter && "value" in filter && typeof filter.value === "string") {
-      params.set("status", filter.value);
-    }
+    if (filter && "value" in filter && typeof filter.value === "string") params.set("status", filter.value);
+    if (meta?.tab) params.set("tab", String(meta.tab));
+    if (meta?.sort) params.set("sort", String(meta.sort));
     const response = await fetch(`/api/admin/quotes?${params.toString()}`, { cache: "no-store" });
     if (!response.ok) {
       const body = await response.json().catch(() => ({}));
@@ -134,7 +70,7 @@ const dataProvider: DataProvider = {
     const response = await fetch("/api/admin/quotes", {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ id, quote_status: (variables as { quote_status?: string }).quote_status }),
+      body: JSON.stringify({ id, ...(variables as QuotePatch) }),
     });
     if (!response.ok) {
       const body = await response.json().catch(() => ({}));
@@ -148,25 +84,20 @@ const dataProvider: DataProvider = {
   deleteOne: async () => { throw new Error("Not supported"); },
 };
 
-function ContactButton({ icon, label, value, href }: { icon: "phone" | "mail"; label: string; value: string; href: string | null }) {
-  return (
-    <a className="a-contact-btn" href={href ?? undefined} aria-disabled={href ? undefined : true} tabIndex={href ? undefined : -1}>
-      <Icon name={icon} size={20} />
-      <span>
-        <span className="a-contact-label" style={{ display: "block" }}>{label}</span>
-        <span className="a-contact-value" style={{ display: "block" }}>{hasValue(value) ? value : "Not provided"}</span>
-      </span>
-    </a>
-  );
-}
-
-function QuotesList({ initialCounts }: { initialCounts: StatusCounts | null }) {
+function QuotesList({ initialSummary, businessHours }: { initialSummary: QuoteSummary | null; businessHours: BusinessHours }) {
+  const hasNew = (initialSummary?.counts.new ?? 0) > 0;
   const [page, setPage] = useState(1);
+  const [tab, setTab] = useState<Tab>(hasNew ? "needs_reply" : "all");
+  const [sort, setSort] = useState<Sort>(hasNew ? "oldest" : "newest");
   const [status, setStatus] = useState<QuoteStatus | "all">("all");
   const [search, setSearch] = useState("");
   const [message, setMessage] = useState<{ tone: "success" | "error"; text: string } | null>(null);
-  const [counts, setCounts] = useState<StatusCounts | null>(initialCounts);
   const [selected, setSelected] = useState<Quote | null>(null);
+  const [checked, setChecked] = useState<Set<string>>(() => new Set());
+  const [bulkStatus, setBulkStatus] = useState<QuoteStatus>("lost");
+  const [bulkReason, setBulkReason] = useState<LostReason>("no_response");
+  const [bulkOpen, setBulkOpen] = useState(false);
+  const [bulkPending, setBulkPending] = useState(false);
 
   const filters = useMemo(
     () => status === "all" ? [] : [{ field: "quote_status", operator: "eq" as const, value: status }],
@@ -174,14 +105,16 @@ function QuotesList({ initialCounts }: { initialCounts: StatusCounts | null }) {
   );
   const { result, query } = useList<Quote>({
     resource: "quotes",
-    pagination: { currentPage: page, pageSize: 20 },
+    pagination: { currentPage: page, pageSize: PAGE_SIZE },
     filters,
+    meta: { tab, sort },
     queryOptions: { retry: false, staleTime: 15000 },
   });
   const { mutate, mutation } = useUpdate<Quote>();
   const rows = useMemo(() => result?.data ?? [], [result?.data]);
   const total = result?.total ?? 0;
-  const totalPages = Math.max(1, Math.ceil(total / 20));
+  const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
+  const summary: QuoteSummary | null = (query.data as { summary?: QuoteSummary | null } | undefined)?.summary ?? initialSummary;
 
   const needle = search.trim().toLowerCase();
   const visible = useMemo(() => {
@@ -191,21 +124,53 @@ function QuotesList({ initialCounts }: { initialCounts: StatusCounts | null }) {
     );
   }, [rows, needle]);
 
-  const updateStatus = useCallback((quote: Quote, next: QuoteStatus) => {
-    if (next === quote.quote_status) return;
+  const chooseTab = (next: Tab) => { setTab(next); setStatus("all"); setPage(1); setChecked(new Set()); if (next !== "all") setSort("oldest"); };
+  const chooseStatus = (next: QuoteStatus | "all") => { setStatus(next); setTab("all"); setPage(1); setChecked(new Set()); };
+
+  const patchQuote = useCallback((quote: Quote, patch: QuotePatch) => {
     setMessage(null);
     mutate(
-      { resource: "quotes", id: quote.id, values: { quote_status: next }, mutationMode: "pessimistic" },
+      { resource: "quotes", id: quote.id, values: patch, mutationMode: "pessimistic" },
       {
-        onSuccess: () => {
-          setMessage({ tone: "success", text: `${field(quote, "name") === MISSING ? "Enquiry" : field(quote, "name")} moved to “${QUOTE_STATUS[next].label}”.` });
-          setCounts((current) => current && ({ ...current, [quote.quote_status]: Math.max(0, current[quote.quote_status] - 1), [next]: current[next] + 1 }));
-          setSelected((current) => (current && current.id === quote.id ? { ...current, quote_status: next } : current));
+        onSuccess: (response) => {
+          const updated = (response as unknown as { data: Quote }).data;
+          const label = displayName(quote);
+          setMessage({ tone: "success", text: patch.quote_status ? `${label} moved to “${QUOTE_STATUS[patch.quote_status].label}”.` : `Saved changes for ${label}.` });
+          setSelected((current) => (current && current.id === quote.id ? { ...current, ...updated } : current));
         },
         onError: (error) => setMessage({ tone: "error", text: error.message || "Update failed. Try again." }),
       },
     );
   }, [mutate]);
+
+  const onConverted = useCallback((quote: Quote, bookingNumber: string) => {
+    setSelected((current) => (current && current.id === quote.id ? { ...current, ...quote } : current));
+    setMessage({ tone: "success", text: `Booking draft ${bookingNumber} created and linked.` });
+    void query.refetch();
+  }, [query]);
+
+  async function applyBulk() {
+    setBulkPending(true);
+    setMessage(null);
+    try {
+      const response = await fetch("/api/admin/quotes/bulk", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ids: [...checked], quote_status: bulkStatus, ...(bulkStatus === "lost" ? { lost_reason: bulkReason } : {}) }),
+      });
+      const body = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(body.error || "Bulk update failed");
+      setMessage({ tone: "success", text: `${body.updated} of ${body.requested} enquiries moved to “${QUOTE_STATUS[bulkStatus].label}”.` });
+      setChecked(new Set());
+      setBulkOpen(false);
+      await query.refetch();
+    } catch (error) {
+      setBulkOpen(false);
+      setMessage({ tone: "error", text: error instanceof Error ? error.message : "Bulk update failed" });
+    } finally {
+      setBulkPending(false);
+    }
+  }
 
   const closeDrawer = useCallback(() => setSelected(null), []);
   const selectedIndex = selected ? visible.findIndex((quote) => quote.id === selected.id) : -1;
@@ -214,14 +179,33 @@ function QuotesList({ initialCounts }: { initialCounts: StatusCounts | null }) {
     if (next) setSelected(next);
   };
 
+  const counts = summary?.counts ?? null;
   const totalAll = counts ? QUOTE_STATUS_ORDER.reduce((sum, key) => sum + counts[key], 0) : null;
+  const tabCount: Record<Tab, number | null> = {
+    needs_reply: counts?.new ?? null,
+    due: summary?.due ?? null,
+    overdue: summary?.overdue ?? null,
+    all: totalAll,
+  };
+  const allVisibleChecked = visible.length > 0 && visible.every((quote) => checked.has(quote.id));
+  const toggleChecked = (id: string) => setChecked((current) => {
+    const next = new Set(current);
+    if (next.has(id)) next.delete(id);
+    else if (next.size < BULK_MAX_IDS) next.add(id);
+    return next;
+  });
+  const toggleAllVisible = () => setChecked((current) => {
+    if (allVisibleChecked) return new Set([...current].filter((id) => !visible.some((quote) => quote.id === id)));
+    return new Set([...current, ...visible.map((quote) => quote.id)].slice(0, BULK_MAX_IDS));
+  });
+  const now = new Date();
 
   return (
     <div>
       <AdminPageHeader
         eyebrow="Customer desk"
         title={<>Quote <em>enquiries</em></>}
-        description="Every website quote request in one place. Open an enquiry to call, email and move it through your follow-up."
+        description="Every website quote request in one place. Reply, set a follow-up, and turn a won enquiry into a booking."
       />
 
       {counts && (
@@ -233,7 +217,7 @@ function QuotesList({ initialCounts }: { initialCounts: StatusCounts | null }) {
               className="a-crm-stat"
               style={{ "--c": STATUS_COLOR[key] } as CSSProperties}
               aria-pressed={status === key}
-              onClick={() => { setStatus(status === key ? "all" : key); setPage(1); }}
+              onClick={() => chooseStatus(status === key ? "all" : key)}
             >
               <span className="a-crm-stat-label">{QUOTE_STATUS[key].label}</span>
               <span className="a-crm-stat-value">{counts[key]}</span>
@@ -256,11 +240,22 @@ function QuotesList({ initialCounts }: { initialCounts: StatusCounts | null }) {
                 onChange={(event) => setSearch(event.target.value)}
               />
             </label>
-            <div className="a-chips">
-              <button type="button" className="a-chip" aria-pressed={status === "all"} onClick={() => { setStatus("all"); setPage(1); }}>
-                All enquiries{totalAll !== null && <b>{totalAll}</b>}
-              </button>
+            <div className="a-q-tabs a-chips" role="group" aria-label="Enquiry view">
+              {TABS.map((item) => (
+                <button key={item.value} type="button" className="a-chip" aria-pressed={tab === item.value && status === "all"} onClick={() => chooseTab(item.value)}>
+                  {item.label}{tabCount[item.value] !== null && <b>{tabCount[item.value]}</b>}
+                </button>
+              ))}
             </div>
+            <label className="a-q-sort">
+              <span className="admin-help">Sort</span>
+              <select className="admin-input" value={sort} onChange={(event) => { setSort(event.target.value as Sort); setPage(1); }}>
+                <option value="oldest">Oldest first</option>
+                <option value="newest">Newest first</option>
+              </select>
+            </label>
+          </div>
+          <div style={{ marginTop: 10 }}>
             <span aria-live="polite" className="admin-help">
               {query.isLoading ? "Loading…" : needle ? `${visible.length} of ${rows.length} on this page` : `${total} ${total === 1 ? "enquiry" : "enquiries"}`}
             </span>
@@ -272,50 +267,96 @@ function QuotesList({ initialCounts }: { initialCounts: StatusCounts | null }) {
           )}
         </div>
 
+        {checked.size > 0 && (
+          <div className="a-q-bulk" role="region" aria-label="Bulk actions">
+            <span><b>{checked.size}</b> selected</span>
+            <label className="sr-only" htmlFor="quote-bulk-status">Set status for selected enquiries</label>
+            <select id="quote-bulk-status" className="admin-input" value={bulkStatus} onChange={(event) => setBulkStatus(event.target.value as QuoteStatus)}>
+              {QUOTE_STATUS_ORDER.map((key) => <option key={key} value={key}>Set to {QUOTE_STATUS[key].label}</option>)}
+            </select>
+            <button type="button" className="admin-btn admin-btn--primary admin-btn--sm" onClick={() => setBulkOpen(true)}>Apply…</button>
+            <button type="button" className="admin-btn admin-btn--ghost admin-btn--sm" onClick={() => setChecked(new Set())}>Clear selection</button>
+          </div>
+        )}
+
         {query.isError ? (
           <div style={{ padding: "0 26px 26px" }}>
             <AdminAlert tone="error">
-              Unable to load quotes: {query.error instanceof Error ? query.error.message : "Unknown error"}. Check Supabase migration 0014 and the admin session.
+              Unable to load quotes: {query.error instanceof Error ? query.error.message : "Unknown error"}. Check Supabase migrations 0014 and 0021 and the admin session.
               <button className="admin-btn admin-btn--secondary admin-btn--sm" style={{ marginLeft: 12 }} type="button" onClick={() => void query.refetch()}>Retry</button>
             </AdminAlert>
           </div>
         ) : query.isLoading ? (
           <SkeletonLoader rows={5} label="Loading enquiries" />
         ) : rows.length === 0 ? (
-          <AdminEmptyState icon="inbox" title="No matching enquiries" description="New successful quote requests will appear when capture is enabled." />
+          <AdminEmptyState
+            icon="inbox"
+            title={tab === "needs_reply" ? "Nothing waiting for a reply" : tab === "due" || tab === "overdue" ? "No follow-ups here" : "No matching enquiries"}
+            description={tab === "all" ? "New successful quote requests will appear when capture is enabled." : "Switch to All to see every enquiry."}
+          />
         ) : visible.length === 0 ? (
           <AdminEmptyState icon="search" title="No matches on this page" description="Try a different search, or clear it to see every enquiry on this page." action={<button type="button" className="admin-btn admin-btn--secondary admin-btn--sm" onClick={() => setSearch("")}>Clear search</button>} />
         ) : (
-          <ul className="a-lead-list">
-            {visible.map((quote) => {
-              const name = field(quote, "name");
-              const phone = field(quote, "phone");
-              const email = field(quote, "email");
-              const preferred = field(quote, "preferred_moving_date");
-              const preferredDate = hasValue(preferred) ? formatPreferredDate(preferred) : null;
-              return (
-                <li key={quote.id}>
-                  <button type="button" className="a-lead" aria-haspopup="dialog" aria-current={selected?.id === quote.id ? "true" : undefined} onClick={() => setSelected(quote)}>
-                    <span className="a-lead-avatar" aria-hidden="true">{initialsOf(name)}</span>
-                    <span style={{ minWidth: 0 }}>
-                      <span className="a-lead-name" style={{ display: "block" }}>{hasValue(name) ? name : "Unnamed enquiry"}</span>
-                      <span className="a-lead-contact" style={{ display: "block" }}>{[hasValue(phone) ? phone : null, hasValue(email) ? email : null].filter(Boolean).join(" · ") || "No contact details"}</span>
-                    </span>
-                    <span className="a-route" aria-label={`From ${field(quote, "moving_from")} to ${field(quote, "moving_to")}`}>
-                      <span className="a-route-stop">{field(quote, "moving_from")}</span>
-                      <span className="a-route-stop">{field(quote, "moving_to")}</span>
-                    </span>
-                    <span className="a-lead-datecol">
-                      <span className="a-lead-date-label" style={{ display: "block" }}>Preferred date</span>
-                      <span className="a-lead-date" style={{ display: "block" }}>{preferredDate ? preferredDate.text : "Flexible / not given"}</span>
-                      <span className="a-lead-ago" style={{ display: "block" }}>{preferredDate?.soon ? `${preferredDate.soon} · ` : ""}Received {ago(quote.created_at)}</span>
-                    </span>
-                    <span className="a-lead-statuscol"><AdminStatusBadge kind="quote" status={quote.quote_status} /></span>
-                  </button>
-                </li>
-              );
-            })}
-          </ul>
+          <>
+            <div style={{ padding: "0 26px 8px" }}>
+              <label className="a-q-selectall">
+                <input type="checkbox" checked={allVisibleChecked} onChange={toggleAllVisible} />
+                Select all on this page
+              </label>
+            </div>
+            <ul className="a-lead-list">
+              {visible.map((quote) => {
+                const name = field(quote, "name");
+                const phone = field(quote, "phone");
+                const email = field(quote, "email");
+                const preferred = field(quote, "preferred_moving_date");
+                const preferredDate = hasValue(preferred) ? formatPreferredDate(preferred) : null;
+                const badge = responseBadge({ createdAt: quote.created_at, firstResponseAt: quote.first_response_at, status: quote.quote_status, now, openHm: businessHours.open || DEFAULT_OPEN_HM, closeHm: businessHours.close || DEFAULT_CLOSE_HM });
+                const followUp = followUpState(quote.follow_up_at, quote.quote_status, now);
+                return (
+                  <li key={quote.id} className="a-q-item">
+                    <label className="a-q-check">
+                      <span className="sr-only">Select {hasValue(name) ? name : "unnamed enquiry"}</span>
+                      <input type="checkbox" checked={checked.has(quote.id)} onChange={() => toggleChecked(quote.id)} />
+                    </label>
+                    <button type="button" className="a-lead" aria-haspopup="dialog" aria-current={selected?.id === quote.id ? "true" : undefined} onClick={() => setSelected(quote)}>
+                      <span className="a-lead-avatar" aria-hidden="true">{initialsOf(name)}</span>
+                      <span style={{ minWidth: 0 }}>
+                        <span className="a-lead-name" style={{ display: "block" }}>{hasValue(name) ? name : "Unnamed enquiry"}</span>
+                        <span className="a-lead-contact" style={{ display: "block" }}>{[hasValue(phone) ? phone : null, hasValue(email) ? email : null].filter(Boolean).join(" · ") || "No contact details"}</span>
+                        <span className="a-q-meta">
+                          <span className="admin-badge" data-tone={badge.level === "red" ? "danger" : badge.level === "amber" ? "warning" : "neutral"}>
+                            <Icon name="clock" size={13} />{badge.label}
+                            {badge.level === "red" && <span className="sr-only"> (over 24 hours without a response)</span>}
+                            {badge.level === "amber" && <span className="sr-only"> (over 4 business hours without a response)</span>}
+                          </span>
+                          {(followUp === "overdue" || followUp === "due") && (
+                            <span className="admin-badge" data-tone={followUp === "overdue" ? "danger" : "warning"}>
+                              <Icon name="bell" size={13} />{followUp === "overdue" ? "Follow-up overdue" : "Follow up today"}
+                            </span>
+                          )}
+                          {followUp === "upcoming" && <span className="admin-help">Follow up {shortDate(followUpYmd(quote.follow_up_at))}</span>}
+                          {quote.booking && (
+                            <span className="admin-badge" data-tone="success"><Icon name="calendarCheck" size={13} />{quote.booking.booking_number}</span>
+                          )}
+                        </span>
+                      </span>
+                      <span className="a-route" aria-label={`From ${field(quote, "moving_from")} to ${field(quote, "moving_to")}`}>
+                        <span className="a-route-stop">{field(quote, "moving_from")}</span>
+                        <span className="a-route-stop">{field(quote, "moving_to")}</span>
+                      </span>
+                      <span className="a-lead-datecol">
+                        <span className="a-lead-date-label" style={{ display: "block" }}>Preferred date</span>
+                        <span className="a-lead-date" style={{ display: "block" }}>{preferredDate ? preferredDate.text : "Flexible / not given"}</span>
+                        <span className="a-lead-ago" style={{ display: "block" }}>{preferredDate?.soon ? `${preferredDate.soon} · ` : ""}Received {formatAdelaide(quote.created_at)}</span>
+                      </span>
+                      <span className="a-lead-statuscol"><AdminStatusBadge kind="quote" status={quote.quote_status} /></span>
+                    </button>
+                  </li>
+                );
+              })}
+            </ul>
+          </>
         )}
 
         <div className="a-pager">
@@ -338,11 +379,31 @@ function QuotesList({ initialCounts }: { initialCounts: StatusCounts | null }) {
         </AdminAlert>
       </div>
 
+      <ConfirmationDialog
+        open={bulkOpen}
+        title={`Move ${checked.size} ${checked.size === 1 ? "enquiry" : "enquiries"} to “${QUOTE_STATUS[bulkStatus].label}”?`}
+        confirmLabel="Move enquiries"
+        pending={bulkPending}
+        destructive={bulkStatus === "lost"}
+        onConfirm={() => void applyBulk()}
+        onCancel={() => setBulkOpen(false)}
+      >
+        This changes the status of every selected enquiry. No emails or messages are sent to customers.
+        {bulkStatus === "lost" && (
+          <label className="a-q-dialog-field">
+            <span className="admin-label">Lost reason</span>
+            <select className="admin-input" value={bulkReason} onChange={(event) => setBulkReason(event.target.value as LostReason)}>
+              {LOST_REASONS.map((reason) => <option key={reason.value} value={reason.value}>{reason.label}</option>)}
+            </select>
+          </label>
+        )}
+      </ConfirmationDialog>
+
       <DetailDrawer
         open={selected !== null}
         onClose={closeDrawer}
         eyebrow="Quote enquiry"
-        title={selected ? (hasValue(field(selected, "name")) ? field(selected, "name") : "Unnamed enquiry") : ""}
+        title={selected ? displayName(selected) : ""}
         headerExtra={selected && (
           <span style={{ display: "inline-flex", flexWrap: "wrap", alignItems: "center", gap: 10 }}>
             <AdminStatusBadge kind="quote" status={selected.quote_status} />
@@ -362,87 +423,27 @@ function QuotesList({ initialCounts }: { initialCounts: StatusCounts | null }) {
         )}
       >
         {selected && (
-          <>
-            <section className="a-drawer-section">
-              <h3 className="a-drawer-section-title">Contact</h3>
-              <div className="a-contact-row">
-                <ContactButton icon="phone" label="Call" value={field(selected, "phone")} href={telHref(field(selected, "phone"))} />
-                <ContactButton icon="mail" label="Email" value={field(selected, "email")} href={mailHref(field(selected, "email"))} />
-              </div>
-            </section>
-
-            <section className="a-drawer-section">
-              <h3 className="a-drawer-section-title">The move</h3>
-              <div className="a-route" style={{ marginBottom: 14 }}>
-                <span className="a-route-stop" style={{ whiteSpace: "normal" }}>{field(selected, "moving_from")}</span>
-                <span className="a-route-stop" style={{ whiteSpace: "normal" }}>{field(selected, "moving_to")}</span>
-              </div>
-              <dl className="admin-dl">
-                <div className="admin-dl-row"><dt>Preferred date</dt><dd>{(() => { const v = field(selected, "preferred_moving_date"); if (!hasValue(v)) return MISSING; const f = formatPreferredDate(v); return f.soon ? `${f.text} · ${f.soon}` : f.text; })()}</dd></div>
-                {DETAIL_FIELDS.map(({ key, label }) => (
-                  <div className="admin-dl-row" key={key}><dt>{label}</dt><dd>{field(selected, key)}</dd></div>
-                ))}
-              </dl>
-            </section>
-
-            {hasValue(field(selected, "details")) && (
-              <section className="a-drawer-section">
-                <h3 className="a-drawer-section-title">Job details from the customer</h3>
-                <pre className="admin-note-box">{field(selected, "details")}</pre>
-              </section>
-            )}
-
-            <section className="a-drawer-section">
-              <h3 className="a-drawer-section-title">Follow-up</h3>
-              <div className="a-next-steps" role="group" aria-label="Suggested next steps">
-                {NEXT_STEPS[selected.quote_status].map((nextStep) => (
-                  <button key={nextStep.to} type="button" className="a-step" data-primary={nextStep.primary || undefined} disabled={mutation.isPending} onClick={() => updateStatus(selected, nextStep.to)}>
-                    <Icon name={QUOTE_STATUS[nextStep.to].icon} size={16} />
-                    {nextStep.label}
-                  </button>
-                ))}
-              </div>
-              <label className="admin-field" style={{ marginTop: 16 }}>
-                <span className="admin-label">Set status directly</span>
-                <select
-                  className="admin-input"
-                  aria-label={`Follow-up status for ${field(selected, "name")}`}
-                  value={selected.quote_status}
-                  disabled={mutation.isPending}
-                  onChange={(event) => updateStatus(selected, event.target.value as QuoteStatus)}
-                >
-                  {STATUSES.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}
-                </select>
-              </label>
-              {message && <div style={{ marginTop: 12 }}><AdminAlert tone={message.tone === "success" ? "success" : "error"}>{message.text}</AdminAlert></div>}
-            </section>
-
-            <section className="a-drawer-section">
-              <h3 className="a-drawer-section-title">Original submission</h3>
-              <dl className="admin-dl">
-                <div className="admin-dl-row">
-                  <dt>Form source</dt>
-                  <dd>{(() => { const value = field(selected, "source_page"); const href = hasValue(value) ? safeSourceUrl(value) : null; return href ? <a className="admin-link" href={href} target="_blank" rel="noopener noreferrer">{value}</a> : value; })()}</dd>
-                </div>
-                <div className="admin-dl-row"><dt>Email delivery verification</dt><dd>{selected.delivery_status === "unknown" ? "Not verified" : selected.delivery_status}</dd></div>
-                <div className="admin-dl-row"><dt>Reference</dt><dd className="is-mono">{selected.id}</dd></div>
-              </dl>
-            </section>
-          </>
+          <QuoteDetailPanel
+            quote={selected}
+            pending={mutation.isPending}
+            notice={message}
+            onPatch={(patch) => patchQuote(selected, patch)}
+            onConverted={onConverted}
+          />
         )}
       </DetailDrawer>
     </div>
   );
 }
 
-export default function QuotesClient({ initialCounts = null }: { initialCounts?: StatusCounts | null }) {
+export default function QuotesClient({ initialSummary = null, businessHours }: { initialSummary?: QuoteSummary | null; businessHours: BusinessHours }) {
   return (
     <Refine
       dataProvider={dataProvider}
       resources={[{ name: "quotes", list: "/admin/quotes" }]}
       options={{ disableTelemetry: true }}
     >
-      <QuotesList initialCounts={initialCounts} />
+      <QuotesList initialSummary={initialSummary} businessHours={businessHours} />
     </Refine>
   );
 }

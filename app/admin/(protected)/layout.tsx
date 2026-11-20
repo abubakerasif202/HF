@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 import { getStaffSession } from "../../../lib/server/supabase-ssr.ts";
-import { getSupabaseAdmin } from "../../../lib/server/supabase.ts";
+import { countQuotesNeedingAttention } from "../../../lib/server/quote-crm-repo.ts";
 import { isBookingSystemLive } from "../../../lib/server/config.ts";
 import { AdminShell, type NavGroup } from "../_components/shell/AdminShell";
 
@@ -30,18 +30,6 @@ const NAV_GROUPS: NavGroup[] = [
   },
 ];
 
-/** Live count of untouched enquiries for the sidebar badge. Never blocks the page if it fails. */
-async function newEnquiryCount(): Promise<number | null> {
-  try {
-    const { count, error } = await getSupabaseAdmin()
-      .from("quote_requests")
-      .select("id", { count: "exact", head: true })
-      .eq("quote_status", "new");
-    return error ? null : (count ?? 0);
-  } catch {
-    return null;
-  }
-}
 
 /**
  * Shared authenticated shell for every /admin/* page except /admin/login.
@@ -54,8 +42,9 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   const staff = await getStaffSession();
   if (!staff) redirect("/admin/login");
 
-  const newEnquiries = await newEnquiryCount();
-  const badges: Record<string, number> = newEnquiries ? { "/admin/quotes": newEnquiries } : {};
+  // Untouched enquiries plus open follow-ups that are overdue. Never blocks the page if it fails.
+  const needsAttention = await countQuotesNeedingAttention();
+  const badges: Record<string, number> = needsAttention ? { "/admin/quotes": needsAttention } : {};
 
   return (
     <div className="admin-shell">

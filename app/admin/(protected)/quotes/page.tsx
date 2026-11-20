@@ -1,31 +1,24 @@
 import { requireAdmin } from "../../../../lib/server/admin-dal.ts";
-import { getSupabaseAdmin } from "../../../../lib/server/supabase.ts";
+import { getBusinessSettings } from "../../../../lib/server/booking-repo.ts";
+import { loadQuoteSummary } from "../../../../lib/server/quote-crm-repo.ts";
+import { DEFAULT_CLOSE_HM, DEFAULT_OPEN_HM } from "../../../../lib/admin/quote-crm.ts";
 import QuotesClient from "./QuotesClient";
-import { QUOTE_STATUS_ORDER, type StatusCounts } from "./quoteStatus";
 
 export const dynamic = "force-dynamic";
 export const metadata = { robots: { index: false, follow: false } };
 
-/** Real per-status totals for the CRM summary. Falls back to null (hidden) if the query fails. */
-async function loadCounts(): Promise<StatusCounts | null> {
+/** Business window for the "4 business hours" response badge. Falls back to defaults if settings fail. */
+async function loadBusinessHours(): Promise<{ open: string; close: string }> {
   try {
-    const supabase = getSupabaseAdmin();
-    const results = await Promise.all(
-      QUOTE_STATUS_ORDER.map((status) => supabase.from("quote_requests").select("id", { count: "exact", head: true }).eq("quote_status", status)),
-    );
-    if (results.some((result) => result.error)) return null;
-    const counts = {} as StatusCounts;
-    QUOTE_STATUS_ORDER.forEach((status, index) => {
-      counts[status] = results[index].count ?? 0;
-    });
-    return counts;
+    const settings = await getBusinessSettings();
+    return { open: settings.businessOpenTime, close: settings.businessCloseTime };
   } catch {
-    return null;
+    return { open: DEFAULT_OPEN_HM, close: DEFAULT_CLOSE_HM };
   }
 }
 
 export default async function QuotesPage() {
   await requireAdmin();
-  const initialCounts = await loadCounts();
-  return <QuotesClient initialCounts={initialCounts} />;
+  const [initialSummary, hours] = await Promise.all([loadQuoteSummary(), loadBusinessHours()]);
+  return <QuotesClient initialSummary={initialSummary} businessHours={hours} />;
 }
