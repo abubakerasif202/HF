@@ -5,6 +5,7 @@ import { formatCents, missingInvoiceSettings } from "../../../../lib/invoice.ts"
 import { AdminAlert, AdminCard, AdminEmptyState, AdminPageHeader, DataTable } from "../../_components/ui";
 import { AdminStatusBadge } from "../../_components/AdminStatusBadge";
 import { Icon } from "../../_components/Icon";
+import { ExportCsvLink } from "../../_components/ExportCsvLink";
 import "../../styles/invoices.css";
 
 export const dynamic = "force-dynamic";
@@ -30,7 +31,7 @@ export default async function InvoicesPage({ searchParams }: { searchParams: Pro
         eyebrow="Billing"
         title="Invoices"
         description="Draft, issue and download invoices. Create one from any booking's detail page."
-        actions={<Link href="/admin/invoices/settings" className="admin-btn admin-btn--secondary"><Icon name="settings" size={16} />Invoice settings</Link>}
+        actions={<><ExportCsvLink href={active ? `/api/admin/export/invoices?status=${active}` : "/api/admin/export/invoices"} /><Link href="/admin/invoices/settings" className="admin-btn admin-btn--secondary"><Icon name="settings" size={16} />Invoice settings</Link></>}
       />
       {missing.length > 0 && (
         <AdminAlert tone="info">

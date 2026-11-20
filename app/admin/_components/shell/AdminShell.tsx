@@ -7,6 +7,7 @@ import { useCallback, useEffect, useRef, useState, useSyncExternalStore, type Re
 import { signOutAction } from "../../actions.ts";
 import { BrandMark } from "../BrandMark";
 import { Icon, type IconName } from "../Icon";
+import { GlobalSearch } from "./GlobalSearch";
 
 export interface NavItem {
   href: string;
@@ -298,6 +299,7 @@ export function AdminShell({
             <AdelaideClock />
           </div>
           <div className="a-header-right">
+            <GlobalSearch />
             <Link href="/" target="_blank" rel="noopener" className="a-site-link">
               <Icon name="externalLink" size={15} />
               View public site

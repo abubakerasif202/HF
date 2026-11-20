@@ -78,3 +78,17 @@ test("migration 0017 makes the RLS helper owner-only and revokes anon grants", a
   assert.match(sql, /revoke all on table[\s\S]*public\.bookings[\s\S]*from anon, authenticated/);
   assert.doesNotMatch(sql, /grant [^;]* to anon/i);
 });
+
+test("CSV export and global search routes authorize on the server and never cache", async () => {
+  for (const name of ["bookings", "quotes", "invoices", "customers"]) {
+    const route = await readFile(path.join(root, `app/api/admin/export/${name}/route.ts`), "utf8");
+    assert.match(route, /await denyUnlessAdmin\(\)/, `${name} export must authorize first`);
+    assert.match(route, /csvResponse\(/);
+  }
+  const search = await readFile(path.join(root, "app/api/admin/search/route.ts"), "utf8");
+  assert.match(search, /await denyUnlessAdmin\(\)/);
+  const shared = await readFile(path.join(root, "lib/server/export-data.ts"), "utf8");
+  assert.match(shared, /status === "forbidden" \? 403 : 401/);
+  assert.match(shared, /private, no-store, max-age=0/);
+  assert.match(shared, /attachment; filename=/);
+});

@@ -5,6 +5,7 @@ import { BookingRow, type BookingListItem } from "./BookingRow";
 import { BookingStatusFilter, BookingsSummaryStrip } from "./BookingsOverview";
 import { groupBookings, statusCounts, summariseBookings } from "./grouping";
 import { AdminEmptyState, AdminPageHeader, formatAdelaide } from "../../_components/ui";
+import { ExportCsvLink } from "../../_components/ExportCsvLink";
 import "../../styles/bookings.css";
 
 export const dynamic = "force-dynamic";
@@ -44,9 +45,12 @@ export default async function AdminBookingsPage({ searchParams }: { searchParams
         title={<>Every move,<br /><em>in order.</em></>}
         description="Confirmed, pending and completed customer moves, grouped by day. Assign a truck and crew straight from the list."
         actions={
-          <Link href="/admin/calendar" className="admin-btn admin-btn--secondary">
-            Open calendar
-          </Link>
+          <>
+            <ExportCsvLink href={activeStatus === "all" ? "/api/admin/export/bookings" : `/api/admin/export/bookings?status=${encodeURIComponent(activeStatus)}`} />
+            <Link href="/admin/calendar" className="admin-btn admin-btn--secondary">
+              Open calendar
+            </Link>
+          </>
         }
       />
 

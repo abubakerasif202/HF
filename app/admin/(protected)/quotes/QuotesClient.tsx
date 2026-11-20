@@ -6,6 +6,7 @@ import { AdminAlert, AdminCard, AdminEmptyState, AdminPageHeader, SkeletonLoader
 import { AdminStatusBadge, QUOTE_STATUS } from "../../_components/AdminStatusBadge";
 import { DetailDrawer } from "../../_components/DetailDrawer";
 import { Icon } from "../../_components/Icon";
+import { ExportCsvLink } from "../../_components/ExportCsvLink";
 
 import { QUOTE_STATUS_ORDER, type QuoteStatus, type StatusCounts } from "./quoteStatus";
 
@@ -222,6 +223,7 @@ function QuotesList({ initialCounts }: { initialCounts: StatusCounts | null }) {
         eyebrow="Customer desk"
         title={<>Quote <em>enquiries</em></>}
         description="Every website quote request in one place. Open an enquiry to call, email and move it through your follow-up."
+        actions={<ExportCsvLink href={`/api/admin/export/quotes?${new URLSearchParams({ ...(status !== "all" ? { status } : {}), ...(search.trim() ? { q: search.trim() } : {}) }).toString()}`} />}
       />
 
       {counts && (
