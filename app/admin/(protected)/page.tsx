@@ -7,6 +7,9 @@ import { Icon } from "../_components/Icon";
 import { getSupabaseAdmin } from "../../../lib/server/supabase.ts";
 import { adelaideDay, adelaideDayOffset } from "../../../lib/admin/dates.ts";
 import { instantToZonedParts } from "../../../lib/booking/timezone.ts";
+import { listCloseoutJobs } from "../../../lib/server/closeout-repo.ts";
+import { daysSinceEnd } from "../../../lib/admin/closeout.ts";
+import "../styles/closeout.css";
 
 export const dynamic = "force-dynamic";
 export const metadata = { robots: { index: false, follow: false } };
@@ -86,6 +89,7 @@ export default async function AdminDashboardPage() {
   const fourteenDaysAgo = adelaideDay(-13, now).start;
   const weekWindowStart = adelaideDay(-21, now).start;
   const weekWindowEnd = adelaideDay(35, now).start;
+  const closeoutPromise = listCloseoutJobs(3, now, { withInvoices: false }).catch(() => null);
 
   const [
     statusRowsResult,
@@ -133,6 +137,8 @@ export default async function AdminDashboardPage() {
     supabase.from("quote_requests").select("id, payload, created_at").order("created_at", { ascending: false }).limit(6),
     ...QUOTE_STAGES.map((stage) => supabase.from("quote_requests").select("id", { count: "exact", head: true }).eq("quote_status", stage.key)),
   ]);
+
+  const closeout = await closeoutPromise;
 
   /* ---- Bookings by status (single tally) ---- */
   const statusTally: Record<string, number> = {};
@@ -311,6 +317,33 @@ export default async function AdminDashboardPage() {
           style={{ "--i": 5 } as React.CSSProperties}
         />
       </div>
+
+      {closeout !== null && (
+        <AdminCard
+          icon="check"
+          title="Job closeout"
+          description={closeout.total > 0 ? `${closeout.total} past ${closeout.total === 1 ? "job is" : "jobs are"} still open. Finalise, cancel or mark no-show.` : "Past jobs that were never finalised show up here."}
+          actions={<Link href="/admin/closeout" className="admin-link">{closeout.total > 0 ? "Close out jobs" : "Open queue"}</Link>}
+          flush={closeout.total > 0}
+        >
+          {closeout.total === 0 ? (
+            <AdminEmptyState icon="check" title="All past jobs are closed out" description="Nothing is waiting to be finalised or cancelled." />
+          ) : (
+            <ul className="a-closeout-card-list">
+              {closeout.jobs.map((job) => (
+                <li key={job.id}>
+                  <div>
+                    <Link href={`/admin/bookings/${job.id}`} className="a-id" style={{ textDecoration: "underline", textUnderlineOffset: 3 }}>{job.bookingNumber}</Link>
+                    <span className="admin-cell-sub" style={{ marginLeft: 10 }}>{job.customerName || "Customer"}</span>
+                    <div className="a-closeout-card-age">{daysSinceEnd(job.endsAt, now) === 0 ? "Ended today" : `${daysSinceEnd(job.endsAt, now)}d overdue`}</div>
+                  </div>
+                  <AdminStatusBadge status={job.status} />
+                </li>
+              ))}
+            </ul>
+          )}
+        </AdminCard>
+      )}
 
       <div className="a-section-label">
         <h2>Operational intelligence</h2>

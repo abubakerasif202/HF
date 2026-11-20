@@ -3,6 +3,7 @@ import { getStaffSession } from "../../../lib/server/supabase-ssr.ts";
 import { getSupabaseAdmin } from "../../../lib/server/supabase.ts";
 import { isBookingSystemLive } from "../../../lib/server/config.ts";
 import { AdminShell, type NavGroup } from "../_components/shell/AdminShell";
+import { countCloseoutJobs } from "../../../lib/server/closeout-repo.ts";
 
 export const dynamic = "force-dynamic";
 
@@ -16,6 +17,7 @@ const NAV_GROUPS: NavGroup[] = [
       { href: "/admin/quotes", label: "Quote enquiries", icon: "inbox" },
       { href: "/admin/invoices", label: "Invoices", icon: "dollar" },
       { href: "/admin/calendar", label: "Calendar", icon: "calendar" },
+      { href: "/admin/closeout", label: "Job closeout", icon: "check" },
     ],
   },
   {
@@ -54,8 +56,9 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   const staff = await getStaffSession();
   if (!staff) redirect("/admin/login");
 
-  const newEnquiries = await newEnquiryCount();
+  const [newEnquiries, closeoutJobs] = await Promise.all([newEnquiryCount(), countCloseoutJobs()]);
   const badges: Record<string, number> = newEnquiries ? { "/admin/quotes": newEnquiries } : {};
+  if (closeoutJobs) badges["/admin/closeout"] = closeoutJobs;
 
   return (
     <div className="admin-shell">

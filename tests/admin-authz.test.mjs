@@ -78,3 +78,12 @@ test("migration 0017 makes the RLS helper owner-only and revokes anon grants", a
   assert.match(sql, /revoke all on table[\s\S]*public\.bookings[\s\S]*from anon, authenticated/);
   assert.doesNotMatch(sql, /grant [^;]* to anon/i);
 });
+test("job closeout page and actions are owner-guarded", async () => {
+  const page = await readFile(path.join(root, "app/admin/(protected)/closeout/page.tsx"), "utf8");
+  assert.match(page, /await requireAdmin\(\)/);
+  const actions = await readFile(path.join(root, "app/admin/(protected)/closeout/actions.ts"), "utf8");
+  for (const name of ["finaliseCloseoutJobAction", "cancelCloseoutJobAction"]) {
+    const body = actions.slice(actions.indexOf(`export async function ${name}`));
+    assert.match(body.slice(0, 200), /requireStaff\(\)/, `${name} must authorize first`);
+  }
+});
