@@ -103,4 +103,12 @@ test("customers pages and action are covered by the owner guards", async () => {
   assert.match(page, /await requireAdmin\(\)/);
   assert.match(detail, /await requireAdmin\(\)/);
   assert.match(actions.slice(actions.indexOf("export async function updateCustomerAction")), /^[\s\S]{0,200}await requireStaff\(\)/);
+
+test("reports page is owner-guarded and the reports repo is read-only and server-only", async () => {
+  const page = await readFile(path.join(root, "app/admin/(protected)/reports/page.tsx"), "utf8");
+  assert.match(page, /await requireAdmin\(\)/);
+  assert.match(page, /resolveReportRange\(/);
+  const repo = await readFile(path.join(root, "lib/server/reports-repo.ts"), "utf8");
+  assert.match(repo, /^import "server-only";/);
+  assert.doesNotMatch(repo, /\.(insert|update|delete|upsert|rpc)\(/);
 });

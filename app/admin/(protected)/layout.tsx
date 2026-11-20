@@ -19,6 +19,7 @@ const NAV_GROUPS: NavGroup[] = [
       { href: "/admin/invoices", label: "Invoices", icon: "dollar" },
       { href: "/admin/calendar", label: "Calendar", icon: "calendar" },
       { href: "/admin/closeout", label: "Job closeout", icon: "check" },
+      { href: "/admin/reports", label: "Reports", icon: "trendUp" },
     ],
   },
   {
