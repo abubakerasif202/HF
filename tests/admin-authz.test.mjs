@@ -57,6 +57,14 @@ test("admin quote API distinguishes 401 from 403 and never caches", async () => 
   assert.match(route, /origin !== new URL\(request\.url\)\.origin/);
 });
 
+test("quote CRM routes (bulk, convert) authorise and check origin before reading the body", async () => {
+  for (const file of ["bulk", "convert"]) {
+    const route = await readFile(path.join(root, `app/api/admin/quotes/${file}/route.ts`), "utf8");
+    assert.ok(route.indexOf("denyUnlessAdmin()") < route.indexOf("readJsonObject("), `${file} must authorise before parsing`);
+    assert.match(route, /denyCrossOrigin\(request\)/);
+  }
+});
+
 test("proxy only matches admin routes so the public site stays login-free", async () => {
   const proxy = await readFile(path.join(root, "proxy.ts"), "utf8");
   assert.match(proxy, /matcher: \["\/admin\/:path\*", "\/api\/admin\/:path\*"\]/);
