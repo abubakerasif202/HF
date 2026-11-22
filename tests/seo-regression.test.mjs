@@ -106,3 +106,18 @@ test("service schema describes the visible service and its actual geographical s
     }
   } finally { await page.close(); }
 });
+
+test("interstate route pages link to the hub and every sibling route", async () => {
+  const page = await browser.newPage();
+  const routes = ["adelaide-melbourne", "adelaide-sydney", "adelaide-queensland", "adelaide-perth"];
+  try {
+    for (const slug of routes) {
+      await page.goto(`${runtime.base}/interstate/${slug}`);
+      assert.ok(await page.locator('main a[href="/services/interstate-removals"]').count(), `${slug} links to the hub`);
+      for (const sibling of routes.filter(route => route !== slug)) {
+        assert.ok(await page.locator(`main a[href="/interstate/${sibling}"]`).count(), `${slug} links to ${sibling}`);
+      }
+      assert.equal(await page.locator(`main a[href="/interstate/${slug}"]`).count(), 0, `${slug} does not link to itself`);
+    }
+  } finally { await page.close(); }
+});

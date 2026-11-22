@@ -1133,9 +1133,16 @@ function relatedLinksFor(page: ContentPage): RelatedLink[] {
   }
 
   if (page.kind === "route") {
+    // Sibling routes use their own route titles as anchors so each city-pair page
+    // receives a descriptive link from the other interstate pages, not just the hub.
+    const siblingRoutes = interstateRoutes
+      .filter((route) => route.slug !== page.slug)
+      .map((route) => ({ href: `/interstate/${route.slug}`, label: route.title, description: `Compare the ${route.price} per m³ reference rate and the inventory details needed for this route.` }));
     return [
-      { href: "/services/interstate-removals", label: "Interstate removals", description: "Understand the inventory and access details needed for an interstate enquiry." },
+      { href: "/services/interstate-removals", label: "Interstate removalists from Adelaide", description: "Understand the inventory and access details needed for an interstate enquiry." },
+      ...siblingRoutes,
       { href: "/guides/preparing-interstate-move", label: "Interstate moving guide", description: "Prepare the route, volume and packing information before requesting a quote." },
+      { href: "/services/residential-removals", label: "House removals in Adelaide", description: "Moving a whole home? Plan rooms, access and truck choice for the Adelaide pickup." },
       homeLink("Our Adelaide removalists"),
       ...shared,
     ];
