@@ -3860,11 +3860,6 @@ p {
   color: var(--hf-ivory);
 }
 
-.booking-shell .booking-wizard-heading {
-  font-size: 1.5rem;
-  line-height: 1.25;
-}
-
 /* Muted/secondary text: text-neutral-600 was the most-readable of the
    three greys on a light page, so it maps to the (lighter) secondary
    token; -400/-500 map to the dimmer-but-still-AA muted token. */
