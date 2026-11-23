@@ -30,7 +30,7 @@ export default function BookPage() {
   }
 
   return (
-    <div className="booking-shell">
+    <main className="booking-shell">
       <div className="mx-auto max-w-3xl px-6 pt-16 pb-4 text-center">
         <p className="text-xs font-bold uppercase tracking-widest text-neutral-400">Book Your Move</p>
         <h1 className="mt-2 text-3xl font-semibold">Book your move online in a few easy steps</h1>
@@ -51,6 +51,6 @@ export default function BookPage() {
       <div className="mx-auto mt-4 max-w-3xl px-6 pb-24">
         <GoogleAppointmentSchedule />
       </div>
-    </div>
+    </main>
   );
 }
