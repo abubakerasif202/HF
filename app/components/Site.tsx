@@ -303,7 +303,7 @@ function CommercialMoveTerms() {
         <li>A separate two-hour travel fee applies per service day at the agreed standard crew rate.</li>
         <li>Protective packing is charged separately for each individually packed item. Specialist and heavy-item handling, additional deliveries and rubbish removal or disposal incur additional charges according to the agreed scope.</li>
         <li>Additional crew members and chargeable services are subject to customer approval. Confirm applicable fees and payment terms in your commercial quote before booking.</li>
-        <li>Business-to-business rates exclude GST. These published terms apply to new commercial bookings, subject to the agreed quote.</li>
+        <li>Business-to-business rates exclude GST.</li>
       </ul>
     </div>
   );
