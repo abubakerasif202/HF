@@ -4,6 +4,7 @@ import { FormEvent, useEffect, useId, useRef, useState } from "react";
 import { usePathname } from "next/navigation";
 import { areas, business, findMovingPackage, interstatePricing, interstateRoutes, quoteFormEndpoint, services, truckPricing, web3FormsAccessKey, type MovingPackageId } from "../../lib/site-data";
 import { setSelectedTruck, useSelectedTruck } from "../../lib/truck-selection";
+import { AB_STUDIO_URL } from "./ABDeveloperCredit";
 import { TruckHiddenFields, TruckPicker } from "./TruckPicker";
 
 
@@ -643,7 +644,7 @@ export function QuoteForm({ compact = false }: { compact?: boolean }) {
             <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" style={{ display: "inline-block", verticalAlign: "-2px", marginRight: "5px" }}>
               <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />
             </svg>
-            <strong>Local Rates:</strong> {truckPricing.map((truck, index) => (
+            <strong>Standard local rates:</strong> {truckPricing.map((truck, index) => (
               <span key={truck.id}>{index > 0 && " · "}{truck.name} <em>{truck.halfHour} / 30 min</em></span>
             ))} · Final quote confirms the move scope
           </p>
@@ -699,6 +700,9 @@ export function QuoteForm({ compact = false }: { compact?: boolean }) {
             <option>Packing & Protection Only</option>
           </select>
         </label>
+        {form.moveType === "Office / Commercial Relocation" && (
+          <p className="form-wide form-note">Commercial moves use separate crew rates and service terms. Truck selection indicates vehicle preference only. <a href="/services/office-commercial-removals#commercial-pricing">View commercial pricing and charges</a>.</p>
+        )}
         <input className="honeypot" type="checkbox" name="botcheck" tabIndex={-1} autoComplete="off" aria-hidden="true" checked={Boolean(form.company)} onChange={(e) => update("company", e.target.checked ? "1" : "")} />
       </fieldset>
 
@@ -815,6 +819,13 @@ export function QuoteForm({ compact = false }: { compact?: boolean }) {
         <p id="quote-form-status" className={`form-status is-${statusKind}`} aria-live="polite" role={statusKind === "error" ? "alert" : "status"}>
           {status}
         </p>
+      )}
+      {status && statusKind === "success" && (
+        <aside className="quote-success-promo" aria-label="AB Web Studio">
+          <strong>Want your business to rank higher on Google?</strong>
+          <p>Get professional web design and SEO from AB Web Studio.</p>
+          <a href={AB_STUDIO_URL} target="_blank" rel="noopener noreferrer sponsored">Contact AB Web Studio ↗</a>
+        </aside>
       )}
     </form>
   );

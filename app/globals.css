@@ -4017,3 +4017,30 @@ p {
 .job-success .eyebrow { margin-bottom: 8px; color: var(--success); }.job-success h2 { margin: 0 0 8px; color: var(--text-primary); font-size: 2rem; }.job-success p:last-child { margin: 0; line-height: 1.6; }
 @media (max-width: 680px) { .job-form-grid, .job-signature-grid, .job-totals { grid-template-columns: 1fr; }.job-actions { align-items: stretch; flex-direction: column; }.job-action-buttons { justify-content: stretch; }.job-action-buttons .button { flex: 1 1 100%; }.job-hero { padding-top: 38px; }.job-form-container { width: calc(100% - 28px); padding-top: 14px; }.job-form-card { border-radius: var(--radius-xl); padding: 20px 16px; }.terms-panel { max-height: 340px; padding-left: 34px; }.signature-canvas { height: 190px; } }
 @media print { .utility-bar, .site-header, .site-footer, .mobile-sticky, .job-actions, .job-clear { display: none !important; }.job-completion-page { padding: 0; background: white; }.job-hero { padding: 20px 0; background: white; border-bottom: 2px solid #111; }.job-hero h1, .job-hero p:last-child { color: #111; }.job-form-container { width: 100%; max-width: none; padding-top: 14px; }.job-completion-form { gap: 12px; }.job-form-card { padding: 16px; border: 1px solid #bbb; border-radius: 0; box-shadow: none; break-inside: avoid; }.terms-panel { max-height: none; overflow: visible; padding: 14px 20px 14px 34px; }.signature-canvas { print-color-adjust: exact; -webkit-print-color-adjust: exact; }.job-success { break-inside: avoid; } }
+
+/* Commercial rates and compact booking terms */
+.commercial-pricing table {
+  width: 100%;
+  margin: 1rem 0;
+  font-variant-numeric: tabular-nums;
+  border-collapse: collapse;
+  font-size: 0.95rem;
+}
+.commercial-pricing th,
+.commercial-pricing td {
+  padding: 0.75rem 0.5rem;
+  text-align: left;
+  border-bottom: 1px solid var(--border-gold);
+}
+.commercial-terms { margin: 1.25rem 0; font-size: 0.875rem; line-height: 1.65; color: var(--text-secondary); }
+.commercial-terms h3 { font-size: 1rem; color: var(--text-primary); margin-bottom: 0.5rem; }
+.commercial-terms ul { list-style: disc; padding-left: 1.25rem; }
+.commercial-terms li + li { margin-top: 0.35rem; }
+.developer-credit { flex-wrap: wrap; }
+.developer-credit-promo { font-size: 0.78rem; text-transform: none; letter-spacing: normal; line-height: 1.5; }
+.developer-credit-promo a { color: var(--hf-gold-300); text-decoration: underline; text-underline-offset: 3px; }
+.developer-credit-promo a:hover { color: var(--accent); }
+
+.quote-success-promo { margin-top: 0.75rem; padding: 0.9rem; border: 1px solid var(--border-gold); border-radius: 8px; font-size: 0.875rem; line-height: 1.5; }
+.quote-success-promo p { margin: 0.35rem 0; }
+.quote-success-promo a { display: inline-block; color: var(--accent); text-decoration: underline; text-underline-offset: 3px; font-weight: 700; }

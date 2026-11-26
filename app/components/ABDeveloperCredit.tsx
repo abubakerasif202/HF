@@ -1,4 +1,4 @@
-const AB_STUDIO_URL = "https://www.abwebstudio.com.au/";
+export const AB_STUDIO_URL = "https://www.abwebstudio.com.au/";
 
 export function ABDeveloperCredit() {
   return (
@@ -8,7 +8,7 @@ export function ABDeveloperCredit() {
         className="developer-credit-link"
         href={AB_STUDIO_URL}
         target="_blank"
-        rel="noopener noreferrer"
+        rel="noopener noreferrer sponsored"
         aria-label="Visit AB Digital Solutions"
       >
         <img
@@ -21,6 +21,7 @@ export function ABDeveloperCredit() {
         />
         <span className="developer-credit-arrow" aria-hidden="true">↗</span>
       </a>
+      <span className="developer-credit-promo">Need a website for your business? <a href={AB_STUDIO_URL} target="_blank" rel="noopener noreferrer sponsored">AB Web Studio — Web design &amp; SEO ↗</a></span>
     </div>
   );
 }

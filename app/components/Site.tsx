@@ -288,6 +288,44 @@ function BookingHowItWorksSection() {
   );
 }
 
+const commercialRates = [
+  { movers: 3, hourly: 240 },
+  { movers: 4, hourly: 260 },
+  { movers: 5, hourly: 290 },
+];
+
+function CommercialMoveTerms() {
+  return (
+    <div className="commercial-terms">
+      <h3>Commercial moving terms</h3>
+      <ul>
+        <li>Standard hourly rates apply to the first 7.5 working hours each service day. Overtime is charged at 1.5 times the applicable crew rate.</li>
+        <li>A separate two-hour travel fee applies per service day at the agreed standard crew rate.</li>
+        <li>Protective packing is charged separately for each individually packed item. Specialist and heavy-item handling, additional deliveries and rubbish removal or disposal incur additional charges according to the agreed scope.</li>
+        <li>Additional crew members and chargeable services are subject to customer approval. Confirm applicable fees and payment terms in your commercial quote before booking.</li>
+        <li>Business-to-business rates exclude GST. These published terms apply to new commercial bookings from 27 November 2026, subject to the agreed quote.</li>
+      </ul>
+    </div>
+  );
+}
+
+function CommercialPricing() {
+  return (
+    <article className="commercial-pricing" id="commercial-pricing">
+      <h2>Office and commercial moving rates</h2>
+      <p>Business-to-business crew rates per hour, excluding GST. A separate two-hour daily travel fee applies, and overtime starts after 7.5 working hours.</p>
+      <table>
+        <thead><tr><th scope="col">Crew</th><th scope="col">Standard / hr</th><th scope="col">Overtime / hr</th></tr></thead>
+        <tbody>{commercialRates.map(({ movers, hourly }) => (
+          <tr key={movers}><th scope="row">{movers} movers</th><td>${hourly}</td><td>${hourly * 1.5}</td></tr>
+        ))}</tbody>
+      </table>
+      <CommercialMoveTerms />
+      <p><a href="/terms#commercial-terms">Website terms</a> · <a href="/#quote">Request a commercial quote</a></p>
+    </article>
+  );
+}
+
 function PricingSection({ showTrucks = true }: { showTrucks?: boolean } = {}) {
   return (
     <section className="section pricing-section" id="pricing">
@@ -1228,7 +1266,7 @@ function RelatedLinks({ page }: { page: ContentPage }) {
 // Interstate and backloading are per-cubic-metre quote-only, and
 // packing-unpacking is a wizard add-on, not a standalone bookable
 // service — none of the three can be booked as their own flow.
-const BOOKABLE_SERVICE_SLUGS = new Set(["residential-removals", "furniture-removals", "office-commercial-removals"]);
+const BOOKABLE_SERVICE_SLUGS = new Set(["residential-removals", "furniture-removals"]);
 
 export function DetailPage({ page }: { page: ContentPage }) {
   const area = page.kind === "area" ? hfServiceAreaRecords.find((item) => item.slug === page.slug) : undefined;
@@ -1306,6 +1344,7 @@ export function DetailPage({ page }: { page: ContentPage }) {
                 <p><a href="/pricing">Compare truck and crew rates and minimum charges</a>, then <a href="/#quote">request a quote for your move</a>.</p>
               </article>
             )}
+            {page.slug === "office-commercial-removals" && <CommercialPricing />}
             {page.sections.map((section) => (
               <article key={section.title}>
                 <h2>{section.title}</h2>
@@ -1379,6 +1418,7 @@ export function StaticPage({ type }: { type: "about" | "contact" | "pricing" | "
         <section className="section detail-section">
           <div className="container">
             <div className="editorial-sections">
+              <CommercialPricing />
               <article><h2>How your local removalist cost is calculated</h2><p>Choose the truck that suits your move. A 3-hour minimum service and a separate 1-hour call-out fee apply at the selected package rate. The call-out covers truck fuel and basic transport charges; it is not an extra hour of moving labour. Additional service time is billed in 30-minute increments. The final price is calculated after the move is completed.</p></article>
               <article><h2>What affects the time needed for your move?</h2><p>Prepare a room-by-room inventory, including garage and outdoor items. Tell HF about stairs, lift bookings, parking, the distance between the truck and each door, and furniture that needs special access planning. Loading, travel between addresses and unloading all need to be considered when discussing your move scope.</p></article>
               <article><h2>Compare the crew and packing requirements</h2><p>Choose from the 16 ton HR, 12 ton MR or 8 ton Small truck, each with a 2-man crew, with a third mover available on request. Share your property size and inventory so the truck can be matched to the load rather than chosen on price alone. Tell HF which items are already packed and whether you need <a href="/services/packing-unpacking">packing and unpacking support</a>, so the scope can be confirmed.</p></article>
@@ -1469,6 +1509,7 @@ export function StaticPage({ type }: { type: "about" | "contact" | "pricing" | "
               ? `HF can also be contacted directly at ${business.emails[0]} or ${business.phones[0].display}. Quote-form details are sent to HF through Web3Forms, a third-party form-delivery service, so the information you enter is shared with that provider for delivery of your enquiry.`
               : "Published prices are reference rates reproduced from supplied business material. Interstate prices are per cubic metre, not total move prices. Insurance references are subject to applicable policy terms and the individual move scope."}
           </p>
+          {!privacy && <section id="commercial-terms"><CommercialMoveTerms /><p><a href="/services/office-commercial-removals#commercial-pricing">View commercial hourly rates</a>.</p></section>}
           <h2>Contact</h2>
           <p>
             Questions can be sent to <a href={`mailto:${business.emails[0]}`}>{business.emails[0]}</a>.

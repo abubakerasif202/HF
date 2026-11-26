@@ -30,7 +30,6 @@ const emptyAddress: Address = { addressLine: "", suburb: "", state: "SA", postco
 const SERVICES = [
   { slug: "residential-removals", label: "Residential removals" },
   { slug: "furniture-removals", label: "Furniture removals" },
-  { slug: "office-commercial-removals", label: "Office & commercial removals" },
 ];
 
 const STEPS: { key: Step; label: string }[] = [
@@ -297,6 +296,7 @@ export function BookingWizard() {
               ))}
             </select>
           </label>
+          <p className="text-sm">Moving an office? <a className="underline" href="/services/office-commercial-removals#commercial-pricing">View commercial rates and request a quote</a>.</p>
           <TruckPicker name="truck_package_id" value={packageId} onChange={choosePackage} required legend="Choose your truck" idPrefix="wizard-truck" unavailableIds={unavailableIds} />
           {packageUnavailable && <p className="wizard-notice" role="alert">{TRUCK_UNAVAILABLE_MESSAGE}</p>}
           <div className="rounded-lg bg-neutral-50 px-4 py-3 text-sm text-neutral-600">
