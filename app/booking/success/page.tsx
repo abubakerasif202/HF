@@ -3,6 +3,7 @@ import { isBookingSystemLive } from "../../../lib/server/config.ts";
 import { getBookingByAccessToken } from "../../../lib/server/booking-repo.ts";
 import type { PricingSnapshot } from "../../../lib/booking/types.ts";
 import { describeBookedPackage } from "../../../lib/booked-package.ts";
+import { ReviewMilestoneCard } from "../../components/ReviewMilestoneCard";
 
 export const dynamic = "force-dynamic";
 export const metadata = { robots: { index: false, follow: false } };
@@ -91,7 +92,11 @@ export default async function BookingSuccessPage({ searchParams }: { searchParam
         increments at your selected package rate.
       </p>
 
-      <Link href="/" className="mt-10 inline-block rounded-full bg-neutral-900 px-6 py-3 text-white">Return home</Link>
+      <div className="mt-10 text-left">
+        <ReviewMilestoneCard placement="booking-confirmed" />
+      </div>
+
+      <Link href="/" className="mt-6 inline-block rounded-full bg-neutral-900 px-6 py-3 text-white">Return home</Link>
     </main>
   );
 }

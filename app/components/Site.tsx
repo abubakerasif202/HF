@@ -5,6 +5,7 @@ import { ABDeveloperCredit } from "./ABDeveloperCredit";
 import { contentTrail, homeCrumb, sectionCrumbs, staticCrumbLabels, type Crumb } from "../../lib/breadcrumbs";
 import { AdelaideGuide } from "./AdelaideGuide";
 import { HeroFleetPanel, TruckFitSection, TruckSection } from "./FleetSections";
+import { ReviewMilestoneCard } from "./ReviewMilestoneCard";
 import { CrewUpgradeNote, TruckCards } from "./TruckChooser";
 import { BookNowButton, Header, MobileStickyCta, MotionExperience, QuoteForm, SideQuoteTab, UtilityBar } from "./SiteClient";
 
@@ -884,6 +885,7 @@ export function HomePage() {
         </div>
       </section>
 
+      <ReviewMilestoneCard variant="feature" placement="home" />
       <TrustBar />
       <TruckSection />
       <TruckFitSection />
@@ -1355,6 +1357,7 @@ export function DetailPage({ page }: { page: ContentPage }) {
           <RelatedLinks page={page} />
         </div>
       </section>
+      {(page.kind === "service" || page.kind === "area") && <ReviewMilestoneCard placement={page.kind} />}
       <FaqSection faqs={page.faqs} title={`Questions about ${page.eyebrow.toLowerCase()}`} />
       <QuoteStrip quotePrimary={!isBookable} />
     </SiteFrame>
@@ -1437,6 +1440,7 @@ export function StaticPage({ type }: { type: "about" | "contact" | "pricing" | "
       <SiteFrame>
         <PageHero breadcrumbs={[homeCrumb, { label: staticCrumbLabels.about }]} eyebrow="Clear communication, careful handling" title="About HF Removals Adelaide" description="HF plans local and interstate moves around the details supplied by each customer." />
         <LeadershipSection />
+        <ReviewMilestoneCard placement="about" />
         <ReviewsSection />
         <ProcessSection />
         <PackingSection />
